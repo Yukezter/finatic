@@ -6,9 +6,9 @@ import * as iex from '../iex'
 export const getSearchResults = async (req: Request, res: Response): Promise<void> => {
   const { fragment } = req.params
 
-  const response = await iex.search(fragment)
+  const data = await iex.search(fragment)
 
-  res.send(response.data)
+  res.send(data)
 }
 
 export const getNewsData = (_req: Request, res: Response): void => {

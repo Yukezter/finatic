@@ -21,6 +21,9 @@ const Market = () => {
     cacheTime: 60 * 60 * 1000,
   })
 
+  console.log(data)
+
+
   if (isLoading) {
     return <div>Loading</div>
   }

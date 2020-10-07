@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import express from 'express'
 
+import { routeNotFound, errorHandler } from './middleware'
 import routes from './routes'
-import * as errorHanders from './middleware/errorHandlers'
 
 const PORT = process.env.PORT || 3000
 const app = express()
@@ -15,9 +15,8 @@ app.use(
 )
 
 app.use('/api', routes)
-
-app.use(errorHanders.routeNotFound)
-app.use(errorHanders.main)
+app.use(routeNotFound)
+app.use(errorHandler)
 
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}`)
