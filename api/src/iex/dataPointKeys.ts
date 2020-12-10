@@ -77,7 +77,7 @@ export const dataPointKeys = {
       description: 'US Recession Probabilities (monthly)',
     },
   ],
-  tresuries: [
+  treasuries: [
     {
       key: 'DGS1MO',
       description: '1-Month Treasury Rate (daily)',

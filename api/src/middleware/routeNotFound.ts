@@ -1,9 +1,4 @@
-import {
-  RequestHandler,
-  Request,
-  Response,
-  NextFunction,
-} from 'express'
+import { RequestHandler, Request, Response, NextFunction } from 'express'
 
 import { RouteNotFoundError } from '../errors'
 

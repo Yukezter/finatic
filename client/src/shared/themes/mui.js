@@ -1,23 +1,74 @@
-import { unstable_createMuiStrictModeTheme as createMuiTheme } from '@material-ui/core'
-import { sizes } from '../utils/styles'
+import {
+  unstable_createMuiStrictModeTheme as createMuiTheme,
+  responsiveFontSizes,
+} from '@material-ui/core/styles'
+// import { sizes } from '../utils/styles'
+import './fonts.css'
 
-import '../assets/css/fonts.css'
-
-const fonts = {
-  primary: "'Lato', open-sans",
-  secondary: "'Montserrat', open-sans",
-}
-
-const lightTheme = createMuiTheme({
+const theme = {
   breakpoints: {
     values: {
       xs: 320,
       sm: 640,
       md: 768,
-      lg: 1024, // or 1000
-      xl: 1280,
+      lg: 1024,
+      xl: 1180,
     },
   },
+  typography: {
+    fontFamily: "'Roboto Condensed', sans-serif",
+    // h1: {
+    //   fontFamily: "'Roboto Condensed', sans-serif",
+    //   fontWeight: 400,
+    // },
+    // h2: {
+    //   fontFamily: "'Roboto Condensed', sans-serif",
+    //   fontWeight: 400,
+    // },
+    // h3: {
+    //   fontFamily: "'Roboto Condensed', sans-serif",
+    //   fontWeight: 400,
+    // },
+    // h4: {
+    //   fontFamily: "'Roboto Condensed', sans-serif",
+    //   fontWeight: 400,
+    // },
+    // h5: {
+    //   fontFamily: "'Roboto Condensed', sans-serif",
+    //   fontWeight: 400,
+    // },
+    // h6: {
+    //   fontFamily: "'Roboto Condensed', sans-serif",
+    //   fontWeight: 400,
+    // },
+  },
+  props: {
+    MuiButtonBase: {
+      disableRipple: true,
+      disableTouchRipple: true,
+    },
+    MuiButton: {
+      disableRipple: true,
+      disableFocusRipple: true,
+      disableTouchRipple: true,
+      disableElevation: true,
+    },
+  },
+  overrides: {
+    MuiButton: {
+      root: {
+        borderRadius: 0,
+        minWidth: 'auto',
+        '&&:hover': {
+          background: 'initial',
+        },
+      },
+    },
+  },
+}
+
+const lightTheme = createMuiTheme({
+  ...theme,
   palette: {
     background: {
       default: '#f7f4f3',
@@ -35,60 +86,9 @@ const lightTheme = createMuiTheme({
     },
     text: {
       primary: '#080708',
-      secondary: 'rgba(8, 7, 8, 0.5)',
-    },
-  },
-  typography: {
-    fontFamily: fonts.primary,
-    h1: {
-      fontFamily: fonts.secondary,
-    },
-    h2: {
-      fontFamily: fonts.secondary,
-    },
-    h3: {
-      fontFamily: fonts.secondary,
-    },
-    h4: {
-      fontFamily: fonts.secondary,
-    },
-    h5: {
-      fontFamily: fonts.secondary,
-    },
-    h6: {
-      fontFamily: fonts.secondary,
-    },
-  },
-  props: {
-    MuiToolbar: {
-      variant: 'dense',
-    },
-    MuiButtonBase: {
-      disableRipple: true,
-      disableTouchRipple: true,
-    },
-    MuiButton: {
-      disableRipple: true,
-      disableFocusRipple: true,
-      disableTouchRipple: true,
-      disableElevation: true,
-    },
-  },
-  overrides: {
-    MuiToolbar: {
-      root: {
-        height: sizes.headerHeight,
-      },
-    },
-    MuiIconButton: {
-      root: {
-        borderRadius: 0,
-        '&&:hover': {
-          background: 'initial',
-        },
-      },
+      secondary: 'rgba(8, 7, 8, 0.75)',
     },
   },
 })
 
-export { lightTheme }
+export default responsiveFontSizes(lightTheme)

@@ -4,7 +4,6 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint src/server.ts",
     "start": "nodemon --exec ts-node --files src/server.ts",
-    "start-wsl": "nodemon -L --exec ts-node --files src/server.ts",
     "build": "cd src && tsc"
   },
   "author": "Bryan Hinchliffe",

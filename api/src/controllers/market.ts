@@ -11,14 +11,14 @@ const requestDataPoint = async (key: string, description: string): Promise<any> 
 
   return {
     description,
-    dataPoint
+    dataPoint,
   }
 }
 
 const getDataPoints = async (dataPointKeys: any[]): Promise<any> => {
   const dataPoints = []
 
-  const requests = dataPointKeys.map(v => requestDataPoint(v.key, v.description))
+  const requests = dataPointKeys.map((v) => requestDataPoint(v.key, v.description))
   const chunkedRequests = chunk(requests, BATCH_SIZE)
 
   for (let i = 0; i < chunkedRequests.length; i++) {
@@ -31,8 +31,26 @@ const getDataPoints = async (dataPointKeys: any[]): Promise<any> => {
   return dataPoints
 }
 
-export const getMarketData = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-  const mostActive = await iex.list('mostactive')
+export const getMarketData = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> => {
+  const earningsToday = await iex.earningsToday()
+
+  await sleep(5)
+
+  const top10ListsResolved = await Promise.all([
+    iex.list('mostactive'),
+    iex.list('gainers'),
+    iex.list('losers'),
+  ])
+
+  const top10Lists = {
+    mostActive: top10ListsResolved[0],
+    gainers: top10ListsResolved[1],
+    losers: top10ListsResolved[2],
+  }
 
   await sleep(5)
 
@@ -40,18 +58,20 @@ export const getMarketData = async (_req: Request, res: Response, next: NextFunc
 
   const dataPoints: any = {}
   dataPoints.economy = await getDataPoints(iex.dataPointKeys.economy)
-  dataPoints.tresuries = await getDataPoints(iex.dataPointKeys.tresuries)
+  dataPoints.treasuries = await getDataPoints(iex.dataPointKeys.treasuries)
   dataPoints.commodities = await getDataPoints(iex.dataPointKeys.commodities)
 
   const data = {
-    mostActive,
+    earningsToday,
+    top10Lists,
     sectorPerformance,
-    dataPoints
+    dataPoints,
   }
+
+  console.log(data)
 
   res.send(data)
 
-  // cache
   res.locals.data = data
   next()
 }

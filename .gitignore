@@ -10,3 +10,6 @@
 # production
 **/build
 **/npm-debug.log*
+
+# old client app
+client2/
