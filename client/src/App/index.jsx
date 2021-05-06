@@ -2,17 +2,17 @@ import { BrowserRouter } from 'react-router-dom'
 import { CssBaseline, MuiThemeProvider } from '@material-ui/core'
 
 import theme from '../shared/themes/mui'
-import Project from './Project'
+import App from './App'
 
-const App = () => {
+const AppContainer = () => {
   return (
     <BrowserRouter>
       <MuiThemeProvider theme={theme}>
         <CssBaseline />
-        <Project />
+        <App />
       </MuiThemeProvider>
     </BrowserRouter>
   )
 }
 
-export default App
+export default AppContainer

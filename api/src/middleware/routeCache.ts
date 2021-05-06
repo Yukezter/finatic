@@ -10,13 +10,14 @@ export const getCache = async (
   const cached = await client.GET(req.originalUrl)
 
   if (cached) {
-    res.send(JSON.parse(cached))
-    return
+    return res.json(JSON.parse(cached))
   }
 
   next()
 }
 
 export const setCache = async (req: Request, res: Response): Promise<any> => {
-  await client.SET(req.originalUrl, JSON.stringify(res.locals.data))
+  const { data } = res.locals
+  res.json(data)
+  await client.SET(req.originalUrl, JSON.stringify(data))
 }

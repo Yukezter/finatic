@@ -1,20 +1,27 @@
-import { Request, Response } from 'express'
+import { Request, Response, NextFunction } from 'express'
 
 // import { CustomError } from '../errors'
 import * as iex from '../iex'
 
-export const getSearchResults = async (req: Request, res: Response): Promise<void> => {
-  const { fragment } = req.params
+export const getNews = async (
+  _req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const data = await iex.news()
 
-  const data = await iex.search(fragment)
-
-  res.send(data)
+  res.locals.data = data
+  next()
 }
 
-export const getNewsData = (_req: Request, res: Response): void => {
-  res.send('News data!')
-}
+export const getCompanyNews = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  const { symbol, last } = req.params
+  const data = await iex.news(last, symbol)
 
-export const getCompanyData = (_req: Request, res: Response): void => {
-  res.send('Company data!')
+  res.locals.data = data
+  next()
 }

@@ -6,7 +6,7 @@ const client = redis.createClient()
 const toPromise = (func: any) => promisify(func).bind(client)
 
 client.on('connect', () => {
-  console.log('REDIS!!!')
+  console.log('Redis connected...')
 })
 
 export const GET = toPromise(client.GET)

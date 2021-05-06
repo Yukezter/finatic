@@ -2,165 +2,437 @@ import React from 'react'
 import _ from 'lodash'
 import { makeStyles } from '@material-ui/core'
 import TextField from '@material-ui/core/TextField'
-import InputAdornment from '@material-ui/core/InputAdornment'
 import Typography from '@material-ui/core/Typography'
 import Paper from '@material-ui/core/Paper'
-import Container from '@material-ui/core/Container'
-// import Box from '@material-ui/core/Box'
+import Chip from '@material-ui/core/Chip'
 import { useAutocomplete, createFilterOptions } from '@material-ui/lab'
 
-import { ReactComponent as CloseIcon } from '../../shared/icons/close.svg'
 import { ReactComponent as SearchIcon } from '../../shared/icons/loupe.svg'
 
-import Button from '../../shared/components/Button'
-
-// import useLogRenders from '../../shared/hooks/useLogRenders'
 import useMergeState from '../../shared/hooks/useMergeState'
 import api from '../../shared/utils/api'
 
-const useStyles = makeStyles(({ palette, spacing }) => ({
-  root: {
-    width: '100%',
-    maxWidth: 680,
-    position: 'relative',
-    display: 'flex',
-    margin: '0 auto',
-    alignSelf: 'flex-start',
-  },
-  searchIcon: {
-    padding: spacing(1.5),
-    '& svg': {
-      display: 'block',
-      height: spacing(3),
-      width: spacing(3),
-    },
-  },
-  closeButton: {
-    padding: spacing(1.5),
-    '& svg': {
-      display: 'block',
-      height: spacing(3),
-      width: spacing(3),
-    },
-  },
-  Input: {
-    height: 48,
-  },
-  underline: {
-    '&&&::before, :hover::before, &&&::after': {
-      borderBottom: 'none',
-    },
-  },
-  paper: {
-    width: '100%',
-    position: 'absolute',
-    top: 48,
-    overflow: 'hidden',
-    zIndex: 1,
-    border: `1px solid ${palette.divider}`,
-  },
-  listbox: {
-    width: '100%',
-    listStyle: 'none',
-    overflow: 'auto',
-    maxHeight: 280,
-    margin: 0,
-    padding: `${spacing(1)}px 0`,
-    boxSizing: 'border-box',
-    '& > li': {
-      display: 'flex',
-      outline: 0,
-      minHeight: 48,
-      cursor: 'pointer',
-      alignItems: 'center',
-      paddingTop: 6,
-      paddingLeft: 16,
-      paddingRight: 16,
-      paddingBottom: 6,
-    },
-    '& > li[data-focus="true"]': {
-      backgroundColor: 'rgba(0, 0, 0, 0.04)',
-    },
-    '& > li:active': {
-      backgroundColor: 'rgba(0, 0, 0, 0.08)',
-    },
-  },
-  loading: {
-    color: 'rgba(8, 7, 8, 0.5)',
-    padding: '14px 16px',
-  },
-}))
+import Icon from '../../shared/components/Icon'
 
-const Autocomplete = React.forwardRef(({ history, closeModal }, autocompleteRef) => {
-  const classes = useStyles()
+// Loop through array
+// Pop element with a random number between 0 and the current length of the array
+// Check if string length is less than n
+// Push to new array if true
+const sectors = _.sampleSize(
+  [
+    // { name: 'Other Services (except Public Administration)' },
+    { name: 'Commercial Services' },
+    { name: 'Retail Trade' },
+    { name: 'Distribution Services' },
+    { name: 'Process Industries' },
+    // { name: 'Professional, Scientific, and Technical Services' },
+    { name: 'Wholesale Trade' },
+    // { name: 'Administrative and Support and Waste Management and Remediation Services' },
+    { name: 'Technology Services' },
+    { name: 'Educational Services' },
+    { name: 'Consumer Durables' },
+    { name: 'Miscellaneous' },
+    { name: 'Government' },
+    // { name: 'Real Estate and Rental and Leasing' },
+    { name: 'Consumer Non-Durables' },
+    { name: 'Communications' },
+    { name: 'Health Services' },
+    { name: 'Finance' },
+    { name: 'Producer Manufacturing' },
+    { name: 'Manufacturing' },
+    { name: 'Information' },
+    // { name: 'Health Care and Social Assistance' },
+    { name: 'Transportation' },
+    // { name: 'Agriculture, Forestry, Fishing and Hunting' },
+    // { name: 'Accommodation and Food Services' },
+    { name: 'Energy Minerals' },
+    { name: 'Health Technology' },
+    { name: 'Construction' },
+    { name: 'Public Administration' },
+    // { name: 'Arts, Entertainment, and Recreation' },
+    // { name: 'Mining, Quarrying, and Oil and Gas Extraction' },
+    { name: 'Consumer Services' },
+    { name: 'Finance and Insurance' },
+    { name: 'Utilities' },
+    // { name: 'Management of Companies and Enterprises' },
+    { name: 'Non-Energy Minerals' },
+    { name: 'Electronic Technology' },
+    { name: 'Transportation and Warehousing' },
+    { name: 'Industrial Services' },
+  ],
+  8,
+)
+
+const useStyles = makeStyles(({ palette, spacing, typography, breakpoints }) => {
+  // const background = palette.secondary.main
+  const background = palette.common.white
+  const borderColor = 'rgba(0, 0, 0, 0.23)'
+  const borderColorHover = palette.common.black
+  const borderColorFocus = palette.common.black
+  const borderColorDialog = 'transparent'
+  const pX = spacing(3)
+  const pXDialog = spacing(2)
+
+  return {
+    root: ({ fromDialog }) => ({
+      maxWidth: fromDialog ? '100%' : 420,
+      width: '100%',
+      height: spacing(4.5),
+      position: 'relative',
+      [breakpoints.up('lg')]: {
+        maxWidth: 500,
+      },
+    }),
+    wrapper: ({ fromDialog }) => ({
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      background: 'transparent',
+      borderWidth: 1,
+      borderStyle: 'solid',
+      borderColor: fromDialog ? borderColorDialog : borderColor,
+      borderRadius: spacing(0.5),
+      transition: 'border-color 300ms ease 0s',
+      '&:hover': {
+        background,
+        borderColor: fromDialog ? borderColorDialog : borderColorHover,
+      },
+      '&:focus-within': {
+        background,
+        borderColor: fromDialog ? borderColorDialog : borderColorFocus,
+        '& svg': {
+          color: palette.text.primary,
+        },
+      },
+    }),
+    textField: {
+      height: spacing(4.5),
+      position: 'initial',
+      padding: 0,
+    },
+    inputRoot: {
+      height: spacing(4.5),
+      position: 'initial',
+    },
+    notchedOutline: {
+      border: 'none',
+    },
+    input: {
+      height: spacing(4.5),
+      paddingLeft: 0,
+      '&::placeholder': {
+        color: 'rgba(0, 0, 0, 0.54)',
+        opacity: 1,
+      },
+    },
+    paper: {
+      width: '100%',
+      paddingTop: spacing(1),
+      paddingBottom: spacing(1),
+      overflow: 'hidden',
+      background,
+    },
+    title: ({ fromDialog }) => ({
+      color: palette.common.black,
+      paddingTop: spacing(1),
+      paddingBottom: spacing(1),
+      paddingLeft: fromDialog ? pXDialog : pX,
+      paddingRight: fromDialog ? pXDialog : pX,
+    }),
+    listbox: {
+      width: '100%',
+      margin: 0,
+      padding: 0,
+      listStyle: 'none',
+    },
+    item: ({ fromDialog }) => ({
+      display: 'flex',
+      alignItems: 'center',
+      cursor: 'pointer',
+      paddingTop: spacing(0.75),
+      paddingBottom: spacing(0.75),
+      paddingLeft: fromDialog ? pXDialog : pX,
+      paddingRight: fromDialog ? pXDialog : pX,
+      '&[data-focus="true"]': {
+        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+      },
+      '&:active': {
+        backgroundColor: 'rgba(0, 0, 0, 0.08)',
+      },
+      '& > div': {
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis',
+      },
+      '& > div > span': {},
+      '& > div > span:first-child': {
+        width: spacing(12),
+        display: 'inline-block',
+      },
+    }),
+    stocks: {
+      marginBottom: spacing(1),
+    },
+    sectors: {
+      marginBottom: spacing(1),
+    },
+    defaultDialogContent: ({ fromDialog }) => ({
+      paddingTop: spacing(1),
+      paddingBottom: spacing(1),
+      paddingLeft: fromDialog ? pXDialog : pX,
+      paddingRight: fromDialog ? pXDialog : pX,
+    }),
+    noResults: ({ fromDialog }) => ({
+      paddingTop: spacing(1),
+      paddingBottom: spacing(1),
+      paddingLeft: fromDialog ? pXDialog : pX,
+      paddingRight: fromDialog ? pXDialog : pX,
+    }),
+    chips: ({ fromDialog }) => ({
+      paddingLeft: fromDialog ? pXDialog : pX,
+      paddingRight: fromDialog ? pXDialog : pX,
+      '& > div': {
+        marginRight: spacing(0.5),
+        marginBottom: spacing(1),
+        fontFamily: typography.body1.fontFamily,
+        background: palette.common.white,
+        color: palette.common.black,
+        borderColor: palette.common.black,
+      },
+    }),
+  }
+})
+
+const addParts = inputValue => option => {
+  const getParts = text => {
+    const regex = new RegExp(`(${_.escapeRegExp(inputValue)})`, 'gi')
+    return text.split(regex).map(part => ({
+      part,
+      isHighlighted: part.toLowerCase() === inputValue.toLowerCase(),
+    }))
+  }
+
+  option.parts = {
+    symbol: getParts(option.symbol),
+    securityName: getParts(option.securityName),
+  }
+
+  return option
+}
+
+const highlight = (parts, color) => {
+  return parts.map(({ part, isHighlighted }, index) => (
+    <span key={index} style={{ color: isHighlighted ? color : 'initial' }}>
+      {part}
+    </span>
+  ))
+}
+
+const fetch = _.debounce(async (inputValue, successCb, errorCb) => {
+  api
+    .get(`/search/${inputValue}`)
+    .then(({ data }) => successCb(data))
+    .catch(error => errorCb(error))
+}, 100)
+
+// let popupCount = 0
+
+const Popup = ({
+  classes,
+  theme,
+  getListboxProps,
+  getOptionProps,
+  popupOpen,
+  options,
+  noResults,
+  fromDialog,
+}) => {
+  // console.log('Popup:', ++popupCount)
+
+  const highlightColor = theme.palette.primary.main
+
+  return popupOpen ? (
+    <Paper className={classes.paper} elevation={0}>
+      {!!options.length ? (
+        <>
+          <div className={classes.stocks}>
+            <Typography
+              variant='body2'
+              component='p'
+              color='textSecondary'
+              className={classes.title}
+            >
+              Stocks
+            </Typography>
+            <ul className={classes.listbox} {...getListboxProps()}>
+              {options.map((option, index) => (
+                <li className={classes.item} {...getOptionProps({ option, index })}>
+                  <div>
+                    <Typography variant='body2' component='span'>
+                      {highlight(option.parts.symbol, highlightColor)}
+                    </Typography>
+                    <Typography variant='body2' component='span'>
+                      {highlight(option.parts.securityName, highlightColor)}
+                    </Typography>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className={classes.sectors}>
+            <Typography
+              variant='body2'
+              component='p'
+              color='textSecondary'
+              className={classes.title}
+            >
+              Sectors
+            </Typography>
+            <div className={classes.chips}>
+              {sectors.map(({ name }) => (
+                <Chip
+                  key={name}
+                  label={name}
+                  size='small'
+                  variant='outlined'
+                  clickable
+                />
+              ))}
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {fromDialog && !noResults ? (
+            <div className={classes.defaultDialogContent}>
+              <Typography variant='body2' component='span'>
+                From dialog.
+              </Typography>
+            </div>
+          ) : (
+            noResults && (
+              <div className={classes.noResults}>
+                <Typography variant='body2' component='span'>
+                  No stonks found.
+                </Typography>
+              </div>
+            )
+          )}
+        </>
+      )}
+    </Paper>
+  ) : null
+}
+
+let count = 0
+
+const Autocomplete = React.forwardRef((props, inputRef) => {
+  console.log('search:', ++count)
+
+  const { theme, history, fromDialog } = props
 
   const [state, mergeState] = useMergeState({
-    loading: false,
-    options: [],
     inputValue: '',
+    open: false,
+    options: [],
+    noResults: false,
   })
 
-  // useLogRenders(state)
-
-  const fetch = React.useCallback(
-    _.debounce(async (inputValue, callback) => {
-      const response = await api.get(`/search/${inputValue}`).catch(() => {
-        mergeState({
-          loading: false,
-          options: [],
-        })
-      })
-
-      callback(response.data)
-    }, 1000),
-    [],
-  )
-
-  React.useEffect(() => {
-    let active = true
-
-    const inputValue = state.inputValue.trim()
-    if (!inputValue) return
-
-    fetch(inputValue, (options) => {
-      if (active) {
-        mergeState({
-          loading: false,
-          options: options,
-        })
-      }
-    })
-
-    return () => {
-      active = false
-    }
-  }, [state.inputValue, fetch, mergeState])
-
-  const onChange = (_event, newValue, reason) => {
-    if (reason === 'select-option' && newValue) {
-      history.push(`/company/${newValue.symbol}`)
-
-      closeModal()
-    }
-  }
-
-  const onInputChange = (_event, inputValue, reason) => {
-    if (reason === 'input') {
-      mergeState({
-        loading: !!inputValue.trim(),
-        options: [],
-        inputValue,
-      })
-    }
-  }
-
   const filterOptions = createFilterOptions({
-    limit: 10,
+    limit: 6,
     trim: true,
     stringify: ({ symbol, securityName }) => {
       return symbol + ' ' + securityName
     },
   })
+
+  React.useEffect(() => {
+    let active = true
+
+    if (!state.inputValue.trim()) return
+
+    fetch(
+      state.inputValue,
+      options => {
+        if (active) {
+          mergeState({
+            open: true,
+            options: options.map(addParts(state.inputValue)),
+            noResults: !options.length,
+          })
+        }
+      },
+      error => {
+        if (active) {
+          console.log(error)
+
+          mergeState({
+            open: false,
+            options: [],
+            noResults: false,
+          })
+        }
+      },
+    )
+
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.inputValue])
+
+  const onInputChange = (_event, inputValue, reason) => {
+    if (reason === 'input') {
+      const newState = {
+        inputValue,
+      }
+
+      if (!inputValue.trim()) {
+        newState.open = false
+        newState.options = []
+        newState.noResults = false
+      }
+
+      mergeState(newState)
+    }
+  }
+
+  const onChange = (_event, newValue, reason) => {
+    if (reason === 'select-option' && newValue) {
+      history.push(`/company/${newValue.symbol}`)
+      mergeState({ open: false })
+    }
+  }
+
+  const onOpen = () => {
+    if (!state.open) {
+      mergeState({ open: true })
+    }
+  }
+
+  const onClose = (event, reason) => {
+    if (reason === 'blur') {
+      mergeState({ open: false })
+    }
+  }
+
+  const autocompleteProps = {
+    id: 'search-autocomplete',
+    options: state.options,
+    getOptionLabel: ({ securityName }) => securityName,
+    filterOptions,
+    inputValue: state.inputValue,
+    value: null,
+    onInputChange,
+    onChange,
+    onOpen,
+    onClose,
+  }
+
+  const open =
+    (state.open && !!state.options.length) || (state.open && state.noResults)
+  autocompleteProps.open = fromDialog ? true : open
 
   const {
     getRootProps,
@@ -168,110 +440,51 @@ const Autocomplete = React.forwardRef(({ history, closeModal }, autocompleteRef)
     getInputProps,
     getListboxProps,
     getOptionProps,
-    groupedOptions,
     popupOpen,
-  } = useAutocomplete({
-    id: 'search-autocomplete',
-    value: null,
-    onChange,
-    inputValue: state.inputValue,
-    onInputChange,
-    options: state.options,
-    open: !!state.inputValue.length,
-    getOptionLabel: ({ securityName }) => securityName,
-    filterOptions,
-    clearOnBlur: false,
-    openOnFocus: false,
-    selectOnFocus: false,
-  })
+  } = useAutocomplete(autocompleteProps)
 
-  // Override 'Escape' key so that it closes modal instead
-  const RootProps = () => {
-    const { onKeyDown, ...restRootProps } = getRootProps()
-
-    return {
-      ...restRootProps,
-      onKeyDown: (event) => {
-        if (event.key === 'Escape') {
-          closeModal()
-        } else {
-          onKeyDown(event)
-        }
-      },
-    }
-  }
+  const classes = useStyles({ fromDialog, popupOpen: open })
 
   return (
     <div className={classes.root}>
-      <Container className="search-content" maxWidth={false} disableGutters>
-        <Container maxWidth={false} disableGutters>
-          <TextField
-            {...RootProps()}
-            fullWidth
-            size="small"
-            hiddenLabel
-            aria-label="search"
-            placeholder="Search finatic.com"
-            InputLabelProps={{
-              ...getInputLabelProps(),
-            }}
-            InputProps={{
-              ...getInputProps(),
-              inputRef: autocompleteRef,
-              classes: {
-                root: classes.Input,
-                underline: classes.underline,
-              },
-              startAdornment: (
-                <InputAdornment>
-                  <div className={classes.searchIcon}>
-                    <SearchIcon />
-                  </div>
-                </InputAdornment>
-              ),
-            }}
-          />
-          {popupOpen && (
-            <Paper className={classes.paper} square elevation={0}>
-              {state.loading ? (
-                <div className={classes.loading}>
-                  <Typography variant="body1" component="span">
-                    Loading...
-                  </Typography>
-                </div>
-              ) : !groupedOptions.length ? (
-                <div className={classes.loading}>
-                  <Typography variant="body1" component="span">
-                    No options
-                  </Typography>
-                </div>
-              ) : (
-                <ul className={classes.listbox} {...getListboxProps()}>
-                  {groupedOptions.map((option, index) => (
-                    <li {...getOptionProps({ option, index })}>
-                      <div>
-                        <Typography variant="body1" component="h6">
-                          {option.symbol}
-                        </Typography>
-                        <Typography variant="caption" component="span">
-                          {option.securityName}
-                        </Typography>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Paper>
-          )}
-        </Container>
-      </Container>
-      <Button
-        className={classes.closeButton + ' close-modal-button'}
-        aria-label="Close"
-        onClick={closeModal}
-      >
-        <CloseIcon />
-      </Button>
+      <div {...getRootProps()} className={classes.wrapper}>
+        <TextField
+          className={classes.textField}
+          fullWidth
+          size='small'
+          variant='outlined'
+          hiddenLabel
+          aria-label='search'
+          placeholder='Stonks...'
+          InputLabelProps={{
+            ...getInputLabelProps(),
+          }}
+          InputProps={{
+            ...getInputProps(),
+            inputRef,
+            classes: {
+              root: classes.inputRoot,
+              notchedOutline: classes.notchedOutline,
+            },
+            startAdornment: (
+              <Icon classes={{ icon: classes.icon }} Icon={SearchIcon} />
+            ),
+          }}
+          inputProps={{
+            className: classes.input,
+          }}
+        />
+        <Popup
+          classes={classes}
+          theme={theme}
+          options={state.options}
+          noResults={state.noResults}
+          getListboxProps={getListboxProps}
+          getOptionProps={getOptionProps}
+          popupOpen={popupOpen}
+          fromDialog={fromDialog}
+        />
+      </div>
     </div>
   )
 })

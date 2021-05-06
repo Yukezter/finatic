@@ -1,12 +1,12 @@
-import { styled } from '@material-ui/core/styles'
+import React from 'react'
 import Button from '@material-ui/core/Button'
 
-const MyButton = styled(Button)({
-  padding: 0
-})
-
-const StyledButton = props => {
-  return <MyButton {...props} />
+const defaultStyles = {
+  // padding: 0,
 }
+
+const StyledButton = React.forwardRef((props, ref) => {
+  return <Button ref={ref} {...props} style={defaultStyles} />
+})
 
 export default StyledButton

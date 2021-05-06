@@ -9,13 +9,16 @@
   "author": "Bryan Hinchliffe",
   "license": "ISC",
   "dependencies": {
+    "@types/ip": "^1.1.0",
     "@types/lodash": "^4.14.161",
     "@types/redis": "^2.8.27",
-    "axios": "^0.20.0",
+    "axios": "^0.21.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-promise-router": "^4.0.1",
+    "ip": "^1.1.5",
     "lodash": "^4.17.20",
+    "moment": "^2.29.1",
     "redis": "^3.0.2"
   },
   "devDependencies": {
