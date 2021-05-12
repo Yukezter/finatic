@@ -7,12 +7,14 @@ import './fonts.css'
 
 const theme = {
   breakpoints: {
+    keys: ['xs', 'sm', 'md', 'lg', 'xl', 'xxl'],
     values: {
       xs: 320,
       sm: 640,
-      md: 768,
+      md: 880,
       lg: 1024,
       xl: 1180,
+      xxl: 1312,
       // xs: 320,
       // sm: 640,
       // md: 992,

@@ -41,14 +41,14 @@ const useStyles = makeStyles(({ breakpoints, spacing, palette }) => ({
     },
     '& img': {
       width: '100%',
-      borderRadius: spacing(0.5),
+      borderRadius: spacing(0.75),
     },
   },
   featured: {
     width: '100%',
     display: 'flex',
     flexDirection: 'column',
-    borderBottom: `1px solid ${palette.divider}`,
+    marginBottom: spacing(1),
     '& > .featured-image': {
       width: '100%',
       marginBottom: spacing(2),
@@ -92,7 +92,11 @@ const useStyles = makeStyles(({ breakpoints, spacing, palette }) => ({
       },
     },
   },
-  articles: {},
+  articles: {
+    '& > a:first-child': {
+      borderTop: `1px solid ${palette.divider}`,
+    },
+  },
   article: {
     flexDirection: 'column',
     alignItems: 'flex-start',
@@ -217,7 +221,8 @@ const News = () => {
               <ListItem
                 key={index}
                 className={classes.article}
-                divider={index !== array.length - 1}
+                // divider={index !== array.length - 1}
+                divider
                 disableGutters
                 component='a'
                 href={article.url}

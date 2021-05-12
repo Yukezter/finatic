@@ -11,7 +11,7 @@ import useUnderBreakpoint from '../shared/hooks/useUnderBreakpoint'
 import { toCurrency, toPercent, toSuffixed } from '../shared/utils/numberFormat'
 
 const rowHeightMobile = 48
-const rowHeight = 52
+const rowHeight = 54
 
 const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
   root: {
@@ -75,11 +75,12 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
       height: '100%',
       display: 'flex',
       alignItems: 'center',
-      paddingBottom: 2,
       borderColor: 'rgba(224, 224, 224, 1)',
       borderBottomWidth: 1,
       borderBottomStyle: 'solid',
       paddingRight: spacing(0.75),
+      paddingTop: 2,
+      paddingBottom: 2,
     },
     '& > td > div > a': {
       height: '100%',
@@ -87,8 +88,12 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
       display: 'flex',
       alignItems: 'center',
     },
+    '&:hover > td.done-loading > div': {
+      paddingBottom: 1,
+      borderWidth: 2,
+      borderColor: palette.primary.main,
+    },
     '& > td:first-child': {
-      // paddingLeft: spacing(0.75),
       fontWeight: 600,
       '& div > a': {
         paddingLeft: spacing(0.75),
@@ -98,30 +103,30 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
         whiteSpace: 'nowrap',
       },
     },
-    '&:hover > td > div.done-loading': {
-      paddingBottom: 1,
-      borderWidth: 2,
-      borderColor: palette.primary.main,
+    '& td:not(:first-child)': {
+      width: spacing(8),
     },
     [breakpoints.up('sm')]: {
-      '& > td:first-child': {
-        maxWidth: spacing(42),
-        width: spacing(42),
-      },
-    },
-    [breakpoints.up('md')]: {
-      '& > td:first-child': {
-        maxWidth: spacing(34),
-        width: spacing(34),
-      },
       '& > td': {
         height: rowHeight,
       },
+      '& td:not(:first-child)': {
+        width: spacing(10),
+      },
+    },
+    [breakpoints.up(breakpoints.values.sm + 120)]: {
+      '& td:not(:first-child)': {
+        width: spacing(13),
+      },
+    },
+    [breakpoints.up('md')]: {
+      '& td:not(:first-child)': {
+        width: spacing(8),
+      },
     },
     [breakpoints.up('lg')]: {
-      '& > td:first-child': {
-        maxWidth: spacing(38),
-        width: spacing(38),
+      '& td:not(:first-child)': {
+        width: spacing(10),
       },
     },
   },
@@ -140,9 +145,9 @@ const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
 
 const renderCell = formatter => ({ value, cell }) => (
   <Link to={`/company/${cell.row.original.symbol}`}>
-    {cell.column.id === 'changePercent' && (
+    {/* {cell.column.id === 'changePercent' && (
       <ArrowIcon up={value >= 0} style={{ marginRight: 8 }} />
-    )}
+    )} */}
     <span>{formatter === undefined ? value : formatter(value)}</span>
   </Link>
 )
@@ -155,16 +160,24 @@ const columns = [
   { accessor: 'volume', Header: 'Volume', Cell: renderCell(toSuffixed) },
 ]
 
+const regex = /(( Group)?,? Inc)?(Co(rp(oration)?)?)?( Ltd)?( - Class [A-Z])?\.?( - New)?$/
+
 let count = 0
 
 const TableView = React.memo(
   ({ classes, data, isLoading, isMobile }) => {
     console.log('React table:', ++count)
 
-    const tableData = React.useMemo(() => (isLoading ? Array(20).fill({}) : data), [
-      isLoading,
-      data,
-    ])
+    const tableData = React.useMemo(
+      () =>
+        isLoading
+          ? Array(20).fill({})
+          : data.map(d => {
+              d.companyName = d.companyName.replace(regex, '')
+              return d
+            }),
+      [isLoading, data],
+    )
 
     const tableColumns = React.useMemo(
       () =>
@@ -253,10 +266,11 @@ const TableView = React.memo(
               return (
                 <tr {...row.getRowProps()} className={classes.bodyRow}>
                   {row.cells.map(cell => (
-                    <td {...cell.getCellProps()}>
-                      <div className={isLoading ? 'loading' : 'done-loading'}>
-                        {cell.render('Cell')}
-                      </div>
+                    <td
+                      className={isLoading ? 'loading' : 'done-loading'}
+                      {...cell.getCellProps()}
+                    >
+                      <div>{cell.render('Cell')}</div>
                     </td>
                   ))}
                 </tr>
@@ -277,7 +291,7 @@ const TableView = React.memo(
 
 const Table = ({ data, isLoading }) => {
   const classes = useStyles()
-  const isMobile = useUnderBreakpoint(520)
+  const isMobile = useUnderBreakpoint(400)
 
   return (
     <TableView

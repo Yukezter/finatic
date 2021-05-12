@@ -92,7 +92,7 @@ const useStyles = makeStyles(({ palette, spacing, typography, breakpoints }) => 
       borderWidth: 1,
       borderStyle: 'solid',
       borderColor: fromDialog ? borderColorDialog : borderColor,
-      borderRadius: spacing(0.5),
+      borderRadius: spacing(0.75),
       transition: 'border-color 300ms ease 0s',
       '&:hover': {
         background,
@@ -132,6 +132,7 @@ const useStyles = makeStyles(({ palette, spacing, typography, breakpoints }) => 
       paddingBottom: spacing(1),
       overflow: 'hidden',
       background,
+      borderRadius: spacing(0.75),
     },
     title: ({ fromDialog }) => ({
       color: palette.common.black,
