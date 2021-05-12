@@ -1,18 +1,10 @@
 import React from 'react'
-import _ from 'lodash'
 import clsx from 'clsx'
 import { makeStyles } from '@material-ui/core'
 import Paper from '@material-ui/core/Paper'
 import Grid from '@material-ui/core/Grid'
 import Tab from '@material-ui/core/Tab'
 // import Typography from '@material-ui/core/Typography'
-
-import BtcIcon from '../shared/assets/icons/btc_black.svg'
-import EthIcon from '../shared/assets/icons/eth_black.svg'
-import LtcIcon from '../shared/assets/icons/ltc_black.svg'
-import EurIcon from '../shared/assets/icons/eur_black.svg'
-import GbpIcon from '../shared/assets/icons/gbp_black.svg'
-import JpyIcon from '../shared/assets/icons/jpy_black.svg'
 
 import IndexETF from './IndexETF'
 import Table from './Table'
@@ -215,20 +207,14 @@ const Market = () => {
                     subheader='USD Exchange Rate'
                     list={[
                       {
-                        alt: 'From Euro',
-                        Icon: EurIcon,
                         title: 'EUR/USD',
                         value: '1.21',
                       },
                       {
-                        alt: 'From Pound',
-                        Icon: GbpIcon,
                         title: 'GBP/USD',
                         value: '1.38',
                       },
                       {
-                        alt: 'To Yen',
-                        Icon: JpyIcon,
                         title: 'USD/Yen',
                         value: '107.86',
                       },
@@ -244,17 +230,14 @@ const Market = () => {
                     subheader='Economic Data'
                     list={[
                       {
-                        alt: 'Consumer Price Index',
                         title: 'CPI Urban',
                         value: '2.5',
                       },
                       {
-                        alt: 'credit card interest rate',
                         title: 'Credit Card Interest Rate',
                         value: '15.1%',
                       },
                       {
-                        alt: 'Gross Domestic Product',
                         title: 'Real GDP',
                         value: '3.7',
                       },
@@ -312,8 +295,6 @@ const Market = () => {
                   subheader='Crypocurrencies'
                   list={[
                     {
-                      alt: 'Bitcoin',
-                      Icon: BtcIcon,
                       title: 'BTC',
                       titleSecondary: 'Bitcoin',
                       value: '$50,342.21',
@@ -321,8 +302,6 @@ const Market = () => {
                       performanceColor: 'green',
                     },
                     {
-                      alt: 'Ethereum',
-                      Icon: EthIcon,
                       title: 'ETH',
                       titleSecondary: 'Ethereum',
                       value: '$2,271.30',
@@ -330,8 +309,6 @@ const Market = () => {
                       performanceColor: 'green',
                     },
                     {
-                      alt: 'Litecoin',
-                      Icon: LtcIcon,
                       title: 'LTC',
                       titleSecondary: 'Litecoin',
                       value: '$229.93',

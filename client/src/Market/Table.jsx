@@ -5,7 +5,7 @@ import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Skeleton from '@material-ui/lab/Skeleton'
 
 import Link from '../shared/components/Link'
-import ArrowIcon from '../shared/components/ArrowIcon'
+// import ArrowIcon from '../shared/components/ArrowIcon'
 
 import useUnderBreakpoint from '../shared/hooks/useUnderBreakpoint'
 import { toCurrency, toPercent, toSuffixed } from '../shared/utils/numberFormat'

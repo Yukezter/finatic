@@ -5,7 +5,6 @@ import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import ListSubheader from '@material-ui/core/ListSubheader'
 import ListItemText from '@material-ui/core/ListItemText'
-import Avatar from '@material-ui/core/Avatar'
 
 const useStyles = makeStyles(theme => ({
   subheader: {
@@ -15,7 +14,6 @@ const useStyles = makeStyles(theme => ({
     color: theme.palette.text.primary,
   },
   listItem: {
-    // marginBottom: 2,
     '& > div:last-child': {
       marginLeft: 'auto',
     },
@@ -31,7 +29,6 @@ const useStyles = makeStyles(theme => ({
   },
   title: {
     fontSize: theme.typography.body2.fontSize,
-    // fontFamily: theme.typography.fontFamily,
     fontWeight: 600,
   },
   titleSecondary: {
@@ -41,7 +38,6 @@ const useStyles = makeStyles(theme => ({
   },
   value: {
     fontSize: theme.typography.body2.fontSize,
-    // fontWeight: 600,
   },
   valueSecondary: {
     lineHeight: 1,
@@ -55,23 +51,8 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const AssetIcon = ({ alt, src, classes }) => {
-  return (
-    <Avatar
-      alt={alt}
-      src={src}
-      classes={{
-        root: classes.avatar,
-        img: classes.avatarImg,
-      }}
-    />
-  )
-}
-
 const MyListItem = ({
   classes,
-  alt,
-  Icon,
   title,
   titleSecondary,
   value,
@@ -80,7 +61,6 @@ const MyListItem = ({
 }) => {
   return (
     <ListItem key={title} className={classes.listItem} dense disableGutters>
-      {/* {Icon && <AssetIcon alt={alt} src={Icon} classes={classes} />} */}
       <div>
         <ListItemText classes={{ primary: classes.title }} primary={title} />
         {titleSecondary && (
