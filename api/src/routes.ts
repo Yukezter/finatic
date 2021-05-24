@@ -1,25 +1,69 @@
+import { Request, Response } from 'express'
 import Router from 'express-promise-router'
+import apicache from 'apicache'
+import redis from 'redis'
 
-import * as market from './controllers/market'
-import * as news from './controllers/news'
-import * as search from './controllers/search'
-import * as stock from './controllers/stock'
-import { getCache, setCache } from './middleware'
+import { proxy } from './server'
 
 const router = Router()
+const redisClient = redis.createClient()
 
-// Pages
-// router.route('/market').get(getCache, market.getMarketData, setCache)
-router.route('/news').get(getCache, news.getNews, setCache)
-router.route('/stock/:symbol').get(getCache, stock.getStockData, setCache)
+const routeCache = apicache.options({
+  // enabled: false,
+  redisClient,
+  headers: { 'Cache-Control': 'no-cache' },
+  statusCodes: { exclude: [404, 403] }
+}).middleware
 
-router.route('/search/:fragment').get(search.getSearchResults)
+const routeHandler = (req: Request, res: Response) => {
+  redisClient.KEYS(req.originalUrl, (_err, value) => {
+    console.log(value)
+  })
+
+  proxy.web(req, res, {
+    target: 'https://cloud.iexapis.com/stable'
+  })
+}
+
+const commodities = ['DCOILWTICO', 'GASREGCOVW', 'DJFUELUSGULF'].join('|')
+const economicData = [
+  'DGS1',
+  'DGS5',
+  'DGS10',
+  'CPIAUCSL',
+  'TERMCBCCALLNS',
+  'A191RL1Q225SBEA',
+  'RECPROUSM156N'
+].join('|')
+
+// Search
+router.route('/stock/search/:fragment').get(routeHandler)
+
+// Market Page
+router.route('/fx/latest').get(routeCache('10 seconds'), routeHandler)
+
 router
-  .route('/market/list/:type(mostactive|gainers|losers)')
-  .get(getCache, market.getList, setCache)
-router.route('/stock/:symbol/news').get(getCache, news.getCompanyNews, setCache)
+  .route('/crypto/:symbol(btcusd|ethusd|ltcusd)/quote')
+  .get(routeCache('10 seconds'), routeHandler)
 router
-  .route('/stock/:symbol/chart/:range(1d|5dm|1m|3m|1y)')
-  .get(getCache, stock.getChartData, setCache)
+  .route(`/data-points/market/:symbol(${commodities})`)
+  .get(routeCache('1 week'), routeHandler)
+router
+  .route(`/data-points/market/:symbol(${economicData})`)
+  .get(routeCache('1 day'), routeHandler)
+router
+  .route('/stock/market/list/:type(mostactive|gainers|losers)')
+  .get(routeCache('10 seconds'), routeHandler)
+
+// News Page
+router.route('/news').get(routeCache('10 seconds'), routeHandler)
+
+// Stock Page
+router.route('/stock/:symbol/quote').get(routeCache('10 seconds'), routeHandler)
+router.route('/stock/:symbol/intraday-prices').get(routeCache('5 minutes'), routeHandler)
+router.route('/stock/:symbol/chart/:range').get(routeCache('5 minutes'), routeHandler)
+router.route('/stock/:symbol/company').get(routeCache('1 day'), routeHandler)
+router.route('/stock/:symbol/stats').get(routeCache('1 day'), routeHandler)
+// router.get('/stock/:symbol/estimates', cacheWithRedis(''), routeHandler)
 
 export default router

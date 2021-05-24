@@ -1,3 +1,3 @@
 export * from './customErrors'
-export * from './logErrors'
+export * from './routeNotFound'
 export * from './errorHandler'

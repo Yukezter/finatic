@@ -1,6 +1,9 @@
 import React from 'react'
+import clsx from 'clsx'
 import { useTable, useSortBy } from 'react-table'
 import { makeStyles } from '@material-ui/core/styles'
+import Paper from '@material-ui/core/Paper'
+import Tab from '@material-ui/core/Tab'
 import TableSortLabel from '@material-ui/core/TableSortLabel'
 import Skeleton from '@material-ui/lab/Skeleton'
 
@@ -8,12 +11,40 @@ import Link from '../shared/components/Link'
 // import ArrowIcon from '../shared/components/ArrowIcon'
 
 import useUnderBreakpoint from '../shared/hooks/useUnderBreakpoint'
+import api from '../shared/hooks/api'
 import { toCurrency, toPercent, toSuffixed } from '../shared/utils/numberFormat'
 
 const rowHeightMobile = 48
 const rowHeight = 54
 
-const useStyles = makeStyles(({ spacing, palette, breakpoints }) => ({
+const useStyles = makeStyles(({ spacing, palette, breakpoints, typography }) => ({
+  tab: {
+    opacity: 1,
+    minHeight: 'auto',
+    height: spacing(4),
+    minWidth: 'auto',
+    padding: 0,
+    paddingLeft: spacing(1),
+    paddingRight: spacing(1),
+    color: palette.text.secondary,
+    fontSize: typography.body1.fontSize,
+    fontWeight: 800,
+    borderWidth: 2,
+    borderStyle: 'solid',
+    borderColor: 'transparent',
+    borderRadius: spacing(3),
+    textTransform: 'capitalize',
+    '&:hover': {
+      color: palette.primary.main,
+    },
+    '&.active': {
+      backgroundColor: 'rgba(253, 198, 0, 0.2)',
+      color: palette.primary.main,
+      '&:hover': {
+        color: palette.primary.main,
+      },
+    },
+  },
   root: {
     // overflowX: 'auto',
     '& > table': {
@@ -160,6 +191,7 @@ const columns = [
   { accessor: 'volume', Header: 'Volume', Cell: renderCell(toSuffixed) },
 ]
 
+// This removes the company type and/or stock type from companyName
 const regex = /(( Group)?,? Inc)?(Co(rp(oration)?)?)?( Ltd)?( - Class [A-Z])?\.?( - New)?$/
 
 let count = 0
@@ -289,8 +321,25 @@ const TableView = React.memo(
   },
 )
 
-const Table = ({ data, isLoading }) => {
-  const classes = useStyles()
+const TabPanel = ({ value, type, index, children, ...rest }) => (
+  <div
+    role='tabpanel'
+    hidden={value !== type}
+    id={`tabpanel-${index}`}
+    aria-labelledby={`tab-${index}`}
+    style={{ display: value !== type ? 'none' : 'initial' }}
+    {...rest}
+  >
+    {value === type && <div>{children}</div>}
+  </div>
+)
+
+const a11yProps = index => ({
+  id: `tab-${index}`,
+  'aria-controls': `tabpanel-${index}`,
+})
+
+const TableContainer = ({ classes, data, isLoading }) => {
   const isMobile = useUnderBreakpoint(400)
 
   return (
@@ -300,6 +349,65 @@ const Table = ({ data, isLoading }) => {
       isLoading={isLoading}
       isMobile={isMobile}
     />
+  )
+}
+
+const Table = () => {
+  const classes = useStyles()
+
+  const [listType, setListType] = React.useState('mostactive')
+  const handleTab = index => () => setListType(index)
+
+  const { data, isLoading } = api.get(`/market/list/${listType}`, {
+    refetchOnWindowFocus: false,
+    staleTime: 0,
+    cacheTime: 0,
+    onError: error => console.log(error),
+  })
+
+  return (
+    <>
+      <div aria-label='table-data-tabs'>
+        {[
+          {
+            type: 'mostactive',
+            label: 'Trending',
+          },
+          {
+            type: 'gainers',
+            label: 'Gainers',
+          },
+          {
+            type: 'losers',
+            label: 'Losers',
+          },
+        ].map(({ type, label }, index) => (
+          <Tab
+            key={index}
+            className={clsx(listType === type && 'active')}
+            classes={{ root: classes.tab }}
+            label={label}
+            onClick={handleTab(type)}
+            {...a11yProps(index)}
+          />
+        ))}
+      </div>
+      <TabPanel value={listType} index={0} type='mostactive'>
+        <Paper className='paper' elevation={0}>
+          <TableContainer classes={classes} data={data} isLoading={isLoading} />
+        </Paper>
+      </TabPanel>
+      <TabPanel value={listType} index={1} type='gainers'>
+        <Paper className='paper' elevation={0}>
+          <TableContainer classes={classes} data={data} isLoading={isLoading} />
+        </Paper>
+      </TabPanel>
+      <TabPanel value={listType} index={2} type='losers'>
+        <Paper className='paper' elevation={0}>
+          <TableContainer classes={classes} data={data} isLoading={isLoading} />
+        </Paper>
+      </TabPanel>
+    </>
   )
 }
 

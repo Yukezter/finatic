@@ -232,7 +232,7 @@ const highlight = (parts, color) => {
 
 const fetch = _.debounce(async (inputValue, successCb, errorCb) => {
   api
-    .get(`/search/${inputValue}`)
+    .get(`/stock/search/${inputValue}`)
     .then(({ data }) => successCb(data))
     .catch(error => errorCb(error))
 }, 100)

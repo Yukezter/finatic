@@ -8,19 +8,7 @@ export const getNews = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  const data = await iex.news()
-
-  res.locals.data = data
-  next()
-}
-
-export const getCompanyNews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
-  const { symbol, last } = req.params
-  const data = await iex.news(last, symbol)
+  const data = await iex.marketNews('AAPL')
 
   res.locals.data = data
   next()

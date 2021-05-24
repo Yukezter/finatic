@@ -40,7 +40,7 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const DoughnutChart = ({ percentage }) => {
+const DoughnutChart = ({ data }) => {
   const canvasRef = React.useRef()
   const chartRef = React.useRef()
 
@@ -51,7 +51,7 @@ const DoughnutChart = ({ percentage }) => {
       data: {
         datasets: [
           {
-            data: [percentage, 100 - percentage],
+            data: [data, 100 - data],
             backgroundColor: ['#fdc600', '#e8e8e8'],
             borderWidth: 0,
           },
@@ -70,16 +70,16 @@ const DoughnutChart = ({ percentage }) => {
         },
       },
     })
-  }, [percentage])
+  }, [data])
 
   return <canvas id='doughnutChart' ref={canvasRef}></canvas>
 }
 
-const Doughnut = () => {
+const Doughnut = ({ data }) => {
   const classes = useStyles()
   return (
     <div className={classes.root}>
-      <DoughnutChart percentage={25.78} />
+      <DoughnutChart data={data} />
       <div className={classes.doughnutTextContainer}>
         <Typography
           classes={{ root: classes.doughnutLabel }}
@@ -90,7 +90,7 @@ const Doughnut = () => {
         </Typography>
         <div>
           <Typography classes={{ root: classes.doughnutData }} variant='h4'>
-            25.78
+            {data}
           </Typography>
           <Typography variant='h6'>%</Typography>
         </div>

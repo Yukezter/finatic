@@ -7,10 +7,8 @@ export const errorHandler: ErrorRequestHandler = (
   error: any,
   _req: Request,
   res: Response,
-  _next: NextFunction,
+  _next: NextFunction
 ): void => {
-  console.log(error)
-
   const safeForClient = error instanceof CustomError
 
   const clientError = safeForClient
@@ -19,8 +17,9 @@ export const errorHandler: ErrorRequestHandler = (
         message: 'Something went wrong, please contact our support.',
         code: 'INTERNAL_ERROR',
         status: 500,
-        data: {},
+        data: {}
       }
 
+  console.log(error)
   res.status(clientError.status).send(clientError)
 }

@@ -25,6 +25,7 @@
     "no-console": 0,
     "consistent-return": 0,
     "no-plusplus": 0,
+    "func-names": 0,
     "@typescript-eslint/no-unused-vars": 0,
     "@typescript-eslint/no-use-before-define": 0,
     "@typescript-eslint/no-explicit-any": 0,
@@ -32,6 +33,17 @@
     "@typescript-eslint/no-unsafe-assignment": 0,
     "@typescript-eslint/no-unsafe-member-access": 0,
     "@typescript-eslint/no-unsafe-call": 0,
+    // "@typescript-eslint/no-void-expression": 0,
+    // "@typescript-eslint/no-floating-promises": 0,
+    "@typescript-eslint/no-this-alias": [
+      "error",
+      {
+        "allowDestructuring": true,
+        "allowedNames": ["socket"]
+      }
+    ],  
+    "no-void":"off",
+    "lines-between-class-members": 0,
     "import/prefer-default-export": 0,
     "import/no-cycle": 0,
     "import/extensions": [

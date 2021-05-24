@@ -6,7 +6,7 @@ export class CustomError extends Error {
     public message: string,
     public code: string | number = 'INTERNAL_ERROR',
     public status: number,
-    public data: ErrorData = {},
+    public data: ErrorData = {}
   ) {
     super()
   }

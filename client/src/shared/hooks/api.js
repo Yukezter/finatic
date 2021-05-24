@@ -13,7 +13,7 @@ const _useQuery = (method, url, options = {}) =>
   )
 
 const _useMutation = (method, url, options = {}) =>
-  useMutation(async (body) => {
+  useMutation(async body => {
     const response = await api[method](url, body)
     return response.data
   }, options)

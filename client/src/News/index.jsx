@@ -136,7 +136,7 @@ const News = () => {
 
   const [isLoadingImages, setIsLoadingImages] = React.useState(true)
 
-  const { data, isLoading, isError } = api.get('/news/', {
+  const { data, isLoading, isError } = api.get('/market/news', {
     refetchOnWindowFocus: false,
     staleTime: 60 * 60 * 1000,
     cacheTime: 60 * 60 * 1000,
