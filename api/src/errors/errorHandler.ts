@@ -10,7 +10,6 @@ export const errorHandler: ErrorRequestHandler = (
   _next: NextFunction
 ): void => {
   const safeForClient = error instanceof CustomError
-
   const clientError = safeForClient
     ? pick(error, ['message', 'code', 'status', 'data'])
     : {
@@ -20,6 +19,6 @@ export const errorHandler: ErrorRequestHandler = (
         data: {}
       }
 
-  console.log(error)
+  console.log(error.message)
   res.status(clientError.status).send(clientError)
 }

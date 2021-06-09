@@ -12,6 +12,12 @@ export class CustomError extends Error {
   }
 }
 
+export class InvalidParams extends CustomError {
+  constructor(message: string) {
+    super(message, 'BAD_REQUEST', 400)
+  }
+}
+
 export class RouteNotFoundError extends CustomError {
   constructor(originalUrl: string) {
     super(`${originalUrl} does not exist.`, 'NOT_FOUND', 404)

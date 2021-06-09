@@ -50,27 +50,6 @@ class Stream {
 
 const stockCache = new NodeCache()
 
-const securityTypes = 'ad,cs,etf,cef,oef,wt'
-
-export const getStockSearch = async (req: Request, res: Response): Promise<void> => {
-  const { fragment } = req.params
-
-  const data = await iex.stockSearch(fragment)
-
-  const filteredData = []
-  let index = 0
-
-  while (index < data.length - 1 && filteredData.length < 6) {
-    const result = data[index]
-    if (securityTypes.indexOf(result.securityType) !== -1) {
-      filteredData.push(result)
-    }
-    ++index
-  }
-
-  res.json(filteredData)
-}
-
 export const getStockQuote = async (req: Request, res: Response): Promise<any> => {
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
@@ -170,4 +149,25 @@ export const getStockBatch = async (req: Request, res: Response): Promise<any> =
     stats,
     news
   })
+}
+
+const securityTypes = 'ad,cs,etf,cef,oef,wt'
+
+export const getStockSearch = async (req: Request, res: Response): Promise<void> => {
+  const { fragment } = req.params
+
+  const data = await iex.stockSearch(fragment)
+
+  const filteredData = []
+  let index = 0
+
+  while (index < data.length - 1 && filteredData.length < 6) {
+    const result = data[index]
+    if (securityTypes.indexOf(result.securityType) !== -1) {
+      filteredData.push(result)
+    }
+    ++index
+  }
+
+  res.json(filteredData)
 }

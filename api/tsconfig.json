@@ -40,6 +40,9 @@
     "emitDecoratorMetadata": true,
     "forceConsistentCasingInFileNames": true
   },
+  "files": [
+    "custom.response.d.ts"
+  ],
   "exclude": [
     "node_modules"
   ],
