@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Request, Response, NextFunction, Handler } from 'express'
-import redis from 'redis'
+
+import { redisClient } from '../server'
 
 interface Options {
   duration?: number
@@ -14,8 +15,6 @@ interface Cached {
   encoding: BufferEncoding
 }
 
-const redisClient = redis.createClient()
-
 class RouteCache {
   private globalOptions: Options = {}
 
@@ -26,16 +25,11 @@ class RouteCache {
     }
   }
 
-  options = (options: Options): RouteCache => {
-    this.globalOptions = { ...this.globalOptions, ...options }
-    return this
-  }
-
-  shouldCache = (res: Response): boolean => {
+  private shouldCache = (res: Response): boolean => {
     return res.statusCode === 200
   }
 
-  accumulateData = (res: Response, chunk: unknown): void => {
+  private accumulateData = (res: Response, chunk: unknown): void => {
     if (typeof chunk === 'string') {
       res.cache.data += chunk
     } else if (Buffer.isBuffer(chunk)) {
@@ -49,7 +43,7 @@ class RouteCache {
     }
   }
 
-  cacheResponse = (key: string, data: unknown, ttl: number): void => {
+  private cacheRes = (key: string, data: unknown, ttl: number): void => {
     try {
       redisClient.set(key, JSON.stringify(data))
       redisClient.expire(key, ttl)
@@ -58,7 +52,7 @@ class RouteCache {
     }
   }
 
-  patchResponse = (res: Response, next: NextFunction, key: string, ttl: number): void => {
+  private patchRes = (res: Response, next: NextFunction, key: string, ttl: number): void => {
     const instance = this
 
     res.cache = {
@@ -91,7 +85,7 @@ class RouteCache {
 
       if (instance.shouldCache(res)) {
         instance.accumulateData(res, chunk)
-        instance.cacheResponse(
+        instance.cacheRes(
           key,
           {
             status: res.status,
@@ -109,7 +103,7 @@ class RouteCache {
     next()
   }
 
-  sendCachedResponse = (res: Response, cached: Cached, ttl: number): void => {
+  private sendCachedRes = (res: Response, cached: Cached, ttl: number): void => {
     const headers = { ...cached.headers }
     headers['Cache-Control'] = `max-age=${ttl}`
 
@@ -122,12 +116,19 @@ class RouteCache {
     return res.end(data, data.encoding)
   }
 
+  options = (options: Options): RouteCache => {
+    this.globalOptions = { ...this.globalOptions, ...options }
+    return this
+  }
+
   middleware = (duration?: number, localOptions: Options = {}): Handler => {
     const options = { ...this.globalOptions, ...localOptions }
     const ttl = Math.min(duration || this.globalOptions.duration || 5 * 60, 2147483647)
 
     return (req: Request, res: Response, next: NextFunction) => {
-      const key = !options.includeParams ? req.baseUrl + req.path : req.originalUrl
+      const base = `${req.protocol}://${req.get('host') || req.hostname}`
+      const { pathname, search } = new URL(req.originalUrl, base)
+      const key = !options.includeParams ? pathname : pathname + search
 
       try {
         redisClient
@@ -136,10 +137,10 @@ class RouteCache {
           .ttl(key)
           .exec((error, reply) => {
             if (error || !reply[0] || !reply[1]) {
-              return this.patchResponse(res, next, key, ttl)
+              return this.patchRes(res, next, key, ttl)
             }
 
-            this.sendCachedResponse(res, JSON.parse(reply[0]), reply[1])
+            this.sendCachedRes(res, JSON.parse(reply[0]), reply[1])
           })
       } catch (error) {
         console.log('redis error')

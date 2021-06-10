@@ -13,8 +13,14 @@ export class CustomError extends Error {
 }
 
 export class InvalidParams extends CustomError {
-  constructor(message: string) {
-    super(message, 'BAD_REQUEST', 400)
+  constructor() {
+    super('Incorrect Values', 'BAD_REQUEST', 400)
+  }
+}
+
+export class ResourceNotFound extends CustomError {
+  constructor() {
+    super('No Resource Found', 'NOT_FOUND', 404)
   }
 }
 

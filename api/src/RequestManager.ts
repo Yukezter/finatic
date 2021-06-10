@@ -1,27 +1,19 @@
 import { EventEmitter } from 'events'
 import { setTimeout } from 'timers'
 import { Request, Response } from 'express'
-import redis from 'redis'
-import axios, { AxiosError } from 'axios'
-
-import { routeCache } from './middlewares'
+import axios from 'axios'
 
 interface Client {
   req: Request
   res: Response
 }
 
-const redisClient = redis.createClient()
-const baseURL = 'http://localhost:3000'
+const getURL = (path: string) => {
+  return new URL(path, 'http://localhost:3000')
+}
 
 export default class RequestManager extends EventEmitter {
-  channels: Map<string, () => void>
-  latestData: any
-
-  constructor() {
-    super()
-    this.channels = new Map()
-  }
+  timers: Map<string, ReturnType<typeof setTimeout>> = new Map()
 
   publish = (event: string, data: string): void => {
     this.emit(event, data)
@@ -33,80 +25,80 @@ export default class RequestManager extends EventEmitter {
       client.res.flush()
     }
 
-    if (!this.hasListeners(event)) this.open(event)
+    if (this.hasNoListeners(event)) this.open(event)
     this.on(event, listener)
 
     client.res.on('close', () => {
       this.off(event, listener)
-      if (!this.hasListeners(event)) this.close(event)
+      if (this.hasNoListeners(event)) this.close(event)
       client.res.end()
     })
   }
 
   open = (path: string, interval = 5000): void => {
-    const { pathname, href } = new URL(path, baseURL)
+    const { href } = getURL(path)
 
-    console.log(pathname)
-
-    const makeRequest = () => {
-      try {
-        redisClient
-          .multi()
-          .get(pathname)
-          .ttl(pathname)
-          .exec((redisError, reply) => {
-            if (redisError || !reply[0] || !reply[1]) {
-              console.log('wow not cached!')
-              axios(href, { responseType: 'arraybuffer' })
-                .then(({ status, headers, data }) => {
-                  if (this.hasListeners(pathname)) {
-                    routeCache.cacheResponse(pathname, { status, headers, data }, 10)
-
-                    this.publish(pathname, data.toString())
-                    setTimeout(makeRequest, interval)
-                  } else {
-                    this.close(pathname)
-                  }
-                })
-                .catch((axiosError: AxiosError) => {
-                  console.log(axiosError)
-                  this.close(pathname)
-                })
-            } else {
-              console.log('cached!')
-              this.publish(pathname, Buffer.from(JSON.parse(reply[0]).data.data).toString())
-            }
-          })
-      } catch (error) {
-        console.log('redis error')
-      }
-
-      // axios(href, { responseType: 'arraybuffer' })
-      //   .then(({ data }) => {
-      //     if (this.hasListeners(pathname)) {
-      //       this.publish(pathname, data.toString())
-      //       setTimeout(makeRequest, interval)
-      //     } else {
-      //       this.close(pathname)
-      //     }
-      //   })
-      //   .catch((error: AxiosError) => {
-      //     console.log(error)
-      //     this.close(pathname)
-      //   })
-
-      return makeRequest
+    const fetch = () => {
+      axios(href, { responseType: 'arraybuffer' })
+        .then(({ data }) => {
+          if (!this.hasNoListeners(path)) {
+            this.publish(path, data.toString())
+            this.timers.set(path, setTimeout(fetch, interval))
+          }
+        })
+        .catch(error => {
+          console.log(error)
+          this.close(path)
+        })
     }
 
-    this.channels.set(pathname, makeRequest())
+    fetch()
   }
 
   close = (event: string): void => {
     this.removeAllListeners(event)
-    this.channels.delete(event)
+    const timer = this.timers.get(event)
+    if (timer) {
+      clearInterval(timer)
+      this.timers.delete(event)
+    }
+
+    console.debug('closed')
   }
 
-  hasListeners = (event: string): boolean => {
-    return this.listenerCount(event) > 0
+  hasNoListeners = (event: string): boolean => {
+    return this.listenerCount(event) === 0
   }
 }
+
+// const fetch = () => {
+//   try {
+//     redisClient
+//       .multi()
+//       .get(path)
+//       .ttl(path)
+//       .exec((redisError, reply) => {
+//         if (redisError || !reply[0] || !reply[1]) {
+//           axios(href, { responseType: 'arraybuffer' })
+//             .then(({ status, headers, data }) => {
+//               routeCache.cacheRes(path, { status, headers, data }, 60)
+
+//               if (!this.hasNoListeners(path)) {
+//                 this.publish(path, data.toString())
+//                 this.services.set(path, setTimeout(fetch, interval))
+//               }
+//             })
+//             .catch(axiosError => {
+//               console.log(axiosError)
+//               this.close(path)
+//             })
+//         } else if (!this.hasNoListeners(path)) {
+//           const buffer = Buffer.from(JSON.parse(reply[0]).data.data)
+//           this.publish(path, buffer.toString())
+//           this.services.set(path, setTimeout(fetch, interval))
+//         }
+//       })
+//   } catch (error) {
+//     console.log('redis error')
+//   }
+// }

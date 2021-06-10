@@ -2,7 +2,7 @@ import { Request, Response } from 'express'
 import Router from 'express-promise-router'
 
 import RequestManager from '../RequestManager'
-import { InvalidParams } from '../errors/Errors'
+import { InvalidParams } from '../errors'
 
 const router = Router()
 const requestManager = new RequestManager()
@@ -18,7 +18,7 @@ const writeHead = (res: Response): void => {
 }
 
 const validateAndGetSymbols = (symbols: any, limit: number): string[] => {
-  if (typeof symbols !== 'string') throw new InvalidParams('Incorrect Values')
+  if (typeof symbols !== 'string') throw new InvalidParams()
   return symbols.split(',', limit).filter(s => s.trim())
 }
 
