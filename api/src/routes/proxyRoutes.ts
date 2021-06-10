@@ -1,12 +1,23 @@
-// import { NextFunction, Request, Response } from 'express'
 // import httpProxy from 'http-proxy'
 import Router from 'express-promise-router'
 
 import { routeCache } from '../middlewares'
 import { proxy } from '../iex'
+// import { getURL } from '../iex'
 
 const router = Router()
 const cache = routeCache.middleware
+
+// const proxyServer = httpProxy.createProxyServer({
+//   changeOrigin: true,
+//   ignorePath: true
+// })
+
+// const proxy = (req: any, res: any) => {
+//   proxyServer.web(req, res, {
+//     target: getURL(req.originalUrl)
+//   })
+// }
 
 // Search
 router.use('/stock/search/:fragment', cache(5 * 60), proxy)
@@ -50,14 +61,3 @@ router.use('/stock/:symbol/company', cache(), proxy)
 router.use('/stock/:symbol/stats', cache(), proxy)
 
 export default router
-
-// const proxyServer = httpProxy.createProxyServer({
-//   changeOrigin: true,
-//   ignorePath: true
-// })
-
-// const proxy = (req: any, res: any) => {
-//   proxyServer.web(req, res, {
-//     target: getURL(req.originalUrl).href
-//   })
-// }
