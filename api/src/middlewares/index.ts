@@ -1,1 +1,1 @@
-export * from './routeCache'
+export { default as cacheRes } from './cacheRes'

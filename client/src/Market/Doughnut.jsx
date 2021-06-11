@@ -1,4 +1,5 @@
 import React from 'react'
+import { useQuery } from 'react-query'
 import Chart from 'chart.js'
 import { makeStyles } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
@@ -75,11 +76,22 @@ const DoughnutChart = ({ data }) => {
   return <canvas id='doughnutChart' ref={canvasRef}></canvas>
 }
 
-const Doughnut = ({ data }) => {
+const Doughnut = () => {
   const classes = useStyles()
+
+  const { isLoading, data } = useQuery({
+    queryKey: ['/data-points/market/RECPROUSM156N'],
+  })
+
+  if (isLoading) {
+    return null
+  }
+
+  console.log(data)
+
   return (
     <div className={classes.root}>
-      <DoughnutChart data={data} />
+      <DoughnutChart data={data * 100} />
       <div className={classes.doughnutTextContainer}>
         <Typography
           classes={{ root: classes.doughnutLabel }}
@@ -90,7 +102,7 @@ const Doughnut = ({ data }) => {
         </Typography>
         <div>
           <Typography classes={{ root: classes.doughnutData }} variant='h4'>
-            {data}
+            {data * 100}
           </Typography>
           <Typography variant='h6'>%</Typography>
         </div>

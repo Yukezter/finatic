@@ -9,8 +9,6 @@ import SideColumn from './SideColumn'
 import StyledList from '../shared/components/StyledList'
 import StyledListItem from '../shared/components/StyledListItem'
 
-import api from '../shared/hooks/api'
-
 const useStyles = makeStyles(theme => ({
   sideColumn: {
     borderWidth: 1,
@@ -81,40 +79,41 @@ const Market = () => {
 
   const classes = useStyles()
 
-  const { data, isLoading } = api.get(`/market`, {
-    refetchOnWindowFocus: false,
-    staleTime: 0,
-    cacheTime: 0,
-    onError: error => console.log(error),
-  })
+  // const commodities = useQueries([
+  //   {
+  //     queryKey: '/data-points/market/DCOILWTICO',
+  //   },
+  //   {
+  //     queryKey: '/data-points/market/GASREGCOVW',
+  //   },
+  //   {
+  //     queryKey: '/data-points/market/DJFUELUSGULF',
+  //   }
+  // ])
 
-  if (isLoading) return null
-
-  const {
-    treasuryRates,
-    exchangeRates,
-    economicData,
-    recessionProbabilities,
-    cryptocurrencies,
-    commodities,
-  } = data
+  // const cryptocurrencies = useQueries([
+  //   {
+  //     queryKey: '/crypto/btcusd/quote',
+  //   },
+  //   {
+  //     queryKey: '/crypto/btcusd/ethusc',
+  //   },
+  //   {
+  //     queryKey: '/crypto/btcusd/ltcusd',
+  //   }
+  // ])
 
   return (
     <div>
-      <IndexETFs />
+      {/* <IndexETFs /> */}
       <Grid container spacing={4}>
         <Grid item xs={12} md={4}>
           <div className={classes.sideColumn}>
-            <SideColumn
-              treasuryRates={treasuryRates}
-              exchangeRates={exchangeRates}
-              economicData={economicData}
-              recessionProbabilities={recessionProbabilities}
-            />
+            <SideColumn />
           </div>
         </Grid>
         <Grid item xs={12} md={8}>
-          <div style={{ marginBottom: 32 }}>
+          {/* <div style={{ marginBottom: 32 }}>
             <Grid container spacing={3}>
               <Grid item xs={12} sm={6}>
                 <Cryptocurrencies data={cryptocurrencies} />
@@ -124,7 +123,7 @@ const Market = () => {
               </Grid>
             </Grid>
           </div>
-          <Table />
+          <Table /> */}
         </Grid>
       </Grid>
     </div>

@@ -2,12 +2,12 @@ import { Request, Response } from 'express'
 import Router from 'express-promise-router'
 
 import RequestManager from '../RequestManager'
-import { InvalidParams } from '../errors'
+import { InvalidParams } from '../Errors'
 
 const router = Router()
 const requestManager = new RequestManager()
 
-const writeHead = (res: Response): void => {
+const writeAndFlushHeaders = (res: Response): void => {
   res
     .writeHead(200, {
       'Content-Type': 'text/event-stream',
@@ -23,7 +23,7 @@ const validateAndGetSymbols = (symbols: any, limit: number): string[] => {
 }
 
 router.route('/stock/quote').get((req: Request, res: Response) => {
-  writeHead(res)
+  writeAndFlushHeaders(res)
 
   validateAndGetSymbols(req.query.symbols, 20).forEach(symbol => {
     const key = `/stock/${symbol}/quote`
@@ -32,7 +32,7 @@ router.route('/stock/quote').get((req: Request, res: Response) => {
 })
 
 router.route('/crypto/quote').get((req: Request, res: Response) => {
-  writeHead(res)
+  writeAndFlushHeaders(res)
 
   validateAndGetSymbols(req.query.symbols, 3).forEach(symbol => {
     const key = `/crypto/${symbol}/quote`
@@ -41,7 +41,7 @@ router.route('/crypto/quote').get((req: Request, res: Response) => {
 })
 
 router.route('/stock/chart/:range').get((req: Request, res: Response) => {
-  writeHead(res)
+  writeAndFlushHeaders(res)
 
   const { range } = req.params
 

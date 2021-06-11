@@ -191,7 +191,7 @@ const columns = [
   { accessor: 'volume', Header: 'Volume', Cell: renderCell(toSuffixed) },
 ]
 
-// This removes the company type and/or stock type from companyName
+// This removes the company type and/or stock type from columns.companyName
 const regex = /(( Group)?,? Inc)?(Co(rp(oration)?)?)?( Ltd)?( - Class [A-Z])?\.?( - New)?$/
 
 let count = 0

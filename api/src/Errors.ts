@@ -14,17 +14,17 @@ export class CustomError extends Error {
 
 export class InvalidParams extends CustomError {
   constructor() {
-    super('Incorrect Values', 'BAD_REQUEST', 400)
+    super('Incorrect values.', 'BAD_REQUEST', 400)
   }
 }
 
 export class ResourceNotFound extends CustomError {
   constructor() {
-    super('No Resource Found', 'NOT_FOUND', 404)
+    super('Unable to provide resource.', 'NOT_FOUND', 404)
   }
 }
 
-export class RouteNotFoundError extends CustomError {
+export class RouteNotFound extends CustomError {
   constructor(originalUrl: string) {
     super(`${originalUrl} does not exist.`, 'NOT_FOUND', 404)
   }

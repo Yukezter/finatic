@@ -1,2 +1,2 @@
-export { default as proxyRouter } from './proxyRoutes'
-export { default as sseRouter } from './sseRoutes'
+export { default as proxyRouter } from './proxy'
+export { default as sseRouter } from './sse'
