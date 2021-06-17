@@ -1,7 +1,6 @@
 import { Request, Response } from 'express'
 import Router from 'express-promise-router'
-import Bottleneck from 'bottleneck'
-import axios, { AxiosError } from 'axios'
+import axios from 'axios'
 
 import { cacheRes as cache } from '../middlewares'
 import { ResourceNotFound } from '../Errors'
@@ -11,28 +10,28 @@ const router = Router()
 const IEX_BASE_URL = 'https://cloud.iexapis.com'
 const { IEX_TOKEN = '' } = process.env
 
-const apiLimiter = new Bottleneck({
-  maxConcurrent: 1,
-  minTime: 50
-})
-
-const fetch = apiLimiter.wrap((url: string) => {
-  return axios(url, { responseType: 'stream' })
-})
-
 const getURL = (path: string): string => {
   const url = new URL(`/stable${path}`, IEX_BASE_URL)
   url.searchParams.append('token', IEX_TOKEN)
   return url.href
 }
 
-const proxy = async (req: Request, res: Response): Promise<void> => {
-  const response = await fetch(getURL(req.originalUrl)).catch((error: AxiosError) => {
-    console.log(error.code, error.message)
-    throw new ResourceNotFound()
-  })
-
-  response.data.pipe(res)
+const proxy = (req: Request, res: Response) => {
+  axios(getURL(req.originalUrl), { responseType: 'stream' })
+    .then(({ data }) => {
+      data.pipe(res)
+    })
+    .catch(({ response }) => {
+      if (response && [400, 404, 429].indexOf(response.status) !== -1) {
+        console.log(response.status)
+        console.log(response.statusText)
+        console.log(response.headers)
+        res.status(response.status)
+        response.data.pipe(res)
+      } else {
+        throw new ResourceNotFound()
+      }
+    })
 }
 
 // Search

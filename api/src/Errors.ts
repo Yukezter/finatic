@@ -12,7 +12,7 @@ export class CustomError extends Error {
   }
 }
 
-export class InvalidParams extends CustomError {
+export class IncorrectValues extends CustomError {
   constructor() {
     super('Incorrect values.', 'BAD_REQUEST', 400)
   }
@@ -20,7 +20,7 @@ export class InvalidParams extends CustomError {
 
 export class ResourceNotFound extends CustomError {
   constructor() {
-    super('Unable to provide resource.', 'NOT_FOUND', 404)
+    super('Resource not found.', 'NOT_FOUND', 404)
   }
 }
 
