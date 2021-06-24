@@ -210,7 +210,7 @@ const Stock = ({ theme }) => {
           <Typography className={classes.symbol} variant='h3' component='h1'>
             {symbol}
           </Typography>
-          <Chart theme={theme} symbol={symbol} />
+          <Chart key={symbol} theme={theme} symbol={symbol} />
           <Stats classes={classes} symbol={symbol} />
           <Company classes={classes} symbol={symbol} />
         </Grid>
