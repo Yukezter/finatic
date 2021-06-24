@@ -1,5 +1,4 @@
 import { makeStyles } from '@material-ui/core'
-import Typography from '@material-ui/core/Typography'
 
 import { ReactComponent as LogoIcon } from '../icons/013-eye.svg'
 
@@ -55,9 +54,6 @@ const Loading = () => {
     <div className={classes.root}>
       <div className={classes.inner}>
         <LogoIcon className={classes.logoIcon} />
-        {/* <Typography className={classes.text} variant="h6" component="p">
-          LOADING
-        </Typography> */}
       </div>
     </div>
   )

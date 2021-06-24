@@ -10,15 +10,12 @@ import Toolbar from '@material-ui/core/Toolbar'
 import Header from './Header'
 import Market from '../Market'
 import News from '../News'
-import Company from '../Company'
+import Stock from '../Stock'
 
 import theme from '../shared/themes/mui'
-// import api from '../shared/hooks/api'
 
-const PUB_KEY = 'pk_585f69b27ed14d70860be420045319d9'
 const defaultQueryFn = async ({ queryKey }) => {
-  const url = `${queryKey[0]}?token=${PUB_KEY}${queryKey[1] || ''}`
-  const { data } = await axios.get(url)
+  const { data } = await axios.get(queryKey)
   return data
 }
 
@@ -51,16 +48,6 @@ const useStyles = makeStyles(({ spacing, breakpoints }) => ({
 
 let count = 0
 
-// const eventSource = new EventSource('/stock/AAPL/quote?symbols=AAPL,TSLA')
-
-// eventSource.onopen = () => {
-//   console.log('sdfs')
-// }
-
-// eventSource.onmessage = data => {
-//   console.log(JSON.parse(data.data))
-// }
-
 const App = () => {
   console.log('App:', ++count)
 
@@ -75,18 +62,9 @@ const App = () => {
           <Toolbar />
           <Container className={classes.container} maxWidth='lg'>
             <Switch>
-              <Route
-                path='/market'
-                render={props => <Market theme={theme} {...props} />}
-              />
-              <Route
-                path='/news'
-                render={props => <News theme={theme} {...props} />}
-              />
-              <Route
-                path='/company/:symbol'
-                render={props => <Company theme={theme} {...props} />}
-              />
+              <Route path='/market' render={props => <Market theme={theme} {...props} />} />
+              <Route path='/news' render={props => <News theme={theme} {...props} />} />
+              <Route path='/company/:symbol' render={props => <Stock theme={theme} {...props} />} />
             </Switch>
           </Container>
         </div>

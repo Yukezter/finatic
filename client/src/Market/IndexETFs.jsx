@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core'
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 import Sparkline from './Sparkline'
-import SocketContext from '../shared/context/SocketContext'
 
+import useEventSource from '../shared/hooks/useEventSource'
+import useEventSourceListener from '../shared/hooks/useEventSourceListener'
 import { toCurrency, toPercent } from '../shared/utils/numberFormat'
 
 const useStyles = makeStyles(theme => ({
@@ -26,6 +28,7 @@ const useStyles = makeStyles(theme => ({
     },
     [theme.breakpoints.down('sm')]: {
       overflowX: 'scroll',
+      marginBottom: theme.spacing(1),
     },
     /* Scrollbar */
 
@@ -96,25 +99,9 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const IndexETF = ({ classes, socket, symbol, name }) => {
-  const [quote, setQuote] = React.useState({
-    latestPrice: null,
-    change: null,
-    changePercent: null,
-  })
-
-  const listener = React.useCallback(newQuote => {
-    setQuote({
-      latestPrice: newQuote.latestPrice,
-      change: newQuote.change,
-      changePercent: newQuote.changePercent,
-    })
-  }, [])
-
-  React.useEffect(() => {
-    socket.on(symbol, listener)
-    return () => socket.off(symbol, listener)
-  })
+const IndexETF = ({ classes, esQuote, esSparkline, symbol, name }) => {
+  const quote = useEventSourceListener(esQuote, symbol)
+  const sparkline = useEventSourceListener(esSparkline, symbol)
 
   return (
     <Paper
@@ -132,7 +119,7 @@ const IndexETF = ({ classes, socket, symbol, name }) => {
         }}
       >
         <Typography variant='h4' style={{ fontWeight: 800, lineHeight: 1 }}>
-          {symbol}
+          {quote.isLoading ? <Skeleton width={50} /> : symbol}
         </Typography>
         <Typography
           className={classes.changePercent}
@@ -141,22 +128,30 @@ const IndexETF = ({ classes, socket, symbol, name }) => {
           display='inline'
           noWrap
         >
-          {quote.changePercent > 0 ? '+ ' : '- '}
-          {toPercent(quote.changePercent)}
-          {/* {0.43 > 0 ? '+ ' : '- '} */}
-          {/* {toPercent(0.43)} */}
+          {quote.isLoading ? (
+            <Skeleton width={30} />
+          ) : (
+            `${quote.data.changePercent > 0 ? '+' : ''} ${toPercent(quote.data.changePercent)}`
+          )}
         </Typography>
       </div>
       <Typography variant='caption' className={classes.name}>
-        {name}
+        {quote.isLoading ? <Skeleton width={100} /> : name}
       </Typography>
       <div className={classes.sparklineWrapper}>
-        <Sparkline />
+        {sparkline.isLoading ? (
+          <Skeleton variant='rect' height='100%' width='100%' />
+        ) : (
+          <Sparkline
+            d={sparkline.data}
+            labels={sparkline.data.flat().map(d => d.minute)}
+            data={sparkline.data.flat().map(d => d.average)}
+          />
+        )}
       </div>
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <Typography className={classes.latestPrice} component='div' variant='h5'>
-          {toCurrency(quote.latestPrice)}
-          {/* {toCurrency(243.54)} */}
+          {quote.isLoading ? <Skeleton width={60} /> : toCurrency(quote.data.latestPrice)}
         </Typography>
       </div>
     </Paper>
@@ -182,39 +177,18 @@ const ETFs = [
   },
 ]
 
+const symbolsParam = ETFs.map(etf => etf.symbol).join(',')
+
 const IndexETFs = () => {
   const classes = useStyles()
-  const socket = React.useContext(SocketContext)
-
-  const subscribe = React.useCallback(() => {
-    socket.emit(
-      'subscribe',
-      ETFs.map(ETF => ETF.symbol),
-    )
-  }, [socket])
-
-  const unsubscribe = React.useCallback(() => {
-    socket.emit(
-      'unsubscribe',
-      ETFs.map(ETF => ETF.symbol),
-    )
-  }, [socket])
-
-  React.useEffect(() => {
-    subscribe()
-    return () => unsubscribe()
-  }, [subscribe, unsubscribe])
+  const esQuote = useEventSource(`/stock/quote?symbols=${symbolsParam}`)
+  const esSparkline = useEventSource(`/stock/chart/1d?symbols=${symbolsParam}&sparkline=true`)
 
   return (
     <div className={classes.root}>
       {ETFs.map(ETF => (
-        <div key={ETF.symbol}>
-          <IndexETF
-            classes={classes}
-            socket={socket}
-            symbol={ETF.symbol}
-            name={ETF.name}
-          />
+        <div key={ETF.name}>
+          <IndexETF esQuote={esQuote} esSparkline={esSparkline} classes={classes} {...ETF} />
         </div>
       ))}
     </div>

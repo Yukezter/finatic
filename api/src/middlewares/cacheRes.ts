@@ -2,11 +2,6 @@
 import redis from 'redis'
 import { Request, Response, NextFunction, Handler } from 'express'
 
-interface Options {
-  duration?: number
-  includeParams?: boolean
-}
-
 interface Cached {
   status: number
   headers: any
@@ -103,13 +98,11 @@ const sendCachedRes = (res: Response, cached: Cached, ttl: number): void => {
   return res.end(data, data.encoding)
 }
 
-const middleware = (duration = 5 * 60, options: Options = {}): Handler => {
+const middleware = (duration = 5 * 60): Handler => {
   const ttl = Math.min(duration, 2147483647)
 
   return (req: Request, res: Response, next: NextFunction) => {
-    const base = `${req.protocol}://${req.get('host') || req.hostname}`
-    const { pathname, search } = new URL(req.originalUrl, base)
-    const key = (!options.includeParams ? pathname : pathname + search).toLowerCase()
+    const key = req.originalUrl.toLowerCase()
 
     try {
       redisClient

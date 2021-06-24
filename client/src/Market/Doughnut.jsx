@@ -3,6 +3,7 @@ import { useQuery } from 'react-query'
 import Chart from 'chart.js'
 import { makeStyles } from '@material-ui/core'
 import Typography from '@material-ui/core/Typography'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -83,15 +84,9 @@ const Doughnut = () => {
     queryKey: ['/data-points/market/RECPROUSM156N'],
   })
 
-  if (isLoading) {
-    return null
-  }
-
-  console.log(data)
-
   return (
     <div className={classes.root}>
-      <DoughnutChart data={data * 100} />
+      <DoughnutChart data={isLoading ? 0 : data * 100} />
       <div className={classes.doughnutTextContainer}>
         <Typography
           classes={{ root: classes.doughnutLabel }}
@@ -101,10 +96,18 @@ const Doughnut = () => {
           US Recession Probabilities
         </Typography>
         <div>
-          <Typography classes={{ root: classes.doughnutData }} variant='h4'>
-            {data * 100}
-          </Typography>
-          <Typography variant='h6'>%</Typography>
+          {isLoading ? (
+            <Typography variant='h4'>
+              <Skeleton width={40} />
+            </Typography>
+          ) : (
+            <>
+              <Typography classes={{ root: classes.doughnutData }} variant='h4'>
+                {data * 100}
+              </Typography>
+              <Typography variant='h6'>%</Typography>
+            </>
+          )}
         </div>
       </div>
     </div>

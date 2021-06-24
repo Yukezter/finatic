@@ -20,37 +20,49 @@ const TreasuryRates = () => {
     },
   ])
 
-  if (responses[0].isLoading && responses[1].isLoading && responses[2].isLoading) {
-    return null
-  }
-
-  console.log(responses)
-
   return (
     <StyledList ariaLabelledBy='treasury rates' subheader='Treasury Rates'>
-      <StyledListItem title='1 Year' value={responses[0].data} />
-      <StyledListItem title='5 Year' value={responses[1].data} />
-      <StyledListItem title='10 Year' value={responses[2].data} />
+      <StyledListItem
+        isLoading={responses[0].isLoading}
+        title='1 Year'
+        value={responses[0].data}
+      />
+      <StyledListItem
+        isLoading={responses[1].isLoading}
+        title='5 Year'
+        value={responses[1].data}
+      />
+      <StyledListItem
+        isLoading={responses[2].isLoading}
+        title='10 Year'
+        value={responses[2].data}
+      />
     </StyledList>
   )
 }
 
 const ExchangeRates = () => {
   const { isLoading, data } = useQuery({
-    queryKey: ['/fx/latest', '&symbols=EURUSD,GBPUSD,USDJPY'],
+    queryKey: '/fx/latest?symbols=EURUSD,GBPUSD,USDJPY',
   })
-
-  if (isLoading) {
-    return null
-  }
-
-  console.log(data)
 
   return (
     <StyledList ariaLabelledBy='forex' subheader='USD Exchange Rate'>
-      <StyledListItem title='USD/EUR' value={data[0].rate} />
-      <StyledListItem title='USD/GBP' value={data[1].rate} />
-      <StyledListItem title='USD/JPY' value={data[2].rate} />
+      <StyledListItem
+        isLoading={isLoading}
+        title='USD/EUR'
+        value={!isLoading && data[0].rate}
+      />
+      <StyledListItem
+        isLoading={isLoading}
+        title='USD/GBP'
+        value={!isLoading && data[1].rate}
+      />
+      <StyledListItem
+        isLoading={isLoading}
+        title='USD/JPY'
+        value={!isLoading && data[2].rate}
+      />
     </StyledList>
   )
 }
@@ -68,17 +80,23 @@ const EconomicData = () => {
     },
   ])
 
-  if (responses[0].isLoading && responses[1].isLoading && responses[2].isLoading) {
-    return null
-  }
-
-  console.log(responses)
-
   return (
     <StyledList ariaLabelledBy='economic data' subheader='Economic Data'>
-      <StyledListItem title='CPI - Urban' value={responses[0].data} />
-      <StyledListItem title='CC Interest Rate' value={responses[1].data} />
-      <StyledListItem title='Real GDP' value={responses[2].data} />
+      <StyledListItem
+        isLoading={responses[0].isLoading}
+        title='CPI - Urban'
+        value={responses[0].data}
+      />
+      <StyledListItem
+        isLoading={responses[1].isLoading}
+        title='CC Interest Rate'
+        value={responses[1].data}
+      />
+      <StyledListItem
+        isLoading={responses[2].isLoading}
+        title='Real GDP'
+        value={responses[2].data}
+      />
     </StyledList>
   )
 }

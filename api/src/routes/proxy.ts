@@ -1,74 +1,95 @@
-import { Request, Response } from 'express'
-import Router from 'express-promise-router'
+import { Router, RequestHandler } from 'express'
 import axios from 'axios'
 
-import { cacheRes as cache } from '../middlewares'
+import { validateParams as params, cacheRes as cache } from '../middlewares'
 import { ResourceNotFound } from '../Errors'
 
 const router = Router()
 
-const IEX_BASE_URL = 'https://cloud.iexapis.com'
-const { IEX_TOKEN = '' } = process.env
-
-const getURL = (path: string): string => {
-  const url = new URL(`/stable${path}`, IEX_BASE_URL)
-  url.searchParams.append('token', IEX_TOKEN)
-  return url.href
-}
-
-const proxy = (req: Request, res: Response) => {
-  axios(getURL(req.originalUrl), { responseType: 'stream' })
+const proxy: RequestHandler = (_req, res, next) => {
+  axios(res.locals.proxyUrl, { responseType: 'stream' })
     .then(({ data }) => {
       data.pipe(res)
     })
     .catch(({ response }) => {
+      // console.log(response.status, response.statusText)
       if (response && [400, 404, 429].indexOf(response.status) !== -1) {
-        console.log(response.status)
-        console.log(response.statusText)
-        console.log(response.headers)
         res.status(response.status)
         response.data.pipe(res)
       } else {
-        throw new ResourceNotFound()
+        next(new ResourceNotFound())
       }
     })
 }
 
 // Search
-router.use('/stock/search/:fragment', cache(5 * 60), proxy)
+router.get('/search/:fragment', params(), cache(5 * 60), proxy)
 
 // Forex
-router.use('/fx/latest', cache(60, { includeParams: true }), proxy)
+router.get('/fx/latest', params('?symbols=EURUSD,GBPUSD,USDJPY'), cache(1200), proxy)
 
 // Crypto
-router.use('/crypto/:symbol(btcusd|ethusd|ltcusd)/quote', cache(30), proxy)
+router.get('/crypto/btcusd/quote', params(), cache(30), proxy)
+router.get('/crypto/ethusd/quote', params(), cache(30), proxy)
+router.get('/crypto/ltcusd/quote', params(), cache(30), proxy)
 
 // Economic Data
-router.use(`/data-points/market/DCOILWTICO`, cache(7 * 24 * 60 * 60), proxy)
-router.use(`/data-points/market/GASREGCOVW`, cache(7 * 24 * 60 * 60), proxy)
-router.use(`/data-points/market/DJFUELUSGULF`, cache(7 * 24 * 60 * 60), proxy)
-router.use(`/data-points/market/DGS1`, cache(24 * 60 * 60), proxy)
-router.use(`/data-points/market/DGS5`, cache(24 * 60 * 60), proxy)
-router.use(`/data-points/market/DGS10`, cache(24 * 60 * 60), proxy)
-router.use(`/data-points/market/CPIAUCSL`, cache(24 * 60 * 60), proxy)
-router.use(`/data-points/market/TERMCBCCALLNS`, cache(24 * 60 * 60), proxy)
-router.use(`/data-points/market/A191RL1Q225SBEA`, cache(24 * 60 * 60), proxy)
-router.use(`/data-points/market/RECPROUSM156N`, cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/DCOILWTICO`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/GASREGCOVW`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/DJFUELUSGULF`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/DGS1`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/DGS5`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/DGS10`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/CPIAUCSL`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/TERMCBCCALLNS`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/A191RL1Q225SBEA`, params(), cache(24 * 60 * 60), proxy)
+router.get(`/data-points/market/RECPROUSM156N`, params(), cache(24 * 60 * 60), proxy)
 
 // Market Lists
-router.use('/stock/market/list/:type(mostactive|gainers|losers)', cache(10), proxy)
+router.get('/stock/market/list/mostactive', params(), cache(5 * 60), proxy)
+router.get('/stock/market/list/gainers', params(), cache(5 * 60), proxy)
+router.get('/stock/market/list/losers', params(), cache(5 * 60), proxy)
 
 // News
-router.use('/news', cache(10), proxy)
+router.get('/news', params(), cache(24 * 60 * 60), proxy)
 
 // Stock Data
-router.use('/stock/:symbol/quote', cache(5), proxy)
-router.use('/stock/:symbol/intraday-prices', cache(5 * 60), proxy)
-router.use('/stock/:symbol/chart/5dm', cache(5 * 60), proxy)
-router.use('/stock/:symbol/chart/1m', cache(12 * 60 * 60), proxy)
-router.use('/stock/:symbol/chart/3m', cache(12 * 60 * 60), proxy)
-router.use('/stock/:symbol/chart/1y', cache(12 * 60 * 60), proxy)
-router.use('/stock/:symbol/company', cache(), proxy)
-router.use('/stock/:symbol/stats', cache(), proxy)
+router.get('/stock/:symbol/quote', params(), cache(5 * 60), proxy)
+router.get(
+  '/stock/:symbol/intraday-prices',
+  params([
+    '?chartIEXOnly=true&filter=minute,average&chartInterval=5',
+    '?chartIEXOnly=true&filter=minute,average&chartInterval=10'
+  ]),
+  cache(10 * 60),
+  proxy
+)
+router.get(
+  '/stock/:symbol/chart/5dm',
+  params('?includeToday=true&chartIEXOnly=true&filter=date,minute,average'),
+  cache(10 * 60),
+  proxy
+)
+router.get(
+  '/stock/:symbol/chart/1m',
+  params('?includeToday=true&chartCloseOnly=true&filter=date,close'),
+  cache(12 * 60 * 60),
+  proxy
+)
+router.get(
+  '/stock/:symbol/chart/3m',
+  params('?includeToday=true&chartCloseOnly=true&filter=date,close'),
+  cache(12 * 60 * 60),
+  proxy
+)
+router.get(
+  '/stock/:symbol/chart/1y',
+  params('?includeToday=true&chartCloseOnly=true&filter=date,close'),
+  cache(12 * 60 * 60),
+  proxy
+)
+router.get('/stock/:symbol/company', params(), cache(), proxy)
+router.get('/stock/:symbol/stats', params(), cache(), proxy)
+router.get('/stock/:symbol/news', params(), cache(), proxy)
 
 export default router

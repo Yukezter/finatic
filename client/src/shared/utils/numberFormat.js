@@ -33,7 +33,7 @@ export const toSuffixed = num => {
 }
 
 const format = (number, formatter) => {
-  if (isNaN(number)) return null
+  if (number === null) return number
   return formatter.format(number)
 }
 

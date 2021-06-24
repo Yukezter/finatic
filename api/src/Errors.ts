@@ -13,8 +13,8 @@ export class CustomError extends Error {
 }
 
 export class IncorrectValues extends CustomError {
-  constructor() {
-    super('Incorrect values.', 'BAD_REQUEST', 400)
+  constructor(message = 'Incorrect values.') {
+    super(message, 'BAD_REQUEST', 400)
   }
 }
 

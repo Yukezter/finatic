@@ -1,6 +1,7 @@
 import React from 'react'
 import clsx from 'clsx'
 import { useTable, useSortBy } from 'react-table'
+import { useQuery } from 'react-query'
 import { makeStyles } from '@material-ui/core/styles'
 import Paper from '@material-ui/core/Paper'
 import Tab from '@material-ui/core/Tab'
@@ -11,7 +12,6 @@ import Link from '../shared/components/Link'
 // import ArrowIcon from '../shared/components/ArrowIcon'
 
 import useUnderBreakpoint from '../shared/hooks/useUnderBreakpoint'
-import api from '../shared/hooks/api'
 import { toCurrency, toPercent, toSuffixed } from '../shared/utils/numberFormat'
 
 const rowHeightMobile = 48
@@ -203,7 +203,7 @@ const TableView = React.memo(
     const tableData = React.useMemo(
       () =>
         isLoading
-          ? Array(20).fill({})
+          ? Array(10).fill({})
           : data.map(d => {
               d.companyName = d.companyName.replace(regex, '')
               return d
@@ -265,11 +265,7 @@ const TableView = React.memo(
                     {...column.getHeaderProps(column.getSortByToggleProps())}
                     className={!isLoading && column.isSorted ? 'active' : ''}
                     aria-sort={
-                      !isLoading && column.isSorted
-                        ? column.isSortedDesc
-                          ? 'desc'
-                          : 'asc'
-                        : 'none'
+                      !isLoading && column.isSorted ? (column.isSortedDesc ? 'desc' : 'asc') : 'none'
                     }
                   >
                     <TableSortLabel
@@ -281,9 +277,7 @@ const TableView = React.memo(
                       {column.render('Header')}
                       {column.isSorted ? (
                         <span className={classes.visuallyHidden}>
-                          {column.isSortedDesc
-                            ? 'sorted descending'
-                            : 'sorted ascending'}
+                          {column.isSortedDesc ? 'sorted descending' : 'sorted ascending'}
                         </span>
                       ) : null}
                     </TableSortLabel>
@@ -298,10 +292,7 @@ const TableView = React.memo(
               return (
                 <tr {...row.getRowProps()} className={classes.bodyRow}>
                   {row.cells.map(cell => (
-                    <td
-                      className={isLoading ? 'loading' : 'done-loading'}
-                      {...cell.getCellProps()}
-                    >
+                    <td className={isLoading ? 'loading' : 'done-loading'} {...cell.getCellProps()}>
                       <div>{cell.render('Cell')}</div>
                     </td>
                   ))}
@@ -314,12 +305,15 @@ const TableView = React.memo(
     )
   },
   (prevProps, nextProps) => {
-    return (
-      prevProps.isLoading === nextProps.isLoading &&
-      prevProps.isMobile === nextProps.isMobile
-    )
+    return prevProps.isLoading === nextProps.isLoading && prevProps.isMobile === nextProps.isMobile
   },
 )
+
+const Table = ({ classes, data, isLoading }) => {
+  const isMobile = useUnderBreakpoint(400)
+
+  return <TableView classes={classes} data={data} isLoading={isLoading} isMobile={isMobile} />
+}
 
 const TabPanel = ({ value, type, index, children, ...rest }) => (
   <div
@@ -334,36 +328,13 @@ const TabPanel = ({ value, type, index, children, ...rest }) => (
   </div>
 )
 
-const a11yProps = index => ({
-  id: `tab-${index}`,
-  'aria-controls': `tabpanel-${index}`,
-})
-
-const TableContainer = ({ classes, data, isLoading }) => {
-  const isMobile = useUnderBreakpoint(400)
-
-  return (
-    <TableView
-      classes={classes}
-      data={data}
-      isLoading={isLoading}
-      isMobile={isMobile}
-    />
-  )
-}
-
-const Table = () => {
+const TableTabs = () => {
   const classes = useStyles()
 
   const [listType, setListType] = React.useState('mostactive')
   const handleTab = index => () => setListType(index)
 
-  const { data, isLoading } = api.get(`/market/list/${listType}`, {
-    refetchOnWindowFocus: false,
-    staleTime: 0,
-    cacheTime: 0,
-    onError: error => console.log(error),
-  })
+  const { data, isLoading } = useQuery(`/stock/market/list/${listType}`)
 
   return (
     <>
@@ -388,27 +359,28 @@ const Table = () => {
             classes={{ root: classes.tab }}
             label={label}
             onClick={handleTab(type)}
-            {...a11yProps(index)}
+            id={`tab-${index}`}
+            aria-controls={`tabpanel-${index}`}
           />
         ))}
       </div>
       <TabPanel value={listType} index={0} type='mostactive'>
         <Paper className='paper' elevation={0}>
-          <TableContainer classes={classes} data={data} isLoading={isLoading} />
+          <Table classes={classes} isLoading={isLoading} data={data} />
         </Paper>
       </TabPanel>
       <TabPanel value={listType} index={1} type='gainers'>
         <Paper className='paper' elevation={0}>
-          <TableContainer classes={classes} data={data} isLoading={isLoading} />
+          <Table classes={classes} isLoading={isLoading} data={data} />
         </Paper>
       </TabPanel>
       <TabPanel value={listType} index={2} type='losers'>
         <Paper className='paper' elevation={0}>
-          <TableContainer classes={classes} data={data} isLoading={isLoading} />
+          <Table classes={classes} isLoading={isLoading} data={data} />
         </Paper>
       </TabPanel>
     </>
   )
 }
 
-export default Table
+export default TableTabs

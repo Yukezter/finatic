@@ -1,5 +1,5 @@
 export default ({ typography, palette }) =>
-  function (tooltip, e) {
+  function (tooltip) {
     let tooltipEl = document.getElementById('stock-price-chart-tooltip')
 
     if (!tooltipEl) {
@@ -25,7 +25,7 @@ export default ({ typography, palette }) =>
       const titleLines = tooltip.title || []
       let innerHtml = ''
 
-      titleLines.forEach(function (title) {
+      titleLines.forEach(title => {
         innerHtml += '<span>' + title + '</span>'
       })
 

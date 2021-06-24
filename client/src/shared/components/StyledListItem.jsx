@@ -3,6 +3,7 @@ import { withStyles } from '@material-ui/core'
 import clsx from 'clsx'
 import ListItem from '@material-ui/core/ListItem'
 import ListItemText from '@material-ui/core/ListItemText'
+import Skeleton from '@material-ui/lab/Skeleton'
 
 const StyledListItem = withStyles(theme => ({
   listItem: {
@@ -26,22 +27,36 @@ const StyledListItem = withStyles(theme => ({
     lineHeight: 1,
     fontSize: theme.typography.body2.fontSize,
   },
-}))(({ classes, title, titleSecondary, value, valueSecondary }) => (
+}))(({ classes, isLoading, title, titleSecondary, value, valueSecondary }) => (
   <ListItem key={title} className={classes.listItem} dense disableGutters>
     <div>
-      <ListItemText classes={{ primary: classes.title }} primary={title} />
+      <ListItemText
+        classes={{ primary: classes.title }}
+        primary={isLoading ? <Skeleton width={50} /> : title}
+      />
       {titleSecondary && (
         <ListItemText
-          secondary={titleSecondary}
+          secondary={isLoading ? <Skeleton width={60} /> : titleSecondary}
           classes={{ secondary: classes.titleSecondary }}
         />
       )}
     </div>
     <div style={{ textAlign: 'right' }}>
-      <ListItemText primary={value} classes={{ primary: classes.value }} />
+      <ListItemText
+        classes={{ primary: classes.value }}
+        primary={
+          isLoading ? <Skeleton width={50} style={{ marginLeft: 'auto' }} /> : value
+        }
+      />
       {valueSecondary && (
         <ListItemText
-          secondary={valueSecondary}
+          secondary={
+            isLoading ? (
+              <Skeleton width={80} style={{ marginLeft: 'auto' }} />
+            ) : (
+              valueSecondary
+            )
+          }
           classes={{
             secondary: clsx(classes.valueSecondary),
           }}

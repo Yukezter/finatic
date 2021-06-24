@@ -1,5 +1,3 @@
-import _ from 'lodash'
-
 import tooltip from './tooltip'
 
 const getPrices = data =>
@@ -8,7 +6,38 @@ const getPrices = data =>
     return acc
   }, [])
 
-export default (theme, cb) => {
+const beforeLayout = chart => {
+  const data = chart.data.datasets[0].data
+  const yTicks = chart.options.scales.yAxes[0].ticks
+  const prices = getPrices(data)
+  const min = Math.min(...prices)
+  const max = Math.max(...prices)
+  const buffer = (max - min) * 0.02
+  yTicks.min = min - buffer
+  yTicks.max = max + buffer
+}
+
+const afterDraw = theme => {
+  return chart => {
+    if (chart.tooltip._active && chart.tooltip._active.length) {
+      const activePoint = chart.controller.tooltip._active[0]
+      const ctx = chart.ctx
+      const x = activePoint.tooltipPosition().x
+      const topY = chart.scales['y-axis-0'].top
+      const bottomY = chart.scales['y-axis-0'].bottom
+      ctx.save()
+      ctx.beginPath()
+      ctx.moveTo(x, topY)
+      ctx.lineTo(x, bottomY)
+      ctx.lineWidth = 1
+      ctx.strokeStyle = theme.palette.text.hint
+      ctx.stroke()
+      ctx.restore()
+    }
+  }
+}
+
+export default (theme, data, handleChartHover) => {
   const { palette, spacing } = theme
 
   const options = {
@@ -16,7 +45,7 @@ export default (theme, cb) => {
     data: {
       datasets: [
         {
-          // data,
+          data,
           fill: false,
           borderWidth: 3,
           borderColor: palette.primary.main,
@@ -41,6 +70,7 @@ export default (theme, cb) => {
         animationDuration: 0,
         mode: 'index',
         intersect: false,
+        onHover: handleChartHover,
       },
       elements: {
         line: {
@@ -97,42 +127,13 @@ export default (theme, cb) => {
     plugins: [
       {
         id: 'set-y-range',
-        beforeLayout: chart => {
-          const data = chart.data.datasets[0].data
-          const yTicks = chart.options.scales.yAxes[0].ticks
-          const prices = getPrices(data)
-          const min = Math.min(...prices)
-          const max = Math.max(...prices)
-          const buffer = (max - min) * 0.02
-          yTicks.min = min - buffer
-          yTicks.max = max + buffer
-        },
+        beforeLayout,
       },
       {
         id: 'vertical-line',
-        afterDraw: chart => {
-          if (chart.tooltip._active && chart.tooltip._active.length) {
-            const activePoint = chart.controller.tooltip._active[0]
-            const ctx = chart.ctx
-            const x = activePoint.tooltipPosition().x
-            const topY = chart.scales['y-axis-0'].top
-            const bottomY = chart.scales['y-axis-0'].bottom
-            ctx.save()
-            ctx.beginPath()
-            ctx.moveTo(x, topY)
-            ctx.lineTo(x, bottomY)
-            ctx.lineWidth = 1
-            ctx.strokeStyle = palette.text.hint
-            ctx.stroke()
-            ctx.restore()
-          }
-        },
+        afterDraw: afterDraw(theme),
       },
     ],
-  }
-
-  if (cb && _.isFunction(cb)) {
-    return cb(options)
   }
 
   return options
