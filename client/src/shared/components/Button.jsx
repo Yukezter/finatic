@@ -6,7 +6,7 @@ const defaultStyles = {
 }
 
 const StyledButton = React.forwardRef((props, ref) => {
-  return <Button ref={ref} {...props} style={defaultStyles} />
+  return <Button ref={ref} style={defaultStyles} {...props} />
 })
 
 export default StyledButton

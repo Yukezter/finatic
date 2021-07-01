@@ -11,7 +11,7 @@ import useEventSource from '../shared/hooks/useEventSource'
 import useEventSourceListener from '../shared/hooks/useEventSourceListener'
 import StyledList from '../shared/components/StyledList'
 import StyledListItem from '../shared/components/StyledListItem'
-import { toCurrency, toPercent } from '../shared/utils/numberFormat'
+import { toCurrency } from '../shared/utils/numberFormat'
 
 const useStyles = makeStyles(theme => ({
   sideColumn: {
@@ -24,36 +24,31 @@ const useStyles = makeStyles(theme => ({
   },
 }))
 
-const getMinutes = minutes => {
-  if (minutes >= 10) return minutes
-  return `0${minutes}`
-}
+// const getMinutes = minutes => {
+//   if (minutes >= 10) return minutes
+//   return `0${minutes}`
+// }
 
-const getTime = (hours, minutes) => {
-  if (hours >= 13) return `${hours - 12}:${getMinutes(minutes)} PM`
-  return `${hours}:${getMinutes(minutes)} AM`
-}
+// const getTime = (hours, minutes) => {
+//   if (hours >= 13) return `${hours - 12}:${getMinutes(minutes)} PM`
+//   return `${hours}:${getMinutes(minutes)} AM`
+// }
 
-const getDate = timestamp => {
-  const t = new Date(timestamp)
-  return `${t.getMonth()}/${t.getDay()} ${getTime(t.getHours(), t.getMinutes())}`
-}
-const CryptoListItem = ({ esQuote, symbol, title, titleSecondary }) => {
+// const getDate = timestamp => {
+//   const t = new Date(timestamp)
+//   return `${t.getMonth()}/${t.getDay()} ${getTime(t.getHours(), t.getMinutes())}`
+// }
+
+const CryptoListItem = ({ esQuote, symbol, title }) => {
   const quote = useEventSourceListener(esQuote, symbol)
 
   return (
     <StyledListItem
       isLoading={quote.isLoading}
       title={title}
-      titleSecondary={titleSecondary}
+      titleSecondary={'24h Trailing Vol'}
       value={quote.isLoading ? null : toCurrency(quote.data.latestPrice)}
-      valueSecondary={
-        quote.isLoading ? null : !quote.data.previousClose ? (
-          <i>as of: {getDate(quote.data.latestUpdate)}</i>
-        ) : (
-          toPercent(quote.data.previousClose)
-        )
-      }
+      valueSecondary={quote.isLoading ? null : quote.data.latestVolume}
     />
   )
 }
@@ -62,9 +57,9 @@ const Cryptocurrencies = () => {
   const esQuote = useEventSource(`/crypto/quote?symbols=btcusd,ethusd,ltcusd`)
   return (
     <StyledList ariaLabelledBy='cryptocurrencies' subheader='Cryptocurrencies'>
-      <CryptoListItem esQuote={esQuote} symbol='btcusd' title='BTC' titleSecondary='Bitcoin' />
-      <CryptoListItem esQuote={esQuote} symbol='ethusd' title='ETH' titleSecondary='Ethereum' />
-      <CryptoListItem esQuote={esQuote} symbol='ltcusd' title='LTC' titleSecondary='Litecoin' />
+      <CryptoListItem esQuote={esQuote} symbol='btcusd' title='BTC' />
+      <CryptoListItem esQuote={esQuote} symbol='ethusd' title='ETH' />
+      <CryptoListItem esQuote={esQuote} symbol='ltcusd' title='LTC' />
     </StyledList>
   )
 }

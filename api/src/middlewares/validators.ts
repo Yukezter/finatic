@@ -1,22 +1,20 @@
 import { RequestHandler } from 'express'
 
-import { getIEXUrl, addToken } from '../iex'
 import { IncorrectValues } from '../Errors'
 
-export const validateParams = (search: string | string[] = ''): RequestHandler => {
-  return (req, res, next) => {
-    const url = getIEXUrl(req.originalUrl)
-    const reqSearch = decodeURIComponent(url.search)
+export const validateParams = (searchParamsString: string | string[] = ''): RequestHandler => {
+  return (req, _res, next) => {
+    const reqSearchParams = new URLSearchParams(req.query as any)
+    const reqSearchParamsString = decodeURIComponent(reqSearchParams.toString())
 
-    if (Array.isArray(search)) {
-      if (!search.some(s => s === reqSearch)) {
+    if (Array.isArray(searchParamsString)) {
+      if (!searchParamsString.some(s => reqSearchParamsString === s)) {
         return next(new IncorrectValues('Invalid query parameters.'))
       }
-    } else if (search !== reqSearch) {
+    } else if (searchParamsString !== reqSearchParamsString) {
       return next(new IncorrectValues('Invalid query parameters.'))
     }
 
-    res.locals.proxyUrl = addToken(url).href
     next()
   }
 }

@@ -49,7 +49,7 @@ export default (theme, data, handleChartHover) => {
           fill: false,
           borderWidth: 3,
           borderColor: palette.primary.main,
-          lineTension: 0,
+          lineTension: false,
           pointRadius: 0,
           pointHoverRadius: 0,
           pointHoverBorderWidth: 2,
@@ -63,7 +63,7 @@ export default (theme, data, handleChartHover) => {
       events: ['mousemove', 'mouseout', 'touchmove', 'touchend'],
       responsive: true,
       maintainAspectRatio: false,
-      animation: { duration: 0 },
+      animation: false,
       responsiveAnimationDuration: 0,
       spanGaps: true,
       hover: {
@@ -71,11 +71,6 @@ export default (theme, data, handleChartHover) => {
         mode: 'index',
         intersect: false,
         onHover: handleChartHover,
-      },
-      elements: {
-        line: {
-          tension: 0,
-        },
       },
       legend: { display: false },
       tooltips: {

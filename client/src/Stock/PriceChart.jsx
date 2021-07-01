@@ -59,28 +59,36 @@ const useStyles = makeStyles(({ spacing, breakpoints, palette }) => ({
 
 const zeroIfNaN = n => (Number.isNaN(n) ? 0 : n)
 
-const findFirstDefinedPrice = data => {
+const getFirstDefinedPrice = data => {
   const price = data.find(element => element && element.y)
   return price ? price.y : null
 }
 
+const ranges = [
+  { value: '1d', buttonText: '1D', label: 'Today' },
+  { value: '5dm', buttonText: '5D', label: 'Last Week' },
+  { value: '1m', buttonText: '1M', label: 'Last Month' },
+  { value: '3m', buttonText: '3M', label: 'Last 3 Months' },
+  { value: '1y', buttonText: '1Y', label: 'Last Year' },
+]
+
 let chartCount = 0
 
-const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
+const ChartCanvas = memo(({ theme, classes, symbol, range, setInteractive }) => {
   console.log('Stock chart:', ++chartCount)
 
   const canvasRef = useRef()
   const chartRef = useRef()
 
-  const [chart, setChart] = useState({ isLoading: true, data: [] })
+  const [{ isLoading, data }, setChart] = useState({ isLoading: true, data: [] })
 
   const handleChartHover = useCallback(
     (_event, elements) => {
-      setRangeData(prevState => {
+      setInteractive(prevState => {
         const newState = {
-          price: null,
-          change: null,
-          changePercent: null,
+          hoverPrice: null,
+          hoverChange: null,
+          hoverChangePercent: null,
         }
 
         const element = elements[0]
@@ -90,12 +98,13 @@ const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
           const hoverElement = data[element._index]
 
           if (hoverElement && hoverElement.y) {
-            newState.price = hoverElement.y
+            newState.hoverPrice = hoverElement.y
 
-            if (prevState.firstRangePrice) {
-              const difference = newState.price - prevState.firstRangePrice
-              newState.change = difference
-              newState.changePercent = zeroIfNaN(difference / prevState.firstRangePrice)
+            if (prevState.firstPrice) {
+              const difference = newState.hoverPrice - prevState.firstPrice
+
+              newState.hoverChange = difference
+              newState.hoverChangePercent = zeroIfNaN(difference / prevState.firstPrice)
             }
           }
         }
@@ -103,13 +112,12 @@ const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
         return newState
       })
     },
-    [setRangeData],
+    [setInteractive],
   )
 
-  const options = useRef(createOptions(theme, chart.data, throttle(handleChartHover, 100)))
+  const options = useRef(createOptions(theme, data, throttle(handleChartHover, 100)))
 
   // Request connection and add/remove listeners
-  // This only runs when range prop updates
   useEffect(() => {
     const es = new EventSource(`http://localhost:8001/sse/stock/chart/${range}?symbols=${symbol}`)
 
@@ -123,23 +131,23 @@ const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
       time.tooltipFormat = 'll'
     }
 
-    const dataListener = data => {
-      let chartData = JSON.parse(data.data)
+    const dataListener = event => {
+      let newData = JSON.parse(event.data)
 
       // Format chart data
       if (range === '1d' || range === '5dm') {
-        chartData = chartData.map(d => ({
+        newData = newData.map(d => ({
           y: d.average,
           x: new Date(`${d.date} ${d.minute}`),
         }))
       } else {
-        chartData = chartData.map(d => ({
+        newData = newData.map(d => ({
           y: d.close,
           x: new Date(d.date),
         }))
       }
 
-      setChart({ loading: false, data: chartData })
+      setChart({ loading: false, data: newData })
     }
 
     const errorListener = err => {
@@ -157,7 +165,7 @@ const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
 
       setChart({ isLoading: true, data: [] })
     }
-  }, [symbol, range, setRangeData, setChart])
+  }, [symbol, range, setInteractive, setChart])
 
   // Create/update chart instance
   useEffect(() => {
@@ -166,34 +174,35 @@ const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
       chartRef.current = new Chart(ctx, options.current)
     } else {
       // Update chart data
-      options.current.data.datasets[0].data = chart.data
+      options.current.data.datasets[0].data = data
       chartRef.current.update()
     }
-  }, [chart])
+  }, [data])
 
   // Update parent component's range data
   useEffect(() => {
     let hasUpdated = false
 
-    if (!chart.isLoading && !hasUpdated) {
+    if (!isLoading && !hasUpdated) {
       const newState = {
-        firstRangePrice: findFirstDefinedPrice(chart.data),
+        firstPrice: getFirstDefinedPrice(data),
         change: null,
         changePercent: null,
+        label: ranges.find(r => r.value === range).label,
       }
 
       if (range !== '1d') {
-        const lastPrice = findFirstDefinedPrice([...chart.data].reverse())
-        const difference = lastPrice - newState.firstRangePrice
+        const lastPrice = getFirstDefinedPrice([...data].reverse())
+        const difference = lastPrice - newState.firstPrice
         newState.change = difference
-        newState.changePercent = difference / newState.firstRangePrice
+        newState.changePercent = difference / newState.firstPrice
       }
 
-      setRangeData(newState)
+      setInteractive(newState)
 
       hasUpdated = true
     }
-  }, [range, chart, setRangeData])
+  }, [range, isLoading, data, setInteractive])
 
   // Prevent subsequent mousemove/mouseout event from firing if initiated by touch
   const handleTouchEnd = event => {
@@ -207,63 +216,90 @@ const LineChart = memo(({ theme, classes, symbol, range, setRangeData }) => {
   )
 })
 
-const Price = memo(({ classes, quote, price }) => (
+const Price = memo(({ classes, realtime, interactive }) => (
   <Typography className={classes.price} variant='h3' component='h1'>
-    {quote.isLoading ? <Skeleton width={150} /> : toCurrency(price !== null ? price : quote.data.latestPrice)}
+    {realtime.isLoading ? (
+      <Skeleton width={150} />
+    ) : (
+      toCurrency(interactive.hoverPrice !== null ? interactive.hoverPrice : realtime.data.latestPrice)
+    )}
   </Typography>
 ))
 
-const Change = memo(({ quote, change, changePercent, hide }) => (
+const Change = memo(({ realtime, interactive }) => (
   <Typography variant='subtitle2' component='div'>
-    {quote.isLoading ? (
+    {realtime.isLoading ? (
       <Skeleton width={150} />
     ) : (
       <>
-        <span>{toCurrency(change !== null ? change : quote.data.change)}</span>{' '}
-        <span>({toPercent(changePercent !== null ? changePercent : quote.data.changePercent)})</span>{' '}
-        <span className={clsx(hide && 'hide')}>Today</span>
+        <span>
+          {toCurrency(
+            interactive.hoverChange !== null
+              ? interactive.hoverChange
+              : interactive.change !== null
+              ? interactive.change
+              : realtime.data.change,
+          )}
+        </span>{' '}
+        <span>
+          (
+          {toPercent(
+            interactive.hoverChangePercent !== null
+              ? interactive.hoverChangePercent
+              : interactive.changePercent !== null
+              ? interactive.changePercent
+              : realtime.data.changePercent,
+          )}
+          )
+        </span>{' '}
+        <span>{interactive.label}</span>
       </>
     )}
   </Typography>
 ))
 
-const ExtendedChange = memo(({ quote, hide }) => (
+const ExtendedChange = memo(({ spacing, realtime, hide }) => (
   <Typography variant='subtitle2' component='span'>
-    {quote.isLoading ? (
+    {realtime.isLoading ? (
       <Skeleton width={150} />
     ) : (
-      quote.data.extendedChange !== null && (
-        <div className={clsx(hide && 'hide')}>
-          <span>{toCurrency(quote.data.extendedChange)}</span>{' '}
-          <span>{toPercent(quote.data.extendedChangePercent)}</span> <span>After-hours</span>
-        </div>
-      )
+      <div style={{ height: spacing(2.75) }}>
+        {realtime.data.extendedChange ? (
+          <div className={clsx(hide && 'hide')}>
+            <span>{toCurrency(realtime.data.extendedChange)}</span>{' '}
+            <span>({toPercent(realtime.data.extendedChangePercent)})</span> <span>After-hours</span>
+          </div>
+        ) : null}
+      </div>
     )}
   </Typography>
 ))
 
 let containerCount = 0
 
-const StockChart = ({ theme, symbol }) => {
+const PriceChart = ({ theme, symbol }) => {
   console.log('Stock chart container:', ++containerCount)
 
   const classes = useStyles()
 
-  const [quote, setQuote] = useState({ isLoading: true, data: {} })
+  const [realtime, setRealtime] = useState({ isLoading: true, data: {} })
 
-  const [state, mergeState] = useMergeState({
+  const [interactive, setInteractive] = useMergeState({
     range: '1d',
-    firstRangePrice: null,
-    price: null,
+    firstPrice: null,
     change: null,
     changePercent: null,
+    hoverPrice: null,
+    hoverChange: null,
+    hoverChangePercent: null,
+    label: 'Today',
   })
 
   useEffect(() => {
     const es = new EventSource(`http://localhost:8001/sse/stock/quote?symbols=${symbol}`)
 
     const dataListener = data => {
-      setQuote({ loading: false, data: JSON.parse(data.data) })
+      setRealtime({ loading: false, data: JSON.parse(data.data) })
     }
 
     const errorListener = err => {
@@ -279,37 +315,38 @@ const StockChart = ({ theme, symbol }) => {
       es.removeEventListener(symbol, dataListener)
       es.close()
     }
-  }, [symbol, setQuote])
+  }, [symbol, setRealtime])
 
   const handleButtonClick = range => () => {
-    if (state.range !== range) mergeState({ range })
+    if (interactive.range !== range) {
+      setInteractive({ range })
+    }
   }
 
   return (
     <div className={classes.root}>
-      <Price classes={classes} price={state.price} quote={quote} />
-      <Change
-        quote={quote}
-        change={state.change}
-        changePercent={state.changePercent}
-        hide={state.range !== '1d' || state.price !== null}
+      <Price classes={classes} realtime={realtime} interactive={interactive} />
+      <Change realtime={realtime} interactive={interactive} />
+      <ExtendedChange
+        spacing={theme.spacing}
+        realtime={realtime}
+        hide={interactive.range !== '1d' || interactive.price !== null}
       />
-      <ExtendedChange quote={quote} hide={state.range !== '1d' || state.price !== null} />
-      <LineChart
+      <ChartCanvas
         theme={theme}
         classes={classes}
         symbol={symbol}
-        range={state.range}
-        setRangeData={mergeState}
+        range={interactive.range}
+        setInteractive={setInteractive}
       />
       <div className={classes.buttons}>
-        {['1d', '5dm', '1m', '3m', '1y'].map(range => (
+        {ranges.map(({ value, buttonText }) => (
           <Button
-            key={range}
-            className={clsx(classes.button, range === state.range && 'active')}
-            onClick={handleButtonClick(range)}
+            key={value}
+            className={clsx(classes.button, interactive.range === value && 'active')}
+            onClick={handleButtonClick(value)}
           >
-            {range === '5dm' ? '5d' : range}
+            {buttonText}
           </Button>
         ))}
       </div>
@@ -317,4 +354,4 @@ const StockChart = ({ theme, symbol }) => {
   )
 }
 
-export default StockChart
+export default PriceChart

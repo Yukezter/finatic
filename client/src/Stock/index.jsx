@@ -1,19 +1,29 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useQuery } from 'react-query'
+import clsx from 'clsx'
 import { makeStyles } from '@material-ui/core'
+import { fade } from '@material-ui/core/styles/colorManipulator'
 import Grid from '@material-ui/core/Grid'
 import List from '@material-ui/core/List'
 import ListItem from '@material-ui/core/ListItem'
 import Typography from '@material-ui/core/Typography'
+import Chip from '@material-ui/core/Chip'
 import Skeleton from '@material-ui/lab/Skeleton'
 
-import Chart from './Chart'
+import Link from '../shared/components/Link'
+import Button from '../shared/components/Button'
+import PriceChart from './PriceChart'
+import RatingsChart from './RatingsChart'
 
 import { toGrouped, toSuffixed, toFixed, toCurrency, toPercent } from '../shared/utils/numberFormat'
 
 const useStyles = makeStyles(({ spacing, palette, typography, breakpoints }) => ({
-  root: {},
+  root: {
+    '& h2': {
+      fontWeight: 600,
+    },
+  },
   symbol: {
     fontWeight: 600,
   },
@@ -31,7 +41,7 @@ const useStyles = makeStyles(({ spacing, palette, typography, breakpoints }) => 
       },
     },
     [breakpoints.up('sm')]: {
-      ' > ul & > li': {
+      '& > ul > li': {
         '& .label, & .value': {
           fontSize: typography.body2.fontSize,
         },
@@ -40,9 +50,7 @@ const useStyles = makeStyles(({ spacing, palette, typography, breakpoints }) => 
   },
   company: {
     marginBottom: spacing(2),
-    '& h2': {
-      fontWeight: 600,
-    },
+
     '& > .description': {
       marginBottom: spacing(2),
     },
@@ -59,6 +67,46 @@ const useStyles = makeStyles(({ spacing, palette, typography, breakpoints }) => 
       },
     },
   },
+  description: {
+    display: 'block',
+    position: 'relative',
+    overflow: 'hidden',
+    maxHeight: 120,
+    pointerEvents: 'none',
+    '&:after': {
+      content: '""',
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      top: 0,
+      right: 0,
+      height: '100%',
+      width: '100%',
+      background: `linear-gradient(to bottom, transparent 0%, ${fade(
+        palette.background.default,
+        0.6,
+      )} 30%, ${fade(palette.background.default, 1)} 60%)`,
+    },
+  },
+  descriptionExpanded: {
+    maxHeight: 'inherit',
+    paddingBottom: spacing(4.5),
+    '&:after': {
+      background: 'none',
+    },
+  },
+  showMore: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    margin: '0 auto',
+    borderRadius: spacing(0.5),
+    background: palette.background.default,
+  },
+  news: {
+    marginBottom: spacing(4),
+  },
   article: {
     '& > .headline': {
       fontFamily: typography.fontFamily,
@@ -68,9 +116,21 @@ const useStyles = makeStyles(({ spacing, palette, typography, breakpoints }) => 
         color: 'inherit',
       },
     },
+    '&:hover > .headline > a': {
+      textDecoration: 'underline',
+      textDecorationColor: palette.primary.main,
+    },
     '& > .datetime': {
       color: palette.grey[500],
     },
+  },
+  chipSkeleton: {
+    marginRight: spacing(1),
+    marginBottom: spacing(1),
+  },
+  chip: {
+    marginRight: spacing(1),
+    marginBottom: spacing(1),
   },
 }))
 
@@ -82,7 +142,7 @@ const Stat = ({ isLoading, title, data }) => {
           {title}
         </Typography>
         <Typography className='value' variant='caption' component='p' noWrap>
-          {isLoading ? <Skeleton width={50} /> : data === null ? 'N/A' : data}
+          {isLoading ? <Skeleton width={50} /> : data === null ? ' - ' : data}
         </Typography>
       </div>
     </ListItem>
@@ -90,40 +150,66 @@ const Stat = ({ isLoading, title, data }) => {
 }
 
 const Stats = ({ classes, symbol }) => {
-  const { isPlaceholderData, data } = useQuery(`/stock/${symbol}/stats`, { placeholderData: {} })
+  const { isPlaceholderData, isError, data } = useQuery(`/stock/${symbol}/stats`, { placeholderData: {} })
+  const isLoading = isPlaceholderData || isError
 
   return (
     <div className={classes.stats}>
-      <List>
-        <Stat isLoading={isPlaceholderData} title='Employees' data={toGrouped(data.employees)} />
-        <Stat isLoading={isPlaceholderData} title='Market cap' data={toSuffixed(data.marketcap)} />
-        <Stat isLoading={isPlaceholderData} title='Float' data={toSuffixed(data.float)} />
-        <Stat isLoading={isPlaceholderData} title='Avg 10d volume' data={toSuffixed(data.avg10Volume)} />
-        <Stat isLoading={isPlaceholderData} title='Avg 30d volume' data={toSuffixed(data.avg30Volume)} />
-        <Stat isLoading={isPlaceholderData} title='P/E ratio' data={toFixed(data.peRatio)} />
-        <Stat isLoading={isPlaceholderData} title='Beta' data={toFixed(data.beta)} />
-        <Stat isLoading={isPlaceholderData} title='TTM EPS' data={toFixed(data.ttmEPS)} />
-        <Stat isLoading={isPlaceholderData} title='Div/Yield' data={toPercent(data.dividendYield)} />
-        <Stat isLoading={isPlaceholderData} title='52 week high' data={toCurrency(data.week52high)} />
-        <Stat isLoading={isPlaceholderData} title='52 week low' data={toCurrency(data.week52low)} />
-        <Stat isLoading={isPlaceholderData} title='52 week change' data={toPercent(data.week52change)} />
-        <Stat isLoading={isPlaceholderData} title='200 MDA' data={data.day200MovingAvg} />
-        <Stat isLoading={isPlaceholderData} title='50 MDA' data={data.day50MovingAvg} />
+      <List dense>
+        <Stat isLoading={isLoading} title='Market cap' data={toSuffixed(data.marketcap)} />
+        <Stat isLoading={isLoading} title='52 wk high' data={toCurrency(data.week52high)} />
+        <Stat isLoading={isLoading} title='52 wk low' data={toCurrency(data.week52low)} />
+        <Stat isLoading={isLoading} title='52 wk change' data={toPercent(data.week52change)} />
+        <Stat isLoading={isLoading} title='Shares outstanding' data={toSuffixed(data.sharesOutstanding)} />
+        <Stat isLoading={isLoading} title='P/E ratio' data={toFixed(data.peRatio)} />
+        <Stat isLoading={isLoading} title='Div/Yield' data={toPercent(data.dividendYield)} />
+        <Stat isLoading={isLoading} title='Beta' data={toFixed(data.beta)} />
+        <Stat isLoading={isLoading} title='Avg 10d vol' data={toSuffixed(data.avg10Volume)} />
+        <Stat isLoading={isLoading} title='Avg 30d vol' data={toSuffixed(data.avg30Volume)} />
+        <Stat isLoading={isLoading} title='TTM EPS' data={toFixed(data.ttmEPS)} />
+        <Stat isLoading={isLoading} title='TTM Dividend Rate' data={toFixed(data.ttmDividendRate)} />
+        <Stat isLoading={isLoading} title='200 MDA' data={toFixed(data.day200MovingAvg)} />
+        <Stat isLoading={isLoading} title='50 MDA' data={toFixed(data.day50MovingAvg)} />
+        <Stat isLoading={isLoading} title='5Y Change' data={toPercent(data.year5ChangePercent)} />
+        <Stat isLoading={isLoading} title='Max Change' data={toPercent(data.maxChangePercent)} />
       </List>
     </div>
   )
 }
 
+const Description = ({ classes, data }) => {
+  const [expanded, setExpanded] = useState(false)
+
+  const handleClick = () => {
+    setExpanded(prevState => !prevState)
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      {data.length > 400 ? (
+        <>
+          <span className={clsx(classes.description, expanded && classes.descriptionExpanded)}>{data}</span>
+          <Button size='small' variant='outlined' className={classes.showMore} onClick={handleClick}>
+            {expanded ? 'Show Less' : 'Show More'}
+          </Button>
+        </>
+      ) : (
+        data
+      )}
+    </div>
+  )
+}
+
 const Company = ({ classes, symbol }) => {
-  const { isLoading, data } = useQuery(`/stock/${symbol}/company`)
+  const { isLoading, isError, data } = useQuery(`/stock/${symbol}/company`)
 
   return (
     <div className={classes.company}>
-      <Typography variant='h5' component='h2' gutterBottom>
-        {isLoading ? <Skeleton width='35%' /> : `About ${data.companyName}`}
+      <Typography variant='h5' component='h2' paragraph>
+        {isLoading || isError ? <Skeleton width='35%' /> : `About ${data.companyName}`}
       </Typography>
       <Typography className='description' variant='body2' component='p' gutterBottom>
-        {isLoading ? (
+        {isLoading || isError ? (
           <>
             <Skeleton width='100%' />
             <Skeleton width='100%' />
@@ -132,36 +218,36 @@ const Company = ({ classes, symbol }) => {
             <Skeleton width='60%' />
           </>
         ) : (
-          data.description || 'N/A'
+          data.description && <Description classes={classes} data={data.description} />
         )}
       </Typography>
       <Typography className='CEO' variant='body2' component='p' gutterBottom>
-        {isLoading ? (
+        {isLoading || isError ? (
           <Skeleton width='100%' />
         ) : (
           <>
             <span>CEO</span>
-            <span>{data.CEO || 'N/A'}</span>
+            <span>{data.CEO || ' - '}</span>
           </>
         )}
       </Typography>
       <Typography className='headquarters' variant='body2' component='p' gutterBottom>
-        {isLoading ? (
+        {isLoading || isError ? (
           <Skeleton width='100%' />
         ) : (
           <>
             <span>Headquarters</span>
-            <span>{`${data.city || 'N/A'}, ${data.state || 'N/A'}`}</span>
+            <span>{data.state || data.city ? `${data.city && `${data.city},`} ${data.state}` : ' - '}</span>
           </>
         )}
       </Typography>
       <Typography className='employees' variant='body2' component='p' gutterBottom>
-        {isLoading ? (
+        {isLoading || isError ? (
           <Skeleton width='100%' />
         ) : (
           <>
             <span>Employees</span>
-            <span>{toGrouped(data.employees) || 'N/A'}</span>
+            <span>{toGrouped(data.employees) || ' - '}</span>
           </>
         )}
       </Typography>
@@ -184,19 +270,62 @@ const Article = ({ classes, isLoading, data: { url, headline, datetime } }) => (
       )}
     </Typography>
     <Typography className='datetime' variant='caption' component='p' gutterBottom>
-      {isLoading ? <Skeleton width='30%' /> : new Date(datetime).toDateString()}
+      {isLoading ? <Skeleton width='30%' /> : headline && new Date(datetime).toDateString()}
     </Typography>
   </div>
 )
 
 const News = ({ classes, symbol }) => {
-  const { isPlaceholderData, data } = useQuery(`/stock/${symbol}/news`, {
-    placeholderData: new Array(10).fill({}),
+  const placeholderData = new Array(6).fill({})
+  const { isPlaceholderData, isError, data } = useQuery(`/stock/${symbol}/news/last/10?language=en`, {
+    placeholderData,
   })
 
-  return data.map((article, idx) => (
-    <Article key={idx} classes={classes} isLoading={isPlaceholderData} data={article} />
-  ))
+  return (
+    <div className={classes.news}>
+      <Typography variant='h5' component='h2' paragraph>
+        News
+      </Typography>
+      {(isError ? placeholderData : data).map((article, idx) => (
+        <Article key={idx} classes={classes} isLoading={isPlaceholderData || isError} data={article} />
+      ))}
+    </div>
+  )
+}
+
+const Peers = ({ classes, symbol }) => {
+  const { isLoading, isError, data } = useQuery(`/stock/${symbol}/peers`)
+
+  return (
+    <div>
+      <Typography variant='h5' component='h2' paragraph>
+        Related Stonks
+      </Typography>
+      {isLoading || isError ? (
+        <>
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={16} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={30} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={10} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={40} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={30} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={56} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={34} variant='rect' />
+          <Skeleton className={classes.chipSkeleton} component={Chip} width={22} variant='rect' />
+        </>
+      ) : (
+        data.map(peer => (
+          <Chip
+            key={peer}
+            className={classes.chip}
+            label={peer}
+            component={Link}
+            to={`/company/${peer}`}
+            clickable
+          />
+        ))
+      )}
+    </div>
+  )
 }
 
 const Stock = ({ theme }) => {
@@ -206,16 +335,18 @@ const Stock = ({ theme }) => {
   return (
     <div className={classes.root}>
       <Grid container spacing={4}>
-        <Grid item xs={12} lg={8}>
+        <Grid item xs={12} md={8}>
           <Typography className={classes.symbol} variant='h3' component='h1'>
             {symbol}
           </Typography>
-          <Chart key={symbol} theme={theme} symbol={symbol} />
+          <PriceChart key={symbol} theme={theme} symbol={symbol} />
           <Stats classes={classes} symbol={symbol} />
+          <RatingsChart theme={theme} symbol={symbol} />
           <Company classes={classes} symbol={symbol} />
         </Grid>
-        <Grid item xs={12} lg={4}>
+        <Grid item xs={12} md={4}>
           <News classes={classes} symbol={symbol} />
+          <Peers classes={classes} theme={theme} symbol={symbol} />
         </Grid>
       </Grid>
     </div>

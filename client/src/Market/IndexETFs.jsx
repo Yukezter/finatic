@@ -104,13 +104,7 @@ const IndexETF = ({ classes, esQuote, esSparkline, symbol, name }) => {
   const sparkline = useEventSourceListener(esSparkline, symbol)
 
   return (
-    <Paper
-      component={Link}
-      // to={`/company/${symbol}`}
-      to='/company/AAPL'
-      className={classes.paper}
-      elevation={0}
-    >
+    <Paper component={Link} to={`/company/${symbol}`} className={classes.paper} elevation={0}>
       <div
         style={{
           display: 'flex',

@@ -1,4 +1,4 @@
-import React from 'react'
+import { useRef, useEffect } from 'react'
 import { useQuery } from 'react-query'
 import Chart from 'chart.js'
 import { makeStyles } from '@material-ui/core'
@@ -8,6 +8,7 @@ import Skeleton from '@material-ui/lab/Skeleton'
 const useStyles = makeStyles(theme => ({
   root: {
     height: theme.spacing(18),
+    width: '100%',
     marginLeft: 'auto',
     marginRight: 'auto',
     position: 'relative',
@@ -43,35 +44,40 @@ const useStyles = makeStyles(theme => ({
 }))
 
 const DoughnutChart = ({ data }) => {
-  const canvasRef = React.useRef()
-  const chartRef = React.useRef()
+  const canvasRef = useRef()
+  const chartRef = useRef()
 
-  React.useEffect(() => {
-    const ctx = canvasRef.current.getContext('2d')
-    chartRef.current = new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-        datasets: [
-          {
-            data: [data, 100 - data],
-            backgroundColor: ['#fdc600', '#e8e8e8'],
-            borderWidth: 0,
+  useEffect(() => {
+    if (!chartRef.current) {
+      const ctx = canvasRef.current.getContext('2d')
+      chartRef.current = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          datasets: [
+            {
+              data: [data, 100 - data],
+              backgroundColor: ['#fdc600', '#e8e8e8'],
+              borderWidth: 0,
+            },
+          ],
+        },
+        options: {
+          maintainAspectRatio: false,
+          cutoutPercentage: 85,
+          rotation: Math.PI,
+          circumference: Math.PI,
+          tooltips: {
+            enabled: false,
           },
-        ],
-      },
-      options: {
-        maintainAspectRatio: false,
-        cutoutPercentage: 85,
-        rotation: Math.PI,
-        circumference: Math.PI,
-        tooltips: {
-          enabled: false,
+          hover: {
+            mode: null,
+          },
         },
-        hover: {
-          mode: null,
-        },
-      },
-    })
+      })
+    } else {
+      chartRef.current.data.datasets[0].data = [data, 100 - data]
+      chartRef.current.update()
+    }
   }, [data])
 
   return <canvas id='doughnutChart' ref={canvasRef}></canvas>
@@ -80,19 +86,13 @@ const DoughnutChart = ({ data }) => {
 const Doughnut = () => {
   const classes = useStyles()
 
-  const { isLoading, data } = useQuery({
-    queryKey: ['/data-points/market/RECPROUSM156N'],
-  })
+  const { isLoading, data } = useQuery('/data-points/market/RECPROUSM156N')
 
   return (
     <div className={classes.root}>
       <DoughnutChart data={isLoading ? 0 : data * 100} />
       <div className={classes.doughnutTextContainer}>
-        <Typography
-          classes={{ root: classes.doughnutLabel }}
-          variant='body2'
-          align='center'
-        >
+        <Typography classes={{ root: classes.doughnutLabel }} variant='body2' align='center'>
           US Recession Probabilities
         </Typography>
         <div>

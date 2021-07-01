@@ -162,14 +162,16 @@ const useStyles = makeStyles(({ palette, spacing, typography, breakpoints }) => 
         backgroundColor: 'rgba(0, 0, 0, 0.08)',
       },
       '& > div': {
+        display: 'flex',
+      },
+      '& > div > span': {
         overflow: 'hidden',
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
       },
-      '& > div > span': {},
       '& > div > span:first-child': {
         width: spacing(12),
-        display: 'inline-block',
+        marginRight: spacing(1),
       },
     }),
     stocks: {
@@ -258,12 +260,7 @@ const Popup = ({
       {!!options.length ? (
         <>
           <div className={classes.stocks}>
-            <Typography
-              variant='body2'
-              component='p'
-              color='textSecondary'
-              className={classes.title}
-            >
+            <Typography variant='body2' component='p' color='textSecondary' className={classes.title}>
               Stocks
             </Typography>
             <ul className={classes.listbox} {...getListboxProps()}>
@@ -282,23 +279,12 @@ const Popup = ({
             </ul>
           </div>
           <div className={classes.sectors}>
-            <Typography
-              variant='body2'
-              component='p'
-              color='textSecondary'
-              className={classes.title}
-            >
+            <Typography variant='body2' component='p' color='textSecondary' className={classes.title}>
               Sectors
             </Typography>
             <div className={classes.chips}>
               {sectors.map(({ name }) => (
-                <Chip
-                  key={name}
-                  label={name}
-                  size='small'
-                  variant='outlined'
-                  clickable
-                />
+                <Chip key={name} label={name} size='small' variant='outlined' clickable />
               ))}
             </div>
           </div>
@@ -341,7 +327,6 @@ const Autocomplete = React.forwardRef((props, inputRef) => {
   })
 
   const filterOptions = createFilterOptions({
-    limit: 6,
     trim: true,
     stringify: ({ symbol, securityName }) => {
       return symbol + ' ' + securityName
@@ -357,6 +342,7 @@ const Autocomplete = React.forwardRef((props, inputRef) => {
       state.inputValue,
       options => {
         if (active) {
+          console.log(options, options.map(addParts(state.inputValue)))
           mergeState({
             open: true,
             options: options.map(addParts(state.inputValue)),
@@ -431,8 +417,7 @@ const Autocomplete = React.forwardRef((props, inputRef) => {
     onClose,
   }
 
-  const open =
-    (state.open && !!state.options.length) || (state.open && state.noResults)
+  const open = (state.open && !!state.options.length) || (state.open && state.noResults)
   autocompleteProps.open = fromDialog ? true : open
 
   const {
@@ -467,9 +452,7 @@ const Autocomplete = React.forwardRef((props, inputRef) => {
               root: classes.inputRoot,
               notchedOutline: classes.notchedOutline,
             },
-            startAdornment: (
-              <Icon classes={{ icon: classes.icon }} Icon={SearchIcon} />
-            ),
+            startAdornment: <Icon classes={{ icon: classes.icon }} Icon={SearchIcon} />,
           }}
           inputProps={{
             className: classes.input,
