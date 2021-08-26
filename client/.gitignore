@@ -1,20 +1,17 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
 # dependencies
-package-lock.json
-yarn.lock
 /node_modules
 /.pnp
 .pnp.js
 
 # testing
 /coverage
-.eslintcache
 
 # production
 /build
 
 # misc
-*.rdb
-
 .DS_Store
 .env.local
 .env.development.local
