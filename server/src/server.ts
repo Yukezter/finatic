@@ -2,6 +2,7 @@ import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
 import compression from 'compression'
+import cors from 'cors'
 
 import { routeNotFound, errorHandler } from './middlewares'
 import * as routes from './routes'
@@ -28,7 +29,7 @@ const sseApp = express()
 
 sseApp.set('trust proxy', true)
 sseApp.use(helmet())
-// sseApp.use(cors())
+sseApp.use(cors())
 sseApp.use(compression())
 sseApp.use('/sse', routes.sse)
 sseApp.use(routeNotFound)

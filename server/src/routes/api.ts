@@ -27,15 +27,21 @@ const router = Router()
 router.get('/search/:fragment', cache(30), proxy('iex'))
 
 // Forex
-router.get('/fx', cache(1200), proxy('iex', '/fx/latest?symbols=EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD,USDCNY'))
+router.get('/fx', cache(60 * 60), proxy('iex', '/fx/latest?symbols=EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD,USDCHF'))
 
 // Crypto
 router.get('/crypto/:symbol/quote', cache(30), proxy('iex'))
 
+// Sector Performance
+router.get('/sector-performance', cache(60 * 60), proxy('iex', '/stock/market/sector-performance'))
+
 // Commodities
-router.get('/commodities/oil', cache(86400), proxy('iex', '/data-points/market/DCOILWTICO'))
-router.get('/commodities/gas', cache(86400), proxy('iex', '/data-points/market/GASREGCOVW'))
-router.get('/commodities/jet-fuel', cache(86400), proxy('iex', '/data-points/market/DJFUELUSGULF'))
+router.get('/commodities/oil', cache(86400), proxy('iex', '/time-series/energy/DCOILWTICO'))
+router.get('/commodities/natural-gas', cache(86400), proxy('iex', '/time-series/energy/DHHNGSP'))
+router.get('/commodities/heating-oil', cache(86400), proxy('iex', '/time-series/energy/DHOILNYH'))
+router.get('/commodities/diesel', cache(86400), proxy('iex', '/time-series/energy/GASDESW'))
+router.get('/commodities/gas', cache(86400), proxy('iex', '/time-series/energy/GASREGCOVW'))
+router.get('/commodities/propane', cache(86400), proxy('iex', '/time-series/energy/DPROPANEMBTX'))
 
 // Treasury Rates
 router.get('treasury-rates/1', cache(86400), proxy('iex', '/data-points/market/DGS1'))
@@ -50,6 +56,9 @@ router.get('/economy/ipi', cache(86400), proxy('iex', '/data-points/market/INDPR
 
 // Real Gross Domestic Product
 router.get('/economy/real-gdp', cache(86400), proxy('iex', '/data-points/market/A191RL1Q225SBEA'))
+
+// Federal Fund Rates
+router.get('/economy/federal-funds', cache(86400), proxy('iex', '/data-points/market/FEDFUNDS'))
 
 // Unemployment Rate
 router.get('/economy/unemployment-rate', cache(86400), proxy('iex', '/data-points/market/UNRATE'))
@@ -67,10 +76,17 @@ const queryParams = (paramsObject: { [key: string]: string }): string => {
 }
 
 // News
+// router.get(
+//   '/news',
+//   cache(24 * 60 * 60),
+//   proxy('finnhub')
+//   // proxy('finnhub', req => `${req.originalUrl}${queryParams({ category: 'general' })}`)
+// )
+
 router.get(
   '/news',
   cache(24 * 60 * 60),
-  proxy('finnhub', req => `${req.originalUrl}${queryParams({ category: 'general' })}`)
+  proxy('iex', `/time-series/news${queryParams({ range: 'yesterday', limit: '5' })}`)
 )
 
 // Stock Quote
@@ -90,12 +106,12 @@ router.get(
 // Stock Chart - Intraday
 router.get(
   '/stock/:symbol/chart/1d',
-  cache(60),
+  cache(60 * 60),
   proxy(
     'iex',
     req =>
       `/stock/${req.params.symbol}/intraday-prices${queryParams({
-        chartIEXOnly: 'true',
+        // chartIEXOnly: 'true',
         filter: 'minute,average',
         chartInterval: '5',
       })}`
@@ -105,7 +121,7 @@ router.get(
 // Stock Chart - Intraday (Last Price)
 router.get(
   '/stock/:symbol/chart/1d/last',
-  cache(60),
+  cache(60 * 60),
   proxy(
     'iex',
     req =>
@@ -120,13 +136,13 @@ router.get(
 // Stock Chart - 5 Day
 router.get(
   '/stock/:symbol/chart/5d',
-  cache(10 * 60),
+  cache(60 * 60),
   proxy(
     'iex',
     req =>
       `/stock/${req.params.symbol}/chart/5dm${queryParams({
         includeToday: 'true',
-        chartIEXOnly: 'true',
+        // chartIEXOnly: 'true',
         filter: 'date,minute,average',
       })}`
   )
@@ -141,7 +157,7 @@ router.get(
     req =>
       `${req.originalUrl}${queryParams({
         includeToday: 'true',
-        chartIEXOnly: 'true',
+        // chartIEXOnly: 'true',
         filter: 'date,close',
       })}`
   )
@@ -156,7 +172,7 @@ router.get(
     req =>
       `${req.originalUrl}${queryParams({
         includeToday: 'true',
-        chartIEXOnly: 'true',
+        // chartIEXOnly: 'true',
         filter: 'date,close',
       })}`
   )
@@ -171,7 +187,7 @@ router.get(
     req =>
       `${req.originalUrl}${queryParams({
         includeToday: 'true',
-        chartIEXOnly: 'true',
+        // chartIEXOnly: 'true',
         filter: 'date,close',
       })}`
   )
@@ -199,5 +215,14 @@ router.get(
 
 // Peers
 router.get('/stock/:symbol/peers', cache(12 * 60 * 60), proxy('iex'))
+
+// IPOs
+router.get(
+  '/ipos',
+  cache(60),
+  proxy('finnhub', req => {
+    return `/calendar/ipo${queryParams({ from: req.query.from as string, to: req.query.to as string })}`
+  })
+)
 
 export default router

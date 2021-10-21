@@ -2,6 +2,7 @@ import {
   // unstable_createMuiStrictModeTheme as createTheme,
   createTheme,
   responsiveFontSizes,
+  ThemeOptions,
 } from '@material-ui/core/styles'
 
 const fonts = {
@@ -17,12 +18,20 @@ const colors = {
   green: '#18dc6b',
 }
 
-const theme = createTheme({
+const themeOptions: ThemeOptions = {
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 640,
+      md: 960,
+      lg: 1280,
+      xl: 1920,
+    },
+  },
   palette: {
-    type: 'dark',
     background: {
-      default: colors.white,
-      paper: colors.white,
+      // default: colors.secondary,
+      // paper: colors.secondary,
     },
     common: {
       white: colors.white,
@@ -106,6 +115,9 @@ const theme = createTheme({
     },
   },
   props: {
+    MuiUseMediaQuery: {
+      noSsr: true,
+    },
     MuiButtonBase: {
       disableRipple: true,
       disableTouchRipple: true,
@@ -120,6 +132,11 @@ const theme = createTheme({
       color: 'inherit',
     },
   },
-})
+}
 
-export default responsiveFontSizes(theme)
+export const light = responsiveFontSizes(createTheme(themeOptions))
+
+themeOptions.palette!.type = 'dark'
+themeOptions.palette!.background!.default = colors.secondary
+
+export const dark = responsiveFontSizes(createTheme(themeOptions))

@@ -6,14 +6,21 @@ interface Props extends LinkProps {
   to: string
 }
 
-const Link: React.FC<Props> = ({ children, underline, className = '', to }: Props) => {
+const Link: React.FC<Props> = ({
+  children,
+  underline,
+  className = '',
+  to,
+  style,
+}: Props) => {
   return (
     <MuiLink
+      to={to}
       component={RouterLink}
       color='inherit'
       underline={underline}
       className={className}
-      to={to}
+      style={style}
     >
       {children}
     </MuiLink>

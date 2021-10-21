@@ -1,28 +1,67 @@
-// import axios from 'axios'
-import { Switch, Route } from 'react-router-dom'
-import { withStyles } from '@material-ui/core/styles'
+/* eslint-disable react/jsx-props-no-spreading */
+import { Switch, Route, RouteProps } from 'react-router-dom'
+import { withStyles, createStyles, useTheme } from '@material-ui/core/styles'
+import Container from '@material-ui/core/Container'
 
 import Header from './Header'
+import Footer from './Footer'
+import { Wrapper } from '../Components'
+import { Market, News, Company } from '../Pages'
 
-const styles = withStyles(theme => {
-  const { palette } = theme
-  return {
+const styles = withStyles(theme =>
+  createStyles({
     root: {
-      background: palette.secondary.main,
-      height: '100vh',
+      height: 'auto',
+      paddingTop: 56,
     },
-  }
-})
+    Container: {
+      paddingTop: theme.spacing(5),
+    },
+  })
+)
 
-const App = styles((props: any) => {
-  const { classes } = props
+const routes = [
+  {
+    path: '/',
+    Component: ({ theme }: { theme: any }) => <>{theme.palette.primary.main}</>,
+  },
+  {
+    path: '/news',
+    Component: News,
+  },
+  {
+    path: '/market',
+    Component: Market,
+  },
+]
 
+const App = styles(({ classes }: any) => {
+  const theme = useTheme()
   return (
     <div className={classes.root}>
       <Header />
-      <Switch>
-        <Route path='/' exact />
-      </Switch>
+      <Container className={classes.Container} maxWidth={false}>
+        <Wrapper>
+          <Switch>
+            {routes.map(({ path, Component }) => (
+              <Route
+                key={path}
+                path={path}
+                exact
+                render={(props: RouteProps) => <Component {...props} theme={theme} />}
+              />
+            ))}
+            <Route
+              path='/company/:symbol'
+              exact
+              render={(props: RouteProps) => (
+                <Company key={props.location!.key} {...props} theme={theme} />
+              )}
+            />
+          </Switch>
+        </Wrapper>
+      </Container>
+      <Footer />
     </div>
   )
 })

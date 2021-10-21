@@ -3,14 +3,18 @@ import { MuiThemeProvider, CssBaseline } from '@material-ui/core'
 import { QueryClient, QueryClientProvider, QueryFunction } from 'react-query'
 import axios, { AxiosResponse } from 'axios'
 
-import theme from '../theme'
+import { light } from '../theme'
 import App from './App'
 
 interface QueryPromise extends Promise<AxiosResponse> {
   cancel?: () => void
 }
 
-const defaultQueryFn: QueryFunction<unknown, any> = ({ queryKey }: { queryKey: string[] }) => {
+const defaultQueryFn: QueryFunction<unknown, any> = ({
+  queryKey,
+}: {
+  queryKey: string[]
+}) => {
   const { CancelToken } = axios
   const source = CancelToken.source()
 
@@ -19,8 +23,8 @@ const defaultQueryFn: QueryFunction<unknown, any> = ({ queryKey }: { queryKey: s
   })
 
   promise.cancel = () => {
-    source.cancel('Query was cancelled by React Query')
-    console.log('wowowow')
+    source.cancel(`Requst to: ${queryKey[0]} has been canceled.`)
+    console.log(`Requst to: ${queryKey[0]} has been canceled.`)
   }
 
   return promise
@@ -41,14 +45,14 @@ const queryClient = new QueryClient({
 
 const AppContainer = () => {
   return (
-    <MuiThemeProvider theme={theme}>
-      <CssBaseline />
-      <BrowserRouter>
-        <QueryClientProvider client={queryClient}>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <MuiThemeProvider theme={light}>
+          <CssBaseline />
           <App />
-        </QueryClientProvider>
-      </BrowserRouter>
-    </MuiThemeProvider>
+        </MuiThemeProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   )
 }
 

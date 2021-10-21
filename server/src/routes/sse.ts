@@ -52,11 +52,10 @@ class SSE extends EventEmitter {
         if (message) {
           try {
             const { symbol } = JSON.parse(message)[0]
-            this.emit(id, { event: symbol, data: message })
+            // this.emit(id, { event: symbol, data: message })
+            this.emit(id, { data: message })
 
             cache.set(symbol, message)
-
-            console.log('iex data')
           } catch (error) {
             partialMessage = message
           }
@@ -72,8 +71,12 @@ class SSE extends EventEmitter {
           'Connection': 'keep-alive',
         })
 
-        const listener = ({ event, data }: { event: string; data: string }) => {
-          res.write(`event: ${event}\n`)
+        // const listener = ({ event, data }: { event: string; data: string }) => {
+        //   res.write(`event: ${event}\n`)
+        //   res.write(`data: ${data}\n\n`)
+        //   res.flush()
+        // }
+        const listener = ({ data }: { data: string }) => {
           res.write(`data: ${data}\n\n`)
           res.flush()
         }
@@ -87,7 +90,6 @@ class SSE extends EventEmitter {
         }
 
         res.on('close', () => {
-          console.log('sdfsf')
           this.off(id, listener)
 
           if (this.listenerCount(id) === 0) {
@@ -141,12 +143,22 @@ router.get('/stocks/:symbol', async (req, res, next) => {
   }
 })
 
+const cryptoSymbols = 'BTCUSD,ETHUSD,LTCUSD,ADAUSDT,SOLUSDT,SHIBUSDT'
+
 router.get('/cryptos', async (req, res, next) => {
   try {
+    // const { symbols } = req.query
+
+    // if (!Array.isArray(symbols) || !symbols.length) {
+    //   next(new IncorrectValues())
+    // } else {
+
+    // }
+
     let channel = sse.channels.get(req.originalUrl)
 
     if (!channel) {
-      const url = api.iex.urlSse(`/cryptoQuotes?symbols=adausdt,maticusdt`)
+      const url = api.iex.urlSse(`/cryptoQuotes?symbols=${cryptoSymbols}`)
       channel = await sse.createChannel(req.originalUrl, url)
     }
 
@@ -156,12 +168,14 @@ router.get('/cryptos', async (req, res, next) => {
   }
 })
 
+const fxSymbols = 'EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD,USDCHF'
+
 router.get('/fx', async (req, res, next) => {
   try {
     let channel = sse.channels.get(req.originalUrl)
 
     if (!channel) {
-      const url = api.iex.urlSse(`/forex5Second?symbols=EURUSD,GBPUSD,USDJPY,AUDUSD,USDCAD,USDCNY`)
+      const url = api.iex.urlSse(`/forex5Second?symbols=${fxSymbols}`)
       channel = await sse.createChannel(req.originalUrl, url)
     }
 

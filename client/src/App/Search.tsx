@@ -1,12 +1,13 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React from 'react'
+import classNames from 'classnames'
 import { useHistory } from 'react-router-dom'
 import { makeStyles } from '@material-ui/core'
-import { alpha } from '@material-ui/core/styles'
-import InputBase from '@material-ui/core/InputBase'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
+// import { alpha } from '@material-ui/core/styles'
+// import InputBase from '@material-ui/core/InputBase'
 import Typography from '@material-ui/core/Typography'
+import MenuList from '@material-ui/core/MenuList'
+import MenuItem from '@material-ui/core/MenuItem'
+import InputAdornment from '@material-ui/core/InputAdornment'
 import {
   useAutocomplete,
   createFilterOptions,
@@ -14,128 +15,56 @@ import {
   AutocompleteInputChangeReason,
 } from '@material-ui/lab'
 
-import { Icon, Link } from '../Components'
-// import { useAutocomplete } from '../Hooks'
+import { SearchState, SearchActionKind } from '../types'
 
-type SearchState = {
-  inputValue: string
-  options: any[]
-}
+import { Icon, Link, Input } from '../Components'
+
+const useStyles = makeStyles(theme => ({
+  root: {
+    width: '100%',
+    height: 36,
+    position: 'relative',
+    backgroundColor: theme.palette.background.default,
+    borderRadius: theme.shape.borderRadius,
+  },
+  static: {
+    position: 'static',
+  },
+  absolute: {
+    width: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    backgroundColor: 'inherit',
+    borderRadius: 'inherit',
+    borderColor: 'transparent',
+  },
+  inputRoot: {
+    color: theme.palette.text.hint,
+  },
+  focused: {
+    // color: 'inherit',
+    color: theme.palette.text.primary,
+  },
+  li: {
+    '&[data-focus="true"]': {
+      background: theme.palette.action.focus,
+    },
+    '& > a': {
+      display: 'flex',
+      width: '100%',
+    },
+  },
+}))
 
 type Props = {
-  mobile?: boolean
   searchState: SearchState
   dispatch: React.Dispatch<any>
+  className?: string
 }
 
-enum SearchActionKind {
-  UPDATE_INPUT = 'UPDATE_INPUT',
-  UPDATE_OPTIONS = 'UPDATE_OPTIONS',
-  CLEAR = 'CLEAR',
-}
-
-const useStyles = makeStyles(theme => {
-  const { palette, shape, spacing, breakpoints } = theme
-  const { common, text, action, grey, secondary, getContrastText } = palette
-
-  return {
-    root: mobile => ({
-      width: mobile ? '100%' : spacing(46),
-      display: mobile ? 'block' : 'none',
-      position: 'relative',
-      [breakpoints.up('sm')]: {
-        display: 'block',
-      },
-      [breakpoints.between('sm', breakpoints.values.sm + 200)]: {
-        width: spacing(40),
-      },
-    }),
-    inputRoot: mobile => ({
-      height: 36,
-      paddingLeft: spacing(1),
-      color: mobile ? alpha(getContrastText(common.white), 0.5) : text.hint,
-
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        border: `1px solid ${alpha(grey[600], action.disabledOpacity)}`,
-        borderRadius: shape.borderRadius,
-      },
-    }),
-    input: mobile => ({
-      paddingTop: 9,
-      marginLeft: spacing(5),
-
-      '&::placeholder': {
-        color: mobile ? alpha(getContrastText(common.white), 0.5) : text.hint,
-      },
-    }),
-    focused: mobile => ({
-      color: mobile ? getContrastText(common.white) : text.primary,
-    }),
-    open: mobile => ({
-      '&::before': {
-        border: `1px solid ${
-          mobile ? alpha(common.black, action.focusOpacity) : action.focus
-        }`,
-        borderBottom: 'none',
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-      },
-    }),
-    startAdornment: {
-      position: 'absolute',
-      height: '100%',
-      display: 'flex',
-      alignItems: 'center',
-    },
-    listbox: mobile => ({
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      width: '100%',
-      height: 'auto',
-      background: mobile ? common.white : secondary.main,
-      color: mobile ? getContrastText(common.white) : text.primary,
-      border: `1px solid ${
-        mobile ? alpha(common.black, action.selectedOpacity) : action.selected
-      }`,
-      borderRadius: shape.borderRadius,
-
-      borderTop: 'none',
-      borderTopLeftRadius: 0,
-      borderTopRightRadius: 0,
-    }),
-    li: mobile => ({
-      paddingTop: 0,
-      paddingBottom: 0,
-      '&:hover': {
-        background: mobile ? alpha(common.black, action.hoverOpacity) : action.hover,
-      },
-      '&[data-focus="true"]': {
-        background: mobile ? alpha(common.black, action.focusOpacity) : action.focus,
-      },
-      '&:active': {
-        background: mobile
-          ? alpha(common.black, action.selectedOpacity)
-          : palette.action.selected,
-      },
-      '& > a': {
-        display: 'flex',
-        width: '100%',
-        paddingTop: spacing(0.25),
-        paddingBottom: spacing(0.25),
-      },
-    }),
-  }
-})
-
-const Search: React.FC<Props> = ({ searchState, dispatch, mobile = false }: Props) => {
-  const classes = useStyles(mobile)
+const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) => {
+  const classes = useStyles()
   const history = useHistory()
 
   const filterOptions = createFilterOptions({
@@ -164,9 +93,9 @@ const Search: React.FC<Props> = ({ searchState, dispatch, mobile = false }: Prop
     reason: AutocompleteChangeReason
   ) => {
     if (reason === 'select-option' && newValue) {
-      dispatch({ type: SearchActionKind.CLEAR })
-
       history.push(`/company/${newValue.symbol}`)
+
+      dispatch({ type: SearchActionKind.CLEAR })
     }
   }
 
@@ -190,32 +119,27 @@ const Search: React.FC<Props> = ({ searchState, dispatch, mobile = false }: Prop
   })
 
   return (
-    <div className={classes.root} {...getRootProps()}>
-      <InputBase
-        fullWidth
-        placeholder='Stonks...'
-        startAdornment={
-          <div className={classes.startAdornment}>
-            <Icon name='search' title='Search Icon' height={22} />
-          </div>
-        }
-        classes={{
-          root: classes.inputRoot,
-          input: classes.input,
-          focused:
-            popupOpen && groupedOptions.length
-              ? `${classes.focused} ${classes.open}`
-              : classes.focused,
-        }}
-        inputProps={{
-          ...getInputProps(),
-        }}
-      />
-      {popupOpen && groupedOptions.length ? (
-        <div className={classes.listbox}>
-          <List dense {...getListboxProps()}>
+    <div className={classNames(className, classes.root)} {...getRootProps()}>
+      <div className={classes.absolute}>
+        <Input
+          placeholder='Stonks...'
+          startAdornment={
+            <InputAdornment position='start' disablePointerEvents>
+              <Icon name='search' title='Search Icon' height={18} />
+            </InputAdornment>
+          }
+          classes={{
+            root: classNames(classes.inputRoot, classes.static),
+            focused: classes.focused,
+          }}
+          inputProps={{
+            ...getInputProps(),
+          }}
+        />
+        {popupOpen && groupedOptions.length ? (
+          <MenuList dense {...getListboxProps()}>
             {groupedOptions.map((option, index) => (
-              <ListItem
+              <MenuItem
                 key={option.symbol}
                 className={classes.li}
                 {...getOptionProps({ option, index })}
@@ -231,11 +155,11 @@ const Search: React.FC<Props> = ({ searchState, dispatch, mobile = false }: Prop
                     {option.securityName}
                   </Typography>
                 </Link>
-              </ListItem>
+              </MenuItem>
             ))}
-          </List>
-        </div>
-      ) : null}
+          </MenuList>
+        ) : null}
+      </div>
     </div>
   )
 }

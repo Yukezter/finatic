@@ -1,31 +1,29 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
+import { Switch, Route, RouteComponentProps } from 'react-router-dom'
+import classNames from 'classnames'
 import { useQuery } from 'react-query'
-import { makeStyles, useTheme } from '@material-ui/core'
+import {
+  MuiThemeProvider,
+  makeStyles,
+  createStyles,
+  // debounce,
+  Theme,
+} from '@material-ui/core'
 import AppBar from '@material-ui/core/AppBar'
-import Container from '@material-ui/core/Container'
 import Toolbar from '@material-ui/core/Toolbar'
+import Container from '@material-ui/core/Container'
 import Typography from '@material-ui/core/Typography'
+import Hidden from '@material-ui/core/Hidden'
 import useMediaQuery from '@material-ui/core/useMediaQuery'
+import useScrollTrigger from '@material-ui/core/useScrollTrigger'
 
-import { Icon, Link, Button } from '../Components'
+import { SearchState, SearchAction, SearchActionKind } from '../types'
+
+import { light } from '../theme'
+import { Wrapper, Icon, Link, IconButton } from '../Components'
 import Search from './Search'
 import FullScreenMenu from './FullScreenMenu'
-
-type SearchState = {
-  inputValue: string
-  options: any[]
-}
-
-enum SearchActionKind {
-  UPDATE_INPUT = 'UPDATE_INPUT',
-  UPDATE_OPTIONS = 'UPDATE_OPTIONS',
-  CLEAR = 'CLEAR',
-}
-
-interface SearchAction {
-  type: SearchActionKind
-  payload: any
-}
 
 const initialState: SearchState = {
   inputValue: '',
@@ -63,67 +61,200 @@ const searchReducer: React.Reducer<SearchState, SearchAction> = (
   }
 }
 
-const useStyles = makeStyles(theme => {
-  const { breakpoints, spacing, palette } = theme
+const illustrationContainerHeight = 240
 
-  return {
+const useStyles = makeStyles(theme =>
+  createStyles({
     AppBar: {
       flexDirection: 'row',
       justifyContent: 'center',
-      marginBottom: spacing(2),
+      backgroundColor: theme.palette.background.default,
+      transition: 'none',
+      transitionProperty: 'color, background-color, box-shadow',
+      transitionDuration: `${theme.transitions.duration.standard}ms`,
+      '&.trigger': {
+        [theme.breakpoints.up('lg')]: {
+          backgroundColor: theme.palette.secondary.main,
+          // boxShadow: 'none',
+        },
+      },
     },
     Toolbar: {
       minHeight: 56,
       width: '100%',
       margin: '0 auto',
     },
-    wrapper: {
-      height: '100%',
+    Container: {
       display: 'flex',
       alignItems: 'center',
     },
     Logo: {
-      marginRight: spacing(3),
-      color: palette.primary.main,
-      [breakpoints.up(1120)]: {
-        position: 'absolute',
-        left: spacing(4),
-      },
+      marginRight: theme.spacing(3),
+      color: theme.palette.primary.main,
       '&:hover': {
-        color: palette.primary.dark,
+        color: theme.palette.primary.dark,
+      },
+      [theme.breakpoints.up(theme.breakpoints.values.sm + theme.spacing(30))]: {
+        position: 'absolute',
+        left: theme.spacing(4),
+      },
+    },
+    Search: {
+      width: theme.spacing(50),
+      [theme.breakpoints.down(theme.breakpoints.values.sm + theme.spacing(8))]: {
+        width: theme.spacing(40),
       },
     },
     pages: {
       marginLeft: 'auto',
-      display: 'none',
-      [breakpoints.up('sm')]: {
-        display: 'flex',
-      },
+      display: 'flex',
       '& > *': {
-        marginLeft: spacing(1),
+        marginLeft: theme.spacing(1),
       },
-    },
-    menuButton: {
-      marginLeft: 'auto',
+      '&.trigger': {
+        [theme.breakpoints.up('lg')]: {
+          color: theme.palette.getContrastText(theme.palette.secondary.main),
+        },
+      },
     },
     openMenuButton: {
-      [breakpoints.up('sm')]: {
+      marginLeft: 'auto',
+      [theme.breakpoints.up('sm')]: {
         display: 'none',
       },
     },
-    closeMenuButton: {
-      color: palette.common.black,
+    illustrationContainer: {
+      height: illustrationContainerHeight,
+      display: 'flex',
+      alignItems: 'center',
+      background: theme.palette.secondary.main,
     },
-    DialogPaper: {
-      color: palette.getContrastText(palette.common.white),
-    },
-  }
-})
+  })
+)
 
-const Header = () => {
+const newsIllustration = (
+  <Icon name='news_illustration' width={220} height={220} style={{ marginLeft: '30%' }} />
+)
+
+const marketsIllustration = (
+  <Icon
+    name='markets_illustration'
+    width={220}
+    height={220}
+    style={{ marginLeft: '30%' }}
+  />
+)
+
+const IllustrationContainer = ({
+  classes,
+  illustration,
+}: {
+  classes: any
+  illustration: JSX.Element
+}) => (
+  <Hidden mdDown>
+    <Container className={classes.illustrationContainer} maxWidth={false} disableGutters>
+      {illustration}
+    </Container>
+  </Hidden>
+)
+
+const ScrollTrigger = ({ children }: { children: JSX.Element }) => {
+  const trigger = useScrollTrigger({
+    disableHysteresis: true,
+    threshold: illustrationContainerHeight,
+  })
+
+  return React.cloneElement(children, {
+    trigger: !trigger,
+  })
+}
+
+const HeaderView = ({
+  classes,
+  open,
+  handleOpen,
+  handleClose,
+  searchState,
+  dispatch,
+  trigger,
+}: any) => (
+  <AppBar
+    color='default'
+    elevation={0}
+    classes={{ root: classNames(classes.AppBar, trigger && 'trigger') }}
+  >
+    <Toolbar component='nav' variant='dense' className={classes.Toolbar}>
+      <Wrapper className={classes.Container}>
+        <Link className={classes.Logo} to='/'>
+          <Icon name='logo' title='Finatic' />
+        </Link>
+        <Hidden xsDown>
+          <Search
+            className={classes.Search}
+            searchState={searchState}
+            dispatch={dispatch}
+          />
+          <div className={classNames(classes.pages, trigger && 'trigger')}>
+            <Typography variant='h6' color='inherit'>
+              <Link underline='hover' to='/news'>
+                News
+              </Link>
+            </Typography>
+            <Typography variant='h6' color='inherit'>
+              <Link underline='hover' to='/market'>
+                Market
+              </Link>
+            </Typography>
+          </div>
+        </Hidden>
+        <IconButton onClick={handleOpen} className={classes.openMenuButton}>
+          <Icon name='menu' title='Open Menu' height={30} />
+        </IconButton>
+        <MuiThemeProvider theme={light}>
+          <FullScreenMenu
+            open={open}
+            onClose={handleClose}
+            searchState={searchState}
+            dispatch={dispatch}
+          />
+        </MuiThemeProvider>
+      </Wrapper>
+    </Toolbar>
+  </AppBar>
+)
+
+const Header = (props: any) => (
+  <Switch>
+    <Route
+      path={['/news', '/market']}
+      exact
+      render={(routeProps: RouteComponentProps) => (
+        <>
+          <ScrollTrigger>
+            <HeaderView {...routeProps} {...props} />
+          </ScrollTrigger>
+          <IllustrationContainer
+            classes={props.classes}
+            illustration={
+              routeProps.match.path === '/news' ? newsIllustration : marketsIllustration
+            }
+          />
+        </>
+      )}
+    />
+    <Route
+      path='/'
+      render={(routeProps: RouteComponentProps) => (
+        <HeaderView {...routeProps} {...props} />
+      )}
+    />
+  </Switch>
+)
+
+export default () => {
   const classes = useStyles()
-  const { breakpoints } = useTheme()
-  const matches = useMediaQuery(breakpoints.up('sm'))
+  const matches = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'))
 
   const [open, setOpen] = React.useState(false)
 
@@ -145,47 +276,21 @@ const Header = () => {
     enabled: !!searchState.inputValue.length,
     notifyOnChangeProps: [],
     onSuccess: ({ data }) => {
-      dispatch({ type: SearchActionKind.UPDATE_OPTIONS, payload: data })
+      dispatch({
+        type: SearchActionKind.UPDATE_OPTIONS,
+        payload: data,
+      })
     },
   })
 
   return (
-    <AppBar color='secondary' className={classes.AppBar}>
-      <Toolbar component='nav' variant='dense' className={classes.Toolbar}>
-        <Container disableGutters maxWidth='md' className={classes.wrapper}>
-          <Link className={classes.Logo} to='/'>
-            <Icon name='logo' title='App Logo Icon' />
-          </Link>
-          <Search searchState={searchState} dispatch={dispatch} />
-          <div className={classes.pages}>
-            <Typography variant='h6' color='textPrimary'>
-              <Link underline='hover' to='/'>
-                News
-              </Link>
-            </Typography>
-            <Typography variant='h6' color='textPrimary'>
-              <Link underline='hover' to='/'>
-                Market
-              </Link>
-            </Typography>
-          </div>
-          <Button
-            onClick={handleOpen}
-            className={`${classes.menuButton} ${classes.openMenuButton}`}
-          >
-            <Icon name='menu' title='Open Menu Icon' height={30} />
-          </Button>
-          <FullScreenMenu
-            open={open}
-            onClose={handleClose}
-            searchState={searchState}
-            dispatch={dispatch}
-            classes={classes}
-          />
-        </Container>
-      </Toolbar>
-    </AppBar>
+    <Header
+      classes={classes}
+      open={open}
+      handleOpen={handleOpen}
+      handleClose={handleClose}
+      searchState={searchState}
+      dispatch={dispatch}
+    />
   )
 }
-
-export default Header

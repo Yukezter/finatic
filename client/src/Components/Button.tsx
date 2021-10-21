@@ -1,16 +1,12 @@
-import React from 'react'
-import { ButtonBase as MuiButton, ButtonBaseProps } from '@material-ui/core'
+/* eslint-disable react/jsx-props-no-spreading */
+// import React from 'react'
+import { withStyles, createStyles } from '@material-ui/core'
+import Button from '@material-ui/core/Button'
 
-const Button: React.FC<ButtonBaseProps> = ({
-  children,
-  className = '',
-  onClick,
-}: ButtonBaseProps) => {
-  return (
-    <MuiButton color='inherit' className={className} onClick={onClick}>
-      {children}
-    </MuiButton>
-  )
-}
-
-export default Button
+export default withStyles(() =>
+  createStyles({
+    root: {
+      color: 'inherit',
+    },
+  })
+)(Button)

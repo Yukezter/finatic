@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from 'react'
+/* eslint-disable react/jsx-props-no-spreading */
+import React from 'react'
 
 interface IconProps extends React.SVGProps<SVGSVGElement> {
-  title: string
+  title?: string
 }
 
-const Icon = (props: IconProps) => {
-  const { name, title, height = 32, color = 'inherit' } = props
-  const [Component, setIconModule] = useState<React.FC<IconProps> | null>(null)
+const Icon = ({ name, height = 32, color = 'inherit', ...props }: IconProps) => {
+  const [Component, setIconModule] = React.useState<React.FC<IconProps> | null>(null)
 
-  useEffect(() => {
+  React.useEffect(() => {
     import(`!!@svgr/webpack?-svgo,+titleProp,+ref!../Assets/Svg/${name}.svg`)
       .then(module => {
         setIconModule(module.default)
@@ -21,11 +21,11 @@ const Icon = (props: IconProps) => {
   if (!Component) return null
   return (
     <Component
-      title={title}
       height={height}
       color={color}
       fill='currentColor'
       display='block'
+      {...props}
     />
   )
 }
