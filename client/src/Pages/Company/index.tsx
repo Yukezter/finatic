@@ -1,35 +1,47 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/mouse-events-have-key-events */
+import React from 'react'
 // import { AxiosResponse } from 'axios'
 import { useParams } from 'react-router-dom'
+import { styled } from '@mui/material/styles'
 import { useQuery } from 'react-query'
-import { Theme, createStyles, makeStyles } from '@material-ui/core'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
+import { Theme } from '@mui/material'
+// import createStyles from '@mui/styles/createStyles';
+// import makeStyles from '@mui/styles/makeStyles';
+import Grid from '@mui/material/Grid'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
+import Skeleton from '@mui/material/Skeleton'
 
 import { group, abbreviate, percent } from '../../Utils/numberFormats'
-import { Grid } from '../../Components'
+import { Button } from '../../Components'
 import PriceDisplayAndChart from './PriceDisplayAndChart'
+import EarningsChart from './EarningsChart'
+import Related from './Related'
 
-const useStyles = makeStyles(theme =>
-  createStyles({
-    statGrid: {
-      paddingTop: '0 !important',
-      paddingBottom: '0 !important',
-    },
-    statsListItemText: {
-      [theme.breakpoints.down('xs')]: {
-        display: 'flex',
-        justifyContent: 'space-between',
-      },
-    },
-  })
-)
+const PREFIX = 'index'
 
-const Stats = ({ symbol, classes }: { symbol: string; classes: any }) => {
+const classes = {
+  statGrid: `${PREFIX}-statGrid`,
+  statsListItemText: `${PREFIX}-statsListItemText`,
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(({ theme }) => ({
+  [`& .${classes.statGrid}`]: {},
+
+  [`& .${classes.statsListItemText}`]: {
+    [theme.breakpoints.down('sm')]: {
+      display: 'flex',
+      justifyContent: 'space-between',
+    },
+  },
+}))
+
+const Stats = ({ symbol }: { symbol: string }) => {
   const { isSuccess, data } = useQuery<any, Error>({
     queryKey: `/stock/${symbol}/stats`,
     cacheTime: 1000 * 30,
@@ -51,7 +63,7 @@ const Stats = ({ symbol, classes }: { symbol: string; classes: any }) => {
         value: group(res.data.week52change),
       },
       {
-        name: 'Shares Outstanding',
+        name: 'Shares',
         value: abbreviate(res.data.sharesOutstanding),
       },
       {
@@ -79,7 +91,7 @@ const Stats = ({ symbol, classes }: { symbol: string; classes: any }) => {
         value: group(res.data.ttmEPS),
       },
       {
-        name: 'TTM Dividend Rate',
+        name: 'TTM Div Rate',
         value: group(res.data.ttmDividendRate),
       },
       {
@@ -104,52 +116,106 @@ const Stats = ({ symbol, classes }: { symbol: string; classes: any }) => {
   return (
     <div>
       <List dense>
-        <Grid container spacing={3}>
-          {(!isSuccess ? [...new Array(16)] : data).map((stat: any = {}) => (
-            <Grid item xs={6} sm={3} classes={{ item: classes.statGrid }}>
-              <ListItem disableGutters>
-                {!isSuccess ? (
-                  <Skeleton />
-                ) : (
-                  <ListItemText
-                    className={classes.statsListItemText}
-                    primary={stat.name}
-                    primaryTypographyProps={{
-                      noWrap: true,
-                    }}
-                    secondary={stat.value}
-                    secondaryTypographyProps={{
-                      noWrap: true,
-                    }}
-                  />
-                )}
-              </ListItem>
-            </Grid>
-          ))}
+        <Grid container rowSpacing={{ xs: 0.5, sm: 0 }} columnSpacing={{ xs: 4, sm: 2 }}>
+          {(!isSuccess ? Array.from(Array(16)) : data).map(
+            (stat: any = {}, index: number) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <Grid key={index} item xs={6} sm={3} classes={{ item: classes.statGrid }}>
+                <ListItem disableGutters>
+                  {!isSuccess ? (
+                    <Skeleton />
+                  ) : (
+                    <ListItemText
+                      className={classes.statsListItemText}
+                      primary={stat.name}
+                      primaryTypographyProps={{
+                        noWrap: true,
+                        color: 'textSecondary',
+                        style: {
+                          marginRight: 16,
+                        },
+                      }}
+                      secondary={stat.value}
+                      secondaryTypographyProps={{
+                        color: 'textPrimary',
+                      }}
+                    />
+                  )}
+                </ListItem>
+              </Grid>
+            )
+          )}
         </Grid>
       </List>
     </div>
   )
 }
 
+const maxLength = 400
+
+const About = ({ symbol }: { symbol: string }) => {
+  const { isSuccess, data } = useQuery<any, Error>({
+    queryKey: `/stock/${symbol}/company`,
+    cacheTime: 1000 * 30,
+  })
+
+  const [readMore, setReadMore] = React.useState(false)
+
+  return (
+    <div>
+      <Typography variant='h5' component='h4' gutterBottom>
+        {!isSuccess ? <Skeleton width='20%' /> : `About ${data.data.companyName}`}
+      </Typography>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <Typography variant='body1' component='p' paragraph>
+          {!isSuccess ? (
+            <Skeleton />
+          ) : data.data.description.length > maxLength && !readMore ? (
+            `${data.data.description.slice(0, maxLength - 3)}...`
+          ) : (
+            data.data.description
+          )}
+        </Typography>
+        {isSuccess && data.data.description.length > maxLength && (
+          <Button variant='outlined' onClick={() => setReadMore(prev => !prev)}>
+            Read More
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default ({ theme }: { theme: Theme }) => {
-  const classes = useStyles()
   const { symbol }: { symbol: string } = useParams()
 
   return (
-    <>
+    <Root>
       <Typography variant='h2' component='h1' style={{ lineHeight: 1 }}>
         {symbol}
       </Typography>
-      <Grid container spacing={5} size='md'>
-        <Grid item xs={12} lg={8}>
-          <PriceDisplayAndChart theme={theme} symbol={symbol} />
-          <Stats classes={classes} symbol={symbol} />
+      <Grid container rowSpacing={{ xs: 2, sm: 0 }} columnSpacing={{ md: 5 }}>
+        <Grid container item xs={12} lg={8} rowSpacing={{ xs: 2, sm: 4 }}>
+          <Grid item xs={12}>
+            <PriceDisplayAndChart theme={theme} symbol={symbol} />
+          </Grid>
+          <Grid item xs={12}>
+            <Stats symbol={symbol} />
+          </Grid>
+          <Grid item xs={12}>
+            <About symbol={symbol} />
+          </Grid>
+          <Grid item xs={12}>
+            <EarningsChart symbol={symbol} theme={theme} />
+          </Grid>
+          <Grid item xs={12}>
+            <Related symbol={symbol} />
+          </Grid>
         </Grid>
         <Grid item xs={12} lg={4}>
           Wow
         </Grid>
       </Grid>
-    </>
+    </Root>
   )
 }

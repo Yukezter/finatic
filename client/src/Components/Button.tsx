@@ -1,7 +1,8 @@
 /* eslint-disable react/jsx-props-no-spreading */
-// import React from 'react'
-import { withStyles, createStyles } from '@material-ui/core'
-import Button from '@material-ui/core/Button'
+import withStyles from '@mui/styles/withStyles'
+
+import createStyles from '@mui/styles/createStyles'
+import Button from '@mui/material/Button'
 
 export default withStyles(() =>
   createStyles({

@@ -9,7 +9,6 @@ import {
   LineElement,
   PointElement,
   LinearScale,
-  // TimeScale,
   TimeSeriesScale,
   Tooltip,
   TooltipModel,
@@ -18,13 +17,14 @@ import {
   ActiveElement,
   ChartEvent,
   ChartItem,
+  Plugin,
 } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import { enUS } from 'date-fns/locale'
-import { Theme } from '@material-ui/core'
-import Container from '@material-ui/core/Container'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
+import { Theme } from '@mui/material'
+import Container from '@mui/material/Container'
+import Typography from '@mui/material/Typography'
+import Skeleton from '@mui/material/Skeleton'
 
 import { percent, currency } from '../../Utils/numberFormats'
 import { Button } from '../../Components'
@@ -34,20 +34,13 @@ Chart.register(
   LineElement,
   PointElement,
   LinearScale,
-  // TimeScale,
   TimeSeriesScale,
   Tooltip
 )
 
 const getTooltipFormat = (range: Range): string => {
-  if (range === '1d') {
-    return 'p'
-  }
-
-  if (range === '5d') {
-    return 'MMM dd, h:mm a'
-  }
-
+  if (range === '1d') return 'p'
+  if (range === '5d') return 'MMM dd, h:mm a'
   return 'MMM dd, yyyy'
 }
 
@@ -86,6 +79,8 @@ const PriceChart = React.memo(
     const canvasRef = React.useRef<HTMLCanvasElement>(null)
     const chartRef = React.useRef<Chart>()
 
+    const lastTouchEndTimestamp = React.useRef<number>()
+
     const customTooltip = React.useCallback(
       ({ chart, tooltip }: { chart: Chart; tooltip: TooltipModel<ChartType> }) => {
         let tooltipEl = document.getElementById('stock-price-chart-tooltip')
@@ -100,7 +95,6 @@ const PriceChart = React.memo(
           }
         }
 
-        // console.log('Tooltip:', chart.getActiveElements(), chart.tooltip)
         if (tooltip.opacity === 0) {
           tooltipEl.style.opacity = '0'
           return
@@ -136,7 +130,7 @@ const PriceChart = React.memo(
         tooltipEl.style.fontFamily = theme.typography.body2.fontFamily as string
         tooltipEl.style.fontSize = theme.typography.body2.fontSize as string
         tooltipEl.style.fontWeight = theme.typography.body2.fontWeightRegular as string
-        tooltipEl.style.color = theme.palette.text.hint
+        tooltipEl.style.color = theme.palette.text.disabled
         tooltipEl.style.pointerEvents = 'none'
 
         if (tooltip.caretX < halfTooltipWidth) {
@@ -149,16 +143,15 @@ const PriceChart = React.memo(
       []
     )
 
-    const resetHoverRangeData = React.useCallback(() => {
-      setHoverRangeData({})
+    const hideTooltip = React.useCallback(() => {
+      const tooltipEl = document.getElementById('stock-price-chart-tooltip')
+      if (tooltipEl) {
+        tooltipEl.style.opacity = '0'
+      }
     }, [])
 
-    const beforeEvent = React.useCallback((chart: Chart, args: any) => {
-      console.log('beforeEvent')
-      const { event } = args
-      if (event.type === 'mouseout') {
-        console.log('before mouseout')
-      }
+    const resetHoverRangeData = React.useCallback(() => {
+      setHoverRangeData({})
     }, [])
 
     const onHover = React.useCallback(
@@ -183,9 +176,36 @@ const PriceChart = React.memo(
       []
     )
 
+    const beforeEvent = React.useCallback((chart: Chart, args: any) => {
+      const { event } = args
+      console.log('beforeEvent')
+      console.log(args)
+      console.log('\n\n')
+
+      if (event.type === 'mouseout') {
+        console.log('beforeEvent: mouseout')
+      }
+    }, [])
+
     const afterEvent = React.useCallback((chart: Chart, args: any) => {
       const { event } = args
-      console.log('afterEvent', event.type, chart.getActiveElements())
+      console.log('afterEvent')
+      console.log(args)
+      console.log('\n\n')
+
+      if (event.type === 'mousemove') {
+        console.log('afterEvent: mousemove')
+
+        // Hide the tooltip if any throttled touchmove
+        // events occur after the ontouchend event
+        if (
+          event.native.type === 'touchmove' &&
+          lastTouchEndTimestamp.current &&
+          event.native.timeStamp < lastTouchEndTimestamp.current
+        )
+          hideTooltip()
+      }
+
       if (event.type === 'mouseout') {
         console.log('afterEvent: mouseout')
         resetHoverRangeData()
@@ -194,7 +214,6 @@ const PriceChart = React.memo(
 
     const beforeDraw = React.useCallback((chart: Chart) => {
       const activeElements = chart.getActiveElements()
-      // console.log('beforeDraw:', activeElements, chart.tooltip)
       if (activeElements && activeElements.length) {
         const { ctx } = chart
         const { x } = activeElements[0].element
@@ -203,7 +222,7 @@ const PriceChart = React.memo(
         ctx.moveTo(x, chart.scales.y.top)
         ctx.lineTo(x, chart.scales.y.bottom)
         ctx.lineWidth = 1
-        ctx.strokeStyle = theme.palette.text.hint
+        ctx.strokeStyle = theme.palette.text.disabled
         ctx.stroke()
         ctx.restore()
       }
@@ -219,7 +238,7 @@ const PriceChart = React.memo(
             borderWidth: 3,
             borderColor: theme.palette.primary.main,
             tension: 0,
-            spanGaps: true,
+            spanGaps: false,
             pointRadius: 0,
             pointHoverRadius: 5,
             pointHoverBorderWidth: 2,
@@ -258,7 +277,6 @@ const PriceChart = React.memo(
             },
             ticks: {
               display: false,
-              padding: theme.spacing(0.75),
             },
           },
           x: {
@@ -283,8 +301,8 @@ const PriceChart = React.memo(
         },
         layout: {
           padding: {
-            left: theme.spacing(0.75),
-            right: theme.spacing(0.75),
+            left: Number(theme.spacing(0.75)),
+            right: Number(theme.spacing(0.75)),
           },
         },
       },
@@ -318,22 +336,20 @@ const PriceChart = React.memo(
     React.useEffect(() => {
       const ctx = canvasRef.current!.getContext('2d')
       setMinMaxYAxis(configRef.current)
-      chartRef.current = new Chart(ctx as ChartItem, configRef.current)
+      const chart = new Chart(ctx as ChartItem, configRef.current)
+      chartRef.current = chart
 
       return () => {
-        chartRef.current!.destroy()
+        chart.destroy()
       }
     }, [])
 
-    const hideTooltip = React.useCallback(() => {
-      const tooltipEl = document.getElementById('stock-price-chart-tooltip')
-      if (tooltipEl) {
-        tooltipEl.style.opacity = '0'
-      }
-    }, [])
-
-    const handleOnTouchEnd = React.useCallback(() => {
+    const handleOnTouchEnd = React.useCallback((event: TouchEvent) => {
       console.log('handleOnTouchEnd')
+      console.log(event)
+
+      lastTouchEndTimestamp.current = event.timeStamp
+
       hideTooltip()
       resetHoverRangeData()
     }, [])
@@ -347,7 +363,11 @@ const PriceChart = React.memo(
           paddingTop: theme.spacing(3),
         }}
       >
-        <canvas ref={canvasRef} id='stock-price-chart' onTouchEnd={handleOnTouchEnd} />
+        <canvas
+          ref={canvasRef}
+          id='stock-price-chart'
+          onTouchEnd={handleOnTouchEnd as any}
+        />
       </div>
     )
   }
@@ -382,7 +402,7 @@ const PriceDisplay = ({
   })
 
   React.useEffect(() => {
-    const es = new EventSource(`http://localhost:8001/sse/stocks/${symbol}`)
+    const es = new EventSource(`http://localhost:8001/sse/stock/quote?symbols=${symbol}`)
 
     es.onerror = () => {
       es.close()
@@ -477,15 +497,17 @@ const getFirstPrice = (data: any[]): number | undefined => {
 }
 
 const formatData = (data: any[], range: Range): any[] => {
-  if (range === '1d' && data.length < 78) {
-    const firstDate = new Date(`${data[0].date} ${data[0].minute}`)
-    return [...new Array(78)].map((d, i) => {
-      return {
-        y: d ? d.average : null,
-        x: new Date(firstDate.getTime() + i * 1000 * 60 * 5),
-      }
-    })
-  }
+  // if (range === '1d' && data.length < 78) {
+  //   const firstDate = new Date(`${data[0].date} ${data[0].minute}`)
+  //   const newData = [...new Array(78)].map((_, index) => {
+  //     return {
+  //       y: data[index] ? data[index].average : null,
+  //       x: new Date(firstDate.getTime() + index * 1000 * 60 * 5),
+  //     }
+  //   })
+
+  //   return newData
+  // }
 
   if (range === '1d' || range === '5d') {
     return data.map(d => ({
@@ -564,7 +586,7 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
   // const isSuccess = a && !!''
 
   return (
-    <Container disableGutters maxWidth={false} style={{ marginBottom: 32 }}>
+    <Container disableGutters maxWidth={false}>
       <PriceDisplayAndChart
         theme={theme}
         symbol={symbol}
@@ -575,9 +597,10 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
         {ranges.map(range => (
           <Button
             key={range}
-            size='small'
+            // size='small'
             disabled={!isSuccess}
-            color={range === selectedRange ? 'primary' : 'default'}
+            var
+            color={range === selectedRange ? 'primary' : 'inherit'}
             variant={range === selectedRange ? 'outlined' : 'text'}
             onClick={() => setSelectedRange(range)}
           >

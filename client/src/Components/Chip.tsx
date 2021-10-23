@@ -1,13 +1,23 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { withStyles, createStyles, Theme, ChipProps } from '@material-ui/core'
-import Chip from '@material-ui/core/Chip'
+import { styled, createStyles } from '@mui/material/styles'
+import Chip, { ChipProps } from '@mui/material/Chip'
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default withStyles((theme: Theme) =>
+const PREFIX = 'Chip'
+
+const classes = {
+  root: `${PREFIX}-root`,
+}
+
+const StyledChip = styled(Chip)(() =>
   createStyles({
-    root: {
+    [`.${classes.root}`]: {
       marginRight: 4,
       marginBottom: 6,
     },
   })
-)((props: ChipProps) => <Chip variant='outlined' size='small' {...props} />)
+)
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default (props: ChipProps) => (
+  <StyledChip variant='outlined' size='small' {...props} />
+)

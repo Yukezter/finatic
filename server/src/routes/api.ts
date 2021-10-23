@@ -194,10 +194,20 @@ router.get(
 )
 
 // Company Info
-router.get('/stock/:symbol/company', cache(), proxy('iex'))
+router.get('/stock/:symbol/company', cache(60 * 60), proxy('iex'))
 
 // Company Stats
-router.get('/stock/:symbol/stats', cache(), proxy('iex'))
+router.get('/stock/:symbol/stats', cache(60 * 60), proxy('iex'))
+
+// Company Earnings
+router.get(
+  '/stock/:symbol/earnings',
+  cache(60 * 60 * 24),
+  proxy('iex', req => `${req.originalUrl}/4`)
+)
+
+// Company Next Earnings
+router.get('/stock/:symbol/upcoming-earnings', cache(60 * 60), proxy('iex'))
 
 // Company Recommendation
 router.get(
@@ -206,10 +216,12 @@ router.get(
   proxy('finnhub', req => `${req.originalUrl}${queryParams({ symbol: req.params.symbol })}`)
 )
 
+router.get('/stock/:symbol/peers', cache(60 * 60), proxy('iex'))
+
 // Company News
 router.get(
   '/stock/:symbol/news/last/:last',
-  cache(),
+  cache(60 * 60),
   proxy('iex', req => `${req.originalUrl}${queryParams({ language: 'en' })}`)
 )
 

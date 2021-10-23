@@ -1,36 +1,46 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import classNames from 'classnames'
+import { styled } from '@mui/material/styles'
 import { useHistory } from 'react-router-dom'
-import { makeStyles } from '@material-ui/core'
-// import { alpha } from '@material-ui/core/styles'
-// import InputBase from '@material-ui/core/InputBase'
-import Typography from '@material-ui/core/Typography'
-import MenuList from '@material-ui/core/MenuList'
-import MenuItem from '@material-ui/core/MenuItem'
-import InputAdornment from '@material-ui/core/InputAdornment'
-import {
-  useAutocomplete,
+// import { alpha } from '@mui/material/styles'
+// import InputBase from '@mui/material/InputBase'
+import Typography from '@mui/material/Typography'
+import MenuList from '@mui/material/MenuList'
+import MenuItem from '@mui/material/MenuItem'
+import InputAdornment from '@mui/material/InputAdornment'
+import useAutocomplete, {
   createFilterOptions,
   AutocompleteChangeReason,
   AutocompleteInputChangeReason,
-} from '@material-ui/lab'
+} from '@mui/material/useAutocomplete'
 
 import { SearchState, SearchActionKind } from '../types'
 
 import { Icon, Link, Input } from '../Components'
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    width: '100%',
-    height: 36,
-    position: 'relative',
-    backgroundColor: theme.palette.background.default,
-    borderRadius: theme.shape.borderRadius,
-  },
-  static: {
+const PREFIX = 'Search'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  static: `${PREFIX}-static`,
+  absolute: `${PREFIX}-absolute`,
+  inputRoot: `${PREFIX}-inputRoot`,
+  focused: `${PREFIX}-focused`,
+  li: `${PREFIX}-li`,
+}
+
+const Root = styled('div')(({ theme }) => ({
+  width: '100%',
+  height: 36,
+  position: 'relative',
+  backgroundColor: theme.palette.background.default,
+  borderRadius: theme.shape.borderRadius,
+
+  [`& .${classes.static}`]: {
     position: 'static',
   },
-  absolute: {
+
+  [`& .${classes.absolute}`]: {
     width: '100%',
     position: 'absolute',
     top: 0,
@@ -39,14 +49,17 @@ const useStyles = makeStyles(theme => ({
     borderRadius: 'inherit',
     borderColor: 'transparent',
   },
-  inputRoot: {
-    color: theme.palette.text.hint,
+
+  [`& .${classes.inputRoot}`]: {
+    color: theme.palette.text.disabled,
   },
-  focused: {
+
+  [`& .${classes.focused}`]: {
     // color: 'inherit',
     color: theme.palette.text.primary,
   },
-  li: {
+
+  [`& .${classes.li}`]: {
     '&[data-focus="true"]': {
       background: theme.palette.action.focus,
     },
@@ -64,7 +77,6 @@ type Props = {
 }
 
 const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) => {
-  const classes = useStyles()
   const history = useHistory()
 
   const filterOptions = createFilterOptions({
@@ -92,7 +104,7 @@ const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) =>
     newValue: any,
     reason: AutocompleteChangeReason
   ) => {
-    if (reason === 'select-option' && newValue) {
+    if (reason === 'selectOption' && newValue) {
       history.push(`/company/${newValue.symbol}`)
 
       dispatch({ type: SearchActionKind.CLEAR })
@@ -119,7 +131,7 @@ const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) =>
   })
 
   return (
-    <div className={classNames(className, classes.root)} {...getRootProps()}>
+    <Root className={className} {...getRootProps()}>
       <div className={classes.absolute}>
         <Input
           placeholder='Stonks...'
@@ -160,7 +172,7 @@ const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) =>
           </MenuList>
         ) : null}
       </div>
-    </div>
+    </Root>
   )
 }
 

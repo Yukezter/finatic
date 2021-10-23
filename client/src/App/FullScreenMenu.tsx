@@ -1,53 +1,69 @@
 import React from 'react'
-import Box from '@material-ui/core/Box'
-import { makeStyles, createStyles } from '@material-ui/core'
-import AppBar from '@material-ui/core/AppBar'
-import Container from '@material-ui/core/Container'
-import Toolbar from '@material-ui/core/Toolbar'
-import Typography from '@material-ui/core/Typography'
-import Dialog from '@material-ui/core/Dialog'
-import Slide, { SlideProps } from '@material-ui/core/Slide'
+import { styled } from '@mui/material/styles'
+import Box from '@mui/material/Box'
+import AppBar from '@mui/material/AppBar'
+import Container from '@mui/material/Container'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import Dialog from '@mui/material/Dialog'
+import Slide, { SlideProps } from '@mui/material/Slide'
 
 import { SearchState, SearchAction } from '../types'
 
 import { Icon, Link, Button } from '../Components'
 import Search from './Search'
 
-const useStyles = makeStyles(({ palette, spacing }) =>
-  createStyles({
-    Paper: {
-      background: palette.common.white,
-      color: palette.text.primary,
+const PREFIX = 'FullScreenMenu'
+
+const classes = {
+  Paper: `${PREFIX}-Paper`,
+  AppBar: `${PREFIX}-AppBar`,
+  Toolbar: `${PREFIX}-Toolbar`,
+  Container: `${PREFIX}-Container`,
+  Logo: `${PREFIX}-Logo`,
+  Search: `${PREFIX}-Search`,
+  closeMenuButton: `${PREFIX}-closeMenuButton`,
+}
+
+const StyledDialog = styled(Dialog)(({ theme: { palette, spacing } }) => ({
+  [`& .${classes.Paper}`]: {
+    background: palette.common.white,
+    color: palette.text.primary,
+  },
+
+  [`& .${classes.AppBar}`]: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+
+  [`& .${classes.Toolbar}`]: {
+    minHeight: 56,
+    width: '100%',
+    margin: '0 auto',
+  },
+
+  [`& .${classes.Container}`]: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+
+  [`& .${classes.Logo}`]: {
+    marginRight: spacing(3),
+    color: palette.primary.main,
+    '&:hover': {
+      color: palette.primary.dark,
     },
-    AppBar: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-    },
-    Toolbar: {
-      minHeight: 56,
-      width: '100%',
-      margin: '0 auto',
-    },
-    Container: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-    Logo: {
-      marginRight: spacing(3),
-      color: palette.primary.main,
-      '&:hover': {
-        color: palette.primary.dark,
-      },
-    },
-    Search: {
-      background: palette.common.white,
-    },
-    closeMenuButton: {
-      marginLeft: 'auto',
-      color: palette.common.black,
-    },
-  })
-)
+  },
+
+  [`& .${classes.Search}`]: {
+    background: palette.common.white,
+  },
+
+  [`& .${classes.closeMenuButton}`]: {
+    marginLeft: 'auto',
+    color: palette.common.black,
+  },
+}))
 
 type DialogProps = {
   open: boolean
@@ -62,9 +78,8 @@ const Transition = React.forwardRef<unknown, SlideProps>((props, ref) => {
 })
 
 const FullScreenMenu = ({ open, onClose, searchState, dispatch }: DialogProps) => {
-  const classes = useStyles()
   return (
-    <Dialog
+    <StyledDialog
       fullScreen
       disablePortal
       open={open}
@@ -114,7 +129,7 @@ const FullScreenMenu = ({ open, onClose, searchState, dispatch }: DialogProps) =
           </Typography>
         </Box>
       </Container>
-    </Dialog>
+    </StyledDialog>
   )
 }
 

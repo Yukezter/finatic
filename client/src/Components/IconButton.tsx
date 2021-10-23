@@ -1,5 +1,5 @@
-import { withStyles } from '@material-ui/core'
-import IconButton from '@material-ui/core/IconButton'
+import withStyles from '@mui/styles/withStyles';
+import IconButton from '@mui/material/IconButton'
 
 export default withStyles(({ palette }) => ({
   root: {

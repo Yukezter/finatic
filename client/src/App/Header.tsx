@@ -1,22 +1,22 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { Switch, Route, RouteComponentProps } from 'react-router-dom'
 import classNames from 'classnames'
 import { useQuery } from 'react-query'
 import {
-  MuiThemeProvider,
-  makeStyles,
-  createStyles,
   // debounce,
+  ThemeProvider,
+  StyledEngineProvider,
   Theme,
-} from '@material-ui/core'
-import AppBar from '@material-ui/core/AppBar'
-import Toolbar from '@material-ui/core/Toolbar'
-import Container from '@material-ui/core/Container'
-import Typography from '@material-ui/core/Typography'
-import Hidden from '@material-ui/core/Hidden'
-import useMediaQuery from '@material-ui/core/useMediaQuery'
-import useScrollTrigger from '@material-ui/core/useScrollTrigger'
+} from '@mui/material'
+import AppBar from '@mui/material/AppBar'
+import Toolbar from '@mui/material/Toolbar'
+import Container from '@mui/material/Container'
+import Typography from '@mui/material/Typography'
+import Hidden from '@mui/material/Hidden'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import useScrollTrigger from '@mui/material/useScrollTrigger'
 
 import { SearchState, SearchAction, SearchActionKind } from '../types'
 
@@ -24,6 +24,95 @@ import { light } from '../theme'
 import { Wrapper, Icon, Link, IconButton } from '../Components'
 import Search from './Search'
 import FullScreenMenu from './FullScreenMenu'
+
+const illustrationContainerHeight = 240
+
+const PREFIX = 'Header'
+
+const classes = {
+  AppBar: `${PREFIX}-AppBar`,
+  Toolbar: `${PREFIX}-Toolbar`,
+  Container: `${PREFIX}-Container`,
+  Logo: `${PREFIX}-Logo`,
+  Search: `${PREFIX}-Search`,
+  pages: `${PREFIX}-pages`,
+  openMenuButton: `${PREFIX}-openMenuButton`,
+  illustrationContainer: `${PREFIX}-illustrationContainer`,
+}
+
+const Root = styled('div')(({ theme }) => ({
+  [`& .${classes.AppBar}`]: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: theme.palette.background.default,
+    transition: 'none',
+    transitionProperty: 'color, background-color, box-shadow',
+    transitionDuration: `${theme.transitions.duration.standard}ms`,
+    '&.trigger': {
+      [theme.breakpoints.up('lg')]: {
+        backgroundColor: theme.palette.secondary.main,
+        // boxShadow: 'none',
+      },
+    },
+  },
+
+  [`& .${classes.Toolbar}`]: {
+    minHeight: 56,
+    width: '100%',
+    margin: '0 auto',
+  },
+
+  [`& .${classes.Container}`]: {
+    display: 'flex',
+    alignItems: 'center',
+  },
+
+  [`& .${classes.Logo}`]: {
+    marginRight: theme.spacing(3),
+    color: theme.palette.primary.main,
+    '&:hover': {
+      color: theme.palette.primary.dark,
+    },
+    [theme.breakpoints.up(880)]: {
+      position: 'absolute',
+      left: theme.spacing(4),
+    },
+  },
+
+  [`& .${classes.Search}`]: {
+    width: theme.spacing(50),
+    [theme.breakpoints.down(Number(theme.breakpoints.values.sm + theme.spacing(8)))]: {
+      width: theme.spacing(40),
+    },
+  },
+
+  [`& .${classes.pages}`]: {
+    marginLeft: 'auto',
+    display: 'flex',
+    '& > *': {
+      marginLeft: theme.spacing(1),
+    },
+    '&.trigger': {
+      [theme.breakpoints.up('lg')]: {
+        color: theme.palette.getContrastText(theme.palette.secondary.main),
+      },
+    },
+  },
+
+  [`& .${classes.openMenuButton}`]: {
+    marginLeft: 'auto',
+    [theme.breakpoints.up('sm')]: {
+      display: 'none',
+    },
+  },
+
+  [`& .${classes.illustrationContainer}`]: {
+    height: illustrationContainerHeight,
+    display: 'flex',
+    alignItems: 'center',
+    background: theme.palette.secondary.main,
+  },
+}))
 
 const initialState: SearchState = {
   inputValue: '',
@@ -61,77 +150,6 @@ const searchReducer: React.Reducer<SearchState, SearchAction> = (
   }
 }
 
-const illustrationContainerHeight = 240
-
-const useStyles = makeStyles(theme =>
-  createStyles({
-    AppBar: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      backgroundColor: theme.palette.background.default,
-      transition: 'none',
-      transitionProperty: 'color, background-color, box-shadow',
-      transitionDuration: `${theme.transitions.duration.standard}ms`,
-      '&.trigger': {
-        [theme.breakpoints.up('lg')]: {
-          backgroundColor: theme.palette.secondary.main,
-          // boxShadow: 'none',
-        },
-      },
-    },
-    Toolbar: {
-      minHeight: 56,
-      width: '100%',
-      margin: '0 auto',
-    },
-    Container: {
-      display: 'flex',
-      alignItems: 'center',
-    },
-    Logo: {
-      marginRight: theme.spacing(3),
-      color: theme.palette.primary.main,
-      '&:hover': {
-        color: theme.palette.primary.dark,
-      },
-      [theme.breakpoints.up(theme.breakpoints.values.sm + theme.spacing(30))]: {
-        position: 'absolute',
-        left: theme.spacing(4),
-      },
-    },
-    Search: {
-      width: theme.spacing(50),
-      [theme.breakpoints.down(theme.breakpoints.values.sm + theme.spacing(8))]: {
-        width: theme.spacing(40),
-      },
-    },
-    pages: {
-      marginLeft: 'auto',
-      display: 'flex',
-      '& > *': {
-        marginLeft: theme.spacing(1),
-      },
-      '&.trigger': {
-        [theme.breakpoints.up('lg')]: {
-          color: theme.palette.getContrastText(theme.palette.secondary.main),
-        },
-      },
-    },
-    openMenuButton: {
-      marginLeft: 'auto',
-      [theme.breakpoints.up('sm')]: {
-        display: 'none',
-      },
-    },
-    illustrationContainer: {
-      height: illustrationContainerHeight,
-      display: 'flex',
-      alignItems: 'center',
-      background: theme.palette.secondary.main,
-    },
-  })
-)
-
 const newsIllustration = (
   <Icon name='news_illustration' width={220} height={220} style={{ marginLeft: '30%' }} />
 )
@@ -145,14 +163,8 @@ const marketsIllustration = (
   />
 )
 
-const IllustrationContainer = ({
-  classes,
-  illustration,
-}: {
-  classes: any
-  illustration: JSX.Element
-}) => (
-  <Hidden mdDown>
+const IllustrationContainer = ({ illustration }: { illustration: JSX.Element }) => (
+  <Hidden lgDown>
     <Container className={classes.illustrationContainer} maxWidth={false} disableGutters>
       {illustration}
     </Container>
@@ -171,7 +183,6 @@ const ScrollTrigger = ({ children }: { children: JSX.Element }) => {
 }
 
 const HeaderView = ({
-  classes,
   open,
   handleOpen,
   handleClose,
@@ -189,7 +200,7 @@ const HeaderView = ({
         <Link className={classes.Logo} to='/'>
           <Icon name='logo' title='Finatic' />
         </Link>
-        <Hidden xsDown>
+        <Hidden smDown>
           <Search
             className={classes.Search}
             searchState={searchState}
@@ -208,17 +219,19 @@ const HeaderView = ({
             </Typography>
           </div>
         </Hidden>
-        <IconButton onClick={handleOpen} className={classes.openMenuButton}>
+        <IconButton onClick={handleOpen} className={classes.openMenuButton} size='small'>
           <Icon name='menu' title='Open Menu' height={30} />
         </IconButton>
-        <MuiThemeProvider theme={light}>
-          <FullScreenMenu
-            open={open}
-            onClose={handleClose}
-            searchState={searchState}
-            dispatch={dispatch}
-          />
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={light}>
+            <FullScreenMenu
+              open={open}
+              onClose={handleClose}
+              searchState={searchState}
+              dispatch={dispatch}
+            />
+          </ThemeProvider>
+        </StyledEngineProvider>
       </Wrapper>
     </Toolbar>
   </AppBar>
@@ -235,7 +248,6 @@ const Header = (props: any) => (
             <HeaderView {...routeProps} {...props} />
           </ScrollTrigger>
           <IllustrationContainer
-            classes={props.classes}
             illustration={
               routeProps.match.path === '/news' ? newsIllustration : marketsIllustration
             }
@@ -253,7 +265,6 @@ const Header = (props: any) => (
 )
 
 export default () => {
-  const classes = useStyles()
   const matches = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'))
 
   const [open, setOpen] = React.useState(false)
@@ -284,13 +295,14 @@ export default () => {
   })
 
   return (
-    <Header
-      classes={classes}
-      open={open}
-      handleOpen={handleOpen}
-      handleClose={handleClose}
-      searchState={searchState}
-      dispatch={dispatch}
-    />
+    <Root>
+      <Header
+        open={open}
+        handleOpen={handleOpen}
+        handleClose={handleClose}
+        searchState={searchState}
+        dispatch={dispatch}
+      />
+    </Root>
   )
 }

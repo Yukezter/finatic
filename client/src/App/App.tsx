@@ -1,7 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import { Switch, Route, RouteProps } from 'react-router-dom'
-import { withStyles, createStyles, useTheme } from '@material-ui/core/styles'
-import Container from '@material-ui/core/Container'
+import { useTheme } from '@mui/material/styles'
+import withStyles from '@mui/styles/withStyles'
+import createStyles from '@mui/styles/createStyles'
+import Container from '@mui/material/Container'
 
 import Header from './Header'
 import Footer from './Footer'
@@ -23,7 +25,7 @@ const styles = withStyles(theme =>
 const routes = [
   {
     path: '/',
-    Component: ({ theme }: { theme: any }) => <>{theme.palette.primary.main}</>,
+    Component: () => <></>,
   },
   {
     path: '/news',
@@ -40,8 +42,8 @@ const App = styles(({ classes }: any) => {
   return (
     <div className={classes.root}>
       <Header />
-      <Container className={classes.Container} maxWidth={false}>
-        <Wrapper>
+      <Container maxWidth={false}>
+        <Wrapper className={classes.Container}>
           <Switch>
             {routes.map(({ path, Component }) => (
               <Route

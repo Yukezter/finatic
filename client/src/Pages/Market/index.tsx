@@ -1,57 +1,62 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
 import {
   Theme,
-  makeStyles,
-  createStyles,
   // alpha,
   useMediaQuery,
-} from '@material-ui/core'
-import Grid from '@material-ui/core/Grid'
-import Typography from '@material-ui/core/Typography'
-import Divider from '@material-ui/core/Divider'
-import Skeleton from '@material-ui/lab/Skeleton'
+} from '@mui/material'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import Divider from '@mui/material/Divider'
+import Skeleton from '@mui/material/Skeleton'
 
 import { Icon } from '../../Components'
 import Lists from './Lists'
 import Tables from './Tables'
 
-const useStyles = makeStyles(theme =>
-  createStyles({
-    cards: {
-      // overflow: 'hidden',
-      marginTop: theme.spacing(3),
-      marginBottom: theme.spacing(5),
-    },
-    card: {
-      '& > div': {
+const PREFIX = 'Market'
+
+const classes = {
+  cards: `${PREFIX}-cards`,
+  card: `${PREFIX}-card`,
+}
+
+const StyledGrid = styled(Grid)(({ theme }) => ({
+  [`& .${classes.cards}`]: {
+    // overflow: 'hidden',
+    marginTop: theme.spacing(3),
+    marginBottom: theme.spacing(5),
+  },
+
+  [`& .${classes.card}`]: {
+    '& > div': {
+      display: 'flex',
+      '& > span': {
+        width: 42,
+        height: 42,
         display: 'flex',
-        '& > span': {
-          width: 42,
-          height: 42,
-          display: 'flex',
-          marginRight: 16,
-          color: theme.palette.primary.main,
-        },
-      },
-      [theme.breakpoints.down(theme.breakpoints.values.sm)]: {
-        // height: 160,
-        // padding: theme.spacing(2.5),
-        // border: `1px solid ${theme.palette.divider}`,
-        // background: alpha(theme.palette.secondary.dark, 0.2),
-        '& > div': {
-          // height: '100%',
-          // justifyContent: 'space-between',
-          flexDirection: 'column',
-          // alignItems: 'center',
-          // textAlign: 'center',
-        },
+        marginRight: 16,
+        color: theme.palette.primary.main,
       },
     },
-  })
-)
+    [theme.breakpoints.down(theme.breakpoints.values.sm)]: {
+      // height: 160,
+      // padding: theme.spacing(2.5),
+      // border: `1px solid ${theme.palette.divider}`,
+      // background: alpha(theme.palette.secondary.dark, 0.2),
+      '& > div': {
+        // height: '100%',
+        // justifyContent: 'space-between',
+        flexDirection: 'column',
+        // alignItems: 'center',
+        // textAlign: 'center',
+      },
+    },
+  },
+}))
 
 const economicData = [
   {
@@ -86,7 +91,7 @@ const economicData = [
   },
 ]
 
-const EconomicDataCard = ({ classes, icon, title, queryKey }: any) => {
+const EconomicDataCard = ({ icon, title, queryKey }: any) => {
   const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>(`economy/${queryKey}`)
 
   return (
@@ -111,11 +116,10 @@ const EconomicDataCard = ({ classes, icon, title, queryKey }: any) => {
 }
 
 const Market: React.FC<{ theme: Theme }> = ({ theme }: { theme: Theme }) => {
-  const classes = useStyles()
   const matches = useMediaQuery(({ breakpoints }: Theme) => breakpoints.up('lg'))
 
   return (
-    <Grid container spacing={matches ? 5 : 0}>
+    <StyledGrid container spacing={matches ? 5 : 0}>
       <Grid item xs={12} lg={8}>
         <Typography variant='h2' style={{ marginBottom: 32 }}>
           Markets
@@ -141,7 +145,7 @@ const Market: React.FC<{ theme: Theme }> = ({ theme }: { theme: Theme }) => {
       {/* <Grid item xs={12} sm={6} lg={8}>
     
   </Grid> */}
-    </Grid>
+    </StyledGrid>
   )
 }
 

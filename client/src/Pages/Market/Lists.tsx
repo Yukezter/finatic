@@ -1,50 +1,54 @@
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { AxiosResponse } from 'axios'
 import { useQuery, useQueries } from 'react-query'
-import { makeStyles, createStyles } from '@material-ui/core'
-import ClickAwayListener from '@material-ui/core/ClickAwayListener'
-import Popper from '@material-ui/core/Popper'
-import Container from '@material-ui/core/Container'
-import Paper from '@material-ui/core/Paper'
-import MenuList from '@material-ui/core/MenuList'
-import MenuItem from '@material-ui/core/MenuItem'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Typography from '@material-ui/core/Typography'
-import Skeleton from '@material-ui/lab/Skeleton'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Popper from '@mui/material/Popper'
+import Container from '@mui/material/Container'
+import Paper from '@mui/material/Paper'
+import MenuList from '@mui/material/MenuList'
+import MenuItem from '@mui/material/MenuItem'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Typography from '@mui/material/Typography'
+import Skeleton from '@mui/material/Skeleton'
 
 import { useEventSource } from '../../Hooks'
 import { Icon, IconButton, DirectionIcon } from '../../Components'
 
-const useStyles = makeStyles(
-  ({ spacing, shadows, shape, zIndex, palette, breakpoints }) =>
-    createStyles({
-      Popper: {
-        zIndex: zIndex.mobileStepper,
-      },
-      root: {
-        paddingTop: spacing(2),
-        paddingBottom: spacing(2),
-        marginBottom: spacing(4),
+const PREFIX = 'Lists'
 
-        '& > div': {
-          paddingLeft: spacing(3),
-          paddingRight: spacing(3),
-        },
-        '& > div:first-child': {
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingBottom: spacing(2),
-          borderBottom: `1px solid ${palette.divider}`,
-        },
-        [breakpoints.up('xs')]: {
-          boxShadow: shadows[5],
-          borderRadius: shape.borderRadius,
-        },
-      },
-    })
+const classes = {
+  Popper: `${PREFIX}-Popper`,
+  root: `${PREFIX}-root`,
+}
+
+const Root = styled('div')(
+  ({ theme: { spacing, shadows, shape, zIndex, palette, breakpoints } }) => ({
+    paddingTop: spacing(2),
+    paddingBottom: spacing(2),
+    marginBottom: spacing(4),
+    '& > div': {
+      paddingLeft: spacing(3),
+      paddingRight: spacing(3),
+    },
+    '& > div:first-child': {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingBottom: spacing(2),
+      borderBottom: `1px solid ${palette.divider}`,
+    },
+    [breakpoints.up('xs')]: {
+      boxShadow: shadows[5],
+      borderRadius: shape.borderRadius,
+    },
+
+    [`& .${classes.Popper}`]: {
+      zIndex: zIndex.mobileStepper,
+    },
+  })
 )
 
 const SkeletonList = ({ length = 5 }: { length: number }) => (
@@ -303,7 +307,7 @@ const menuOptions: MenuOption[] = [
   },
 ]
 
-const ListMenu = ({ classes, selectedOption, setSelectedOption }: any) => {
+const ListMenu = ({ selectedOption, setSelectedOption }: any) => {
   const [open, setOpen] = React.useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
 
@@ -311,7 +315,7 @@ const ListMenu = ({ classes, selectedOption, setSelectedOption }: any) => {
     setOpen(prevState => !prevState)
   }
 
-  const handleClose = (event: React.MouseEvent<EventTarget>) => {
+  const handleClose = (event: MouseEvent | TouchEvent) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
       return
     }
@@ -340,6 +344,7 @@ const ListMenu = ({ classes, selectedOption, setSelectedOption }: any) => {
         aria-expanded={open ? 'true' : undefined}
         aria-haspopup='true'
         onClick={handleToggle}
+        size='large'
       >
         <Icon name='vertical-dots' height={30} width={30} />
       </IconButton>
@@ -378,12 +383,11 @@ const ListMenu = ({ classes, selectedOption, setSelectedOption }: any) => {
 }
 
 export default ({ theme }: any) => {
-  const classes = useStyles()
   const [selectedOption, setSelectedOption] = React.useState<MenuOption>(menuOptions[0])
   const { Component } = selectedOption
 
   return (
-    <div className={classes.root}>
+    <Root>
       <div>
         <Typography variant='h6' color='textPrimary'>
           {selectedOption.label}
@@ -397,6 +401,6 @@ export default ({ theme }: any) => {
       <div>
         <Component theme={theme} />
       </div>
-    </div>
+    </Root>
   )
 }

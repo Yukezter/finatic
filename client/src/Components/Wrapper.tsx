@@ -1,29 +1,22 @@
-import { withStyles, createStyles } from '@material-ui/core/styles'
-import Container from '@material-ui/core/Container'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { createStyles, styled } from '@mui/material'
+import Container, { ContainerProps } from '@mui/material/Container'
 
-export default withStyles(({ spacing, breakpoints }) =>
+const StyledContainer = styled(Container)(({ theme }) =>
   createStyles({
-    root: {
-      // overflow: 'hidden',
-      maxWidth: breakpoints.values.sm - spacing(12),
-      [breakpoints.up('sm')]: {
-        paddingLeft: 0,
-        paddingRight: 0,
-      },
-      [breakpoints.up('sm')]: {
-        maxWidth: breakpoints.values.sm + spacing(6),
-      },
-      [breakpoints.up(breakpoints.values.md)]: {
-        maxWidth: breakpoints.values.sm + spacing(6),
-      },
-      [breakpoints.up('lg')]: {
-        maxWidth: breakpoints.values.md,
-      },
+    // overflow: 'hidden',
+    [theme.breakpoints.up('sm')]: {
+      maxWidth: theme.breakpoints.values.sm + 80,
+    },
+    [theme.breakpoints.up('lg')]: {
+      maxWidth: theme.breakpoints.values.md,
     },
   })
-)(({ children, ...props }: any) => (
+)
+
+export default ({ children, ...props }: ContainerProps) => (
   // eslint-disable-next-line react/jsx-props-no-spreading
-  <Container disableGutters {...props}>
+  <StyledContainer maxWidth='md' disableGutters {...props}>
     {children}
-  </Container>
-))
+  </StyledContainer>
+)

@@ -3,7 +3,20 @@ import {
   createTheme,
   responsiveFontSizes,
   ThemeOptions,
-} from '@material-ui/core/styles'
+} from '@mui/material/styles'
+
+// declare module '@mui/material/styles' {
+//   interface BreakpointOverrides {
+//     xs: false; // removes the `xs` breakpoint
+//     sm: false;
+//     md: false;
+//     lg: false;
+//     xl: false;
+//     mobile: true; // adds the `mobile` breakpoint
+//     tablet: true;
+//     laptop: true;
+//     desktop: true;
+//   }
 
 const fonts = {
   primary: "'Dosis', sans-serif",
@@ -23,16 +36,17 @@ const themeOptions: ThemeOptions = {
     values: {
       xs: 0,
       sm: 640,
-      md: 960,
-      lg: 1280,
-      xl: 1920,
+      md: 1024,
+      lg: 1200,
+      xl: 1536,
+      // mobile: 0,
+      // tablet: 640,
+      // laptop: 1024,
+      // desktop: 1200,
     },
   },
   palette: {
-    background: {
-      // default: colors.secondary,
-      // paper: colors.secondary,
-    },
+    background: {},
     common: {
       white: colors.white,
       black: colors.black,
@@ -93,9 +107,9 @@ const themeOptions: ThemeOptions = {
       letterSpacing: 0,
     },
   },
-  overrides: {
+  components: {
     MuiCssBaseline: {
-      '@global': {
+      styleOverrides: {
         ':root': {
           '--white': colors.white,
           '--black': colors.black,
@@ -113,30 +127,38 @@ const themeOptions: ThemeOptions = {
         },
       },
     },
-  },
-  props: {
     MuiUseMediaQuery: {
-      noSsr: true,
+      defaultProps: {
+        noSsr: true,
+      },
     },
     MuiButtonBase: {
-      disableRipple: true,
-      disableTouchRipple: true,
+      defaultProps: {
+        disableRipple: true,
+        disableTouchRipple: true,
+      },
     },
     MuiButton: {
-      disableElevation: true,
+      defaultProps: {
+        disableElevation: true,
+      },
     },
     MuiLink: {
-      underline: 'none',
+      defaultProps: {
+        underline: 'none',
+      },
     },
     MuiPaper: {
-      color: 'inherit',
+      defaultProps: {
+        color: 'inherit',
+      },
     },
   },
 }
 
 export const light = responsiveFontSizes(createTheme(themeOptions))
 
-themeOptions.palette!.type = 'dark'
+themeOptions.palette!.mode = 'dark'
 themeOptions.palette!.background!.default = colors.secondary
 
 export const dark = responsiveFontSizes(createTheme(themeOptions))

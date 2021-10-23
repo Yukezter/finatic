@@ -1,195 +1,222 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
 import classNames from 'classnames'
 import Calendar from 'react-calendar'
-import { makeStyles, createStyles, Theme } from '@material-ui/core'
-import useMediaQuery from '@material-ui/core/useMediaQuery'
-import { Skeleton } from '@material-ui/lab'
-import ClickAwayListener from '@material-ui/core/ClickAwayListener'
-import Container from '@material-ui/core/Container'
-import Table from '@material-ui/core/Table'
-import TableBody from '@material-ui/core/TableBody'
-import TableCell from '@material-ui/core/TableCell'
-import TableContainer from '@material-ui/core/TableContainer'
-import TableHead from '@material-ui/core/TableHead'
-import TableRow from '@material-ui/core/TableRow'
-import TableSortLabel from '@material-ui/core/TableSortLabel'
-import TablePagination from '@material-ui/core/TablePagination'
-import Popper from '@material-ui/core/Popper'
-import MenuList from '@material-ui/core/MenuList'
-import MenuItem from '@material-ui/core/MenuItem'
-import Typography from '@material-ui/core/Typography'
-import Paper from '@material-ui/core/Paper'
-import ChevronLeft from '@material-ui/icons/ChevronLeft'
-import ChevronRight from '@material-ui/icons/ChevronRight'
+import { Theme } from '@mui/material'
+import useMediaQuery from '@mui/material/useMediaQuery'
+import ClickAwayListener from '@mui/material/ClickAwayListener'
+import Container from '@mui/material/Container'
+import Skeleton from '@mui/material/Skeleton'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TableSortLabel from '@mui/material/TableSortLabel'
+import TablePagination from '@mui/material/TablePagination'
+import Popper from '@mui/material/Popper'
+import MenuList from '@mui/material/MenuList'
+import MenuItem from '@mui/material/MenuItem'
+import Typography from '@mui/material/Typography'
+import Paper from '@mui/material/Paper'
+import ChevronLeft from '@mui/icons-material/ChevronLeft'
+import ChevronRight from '@mui/icons-material/ChevronRight'
 
 import { Icon, IconButton, Link, DirectionIcon } from '../../Components'
 import { useTable } from '../../Hooks'
 
 import 'react-calendar/dist/Calendar.css'
 
-const useStyles = makeStyles(
-  ({ palette, shape, zIndex, shadows, typography, spacing, breakpoints }) =>
-    createStyles({
-      Calendar: {
-        '& .react-calendar': {
-          width: 300,
-          padding: spacing(1),
+const PREFIX = 'Tables'
+
+const classes = {
+  Calendar: `${PREFIX}-Calendar`,
+  removeTransform: `${PREFIX}-removeTransform`,
+  Popper: `${PREFIX}-Popper`,
+  popperMenuPaper: `${PREFIX}-popperMenuPaper`,
+  table: `${PREFIX}-table`,
+  th: `${PREFIX}-th`,
+  tr: `${PREFIX}-tr`,
+  paginationToolbar: `${PREFIX}-paginationToolbar`,
+  paginationSpacer: `${PREFIX}-paginationSpacer`,
+  paginationCaption: `${PREFIX}-paginationCaption`,
+  paginationButton: `${PREFIX}-paginationButton`,
+  visuallyHidden: `${PREFIX}-visuallyHidden`,
+}
+
+const Root = styled('div')(
+  ({ theme: { palette, shape, zIndex, shadows, typography, spacing, breakpoints } }) => ({
+    [`& .${classes.Calendar}`]: {
+      '& .react-calendar': {
+        width: 300,
+        padding: spacing(1),
+        borderRadius: shape.borderRadius,
+        background: palette.background.default,
+        border: 'none',
+        boxShadow: shadows[5],
+        '& *': {
+          fontFamily: typography.body1.fontFamily,
+        },
+        '& abbr[title]': {
+          textDecoration: 'none',
+        },
+        '& .react-calendar__navigation': {
+          marginBottom: spacing(0.5),
+        },
+        '& .react-calendar__month-view__weekdays': {
+          fontSize: typography.caption.fontSize,
+        },
+        '& .react-calendar__navigation__label': {
+          background: palette.background.default,
+          fontSize: typography.body2.fontSize,
+          '&[disabled]': {
+            background: palette.background.default,
+            color: palette.action.disabled,
+          },
+        },
+        '& .react-calendar__navigation__arrow': {
+          color: palette.text.primary,
+          borderRadius: shape.borderRadius,
+          '&[disabled]': {
+            background: 'initial',
+            color: palette.action.disabled,
+            '&:hover': {
+              background: 'initial',
+            },
+          },
+          '&:enabled:hover': {
+            background: palette.action.hover,
+          },
+        },
+        '& .react-calendar__tile': {
           borderRadius: shape.borderRadius,
           background: palette.background.default,
-          border: 'none',
-          boxShadow: shadows[5],
-          '& *': {
-            fontFamily: typography.body1.fontFamily,
+          color: palette.text.primary,
+          fontSize: typography.body2.fontSize,
+          '&:enabled:hover': {
+            background: palette.action.hover,
           },
-          '& abbr[title]': {
-            textDecoration: 'none',
+          '&:enabled:focus': {
+            background: palette.action.focus,
           },
-          '& .react-calendar__navigation': {
-            marginBottom: spacing(0.5),
+          '&:disabled': {
+            color: palette.action.disabled,
           },
-          '& .react-calendar__month-view__weekdays': {
-            fontSize: typography.caption.fontSize,
-          },
-          '& .react-calendar__navigation__label': {
-            background: palette.background.default,
-            fontSize: typography.body2.fontSize,
-            '&[disabled]': {
-              background: palette.background.default,
-              color: palette.action.disabled,
-            },
-          },
-          '& .react-calendar__navigation__arrow': {
-            color: palette.text.primary,
-            borderRadius: shape.borderRadius,
-            '&[disabled]': {
-              background: 'initial',
-              color: palette.action.disabled,
-              '&:hover': {
-                background: 'initial',
-              },
-            },
-            '&:enabled:hover': {
-              background: palette.action.hover,
-            },
-          },
-          '& .react-calendar__tile': {
-            borderRadius: shape.borderRadius,
-            background: palette.background.default,
-            color: palette.text.primary,
-            fontSize: typography.body2.fontSize,
-            '&:enabled:hover': {
-              background: palette.action.hover,
-            },
-            '&:enabled:focus': {
-              background: palette.action.focus,
-            },
-            '&:disabled': {
-              color: palette.action.disabled,
-            },
-          },
-          '& .react-calendar__tile--now': {
-            background: 'initial',
-          },
-          '& .react-calendar__tile--active': {
-            background: `${palette.primary.main} !important`,
-          },
+        },
+        '& .react-calendar__tile--now': {
+          background: 'initial',
+        },
+        '& .react-calendar__tile--active': {
+          background: `${palette.primary.main} !important`,
         },
       },
-      removeTransform: {
-        textTransform: 'none',
-      },
-      Popper: {
-        zIndex: zIndex.mobileStepper,
-      },
-      popperMenuPaper: {
-        // width: 100,
-      },
-      table: {
-        borderCollapse: 'separate',
-        tableLayout: 'fixed',
-      },
-      th: {
-        width: 'auto',
-        padding: '16px 8px',
-        borderBottomWidth: 2,
-        cursor: 'pointer',
-        '&:first-child': {
-          width: '40%',
-          paddingLeft: 0,
-          [breakpoints.down(breakpoints.values.sm)]: {
-            width: '30%',
-          },
-        },
-        '&.active': {
-          borderBottomColor: palette.primary.main,
-        },
-        '& svg': {
-          marginTop: -2,
-        },
-        '& > * > div': {
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
+    },
+
+    [`& .${classes.removeTransform}`]: {
+      textTransform: 'none',
+    },
+
+    [`& .${classes.Popper}`]: {
+      zIndex: zIndex.mobileStepper,
+    },
+
+    [`& .${classes.popperMenuPaper}`]: {
+      // width: 100,
+    },
+
+    [`& .${classes.table}`]: {
+      borderCollapse: 'separate',
+      tableLayout: 'fixed',
+    },
+
+    [`& .${classes.th}`]: {
+      width: 'auto',
+      padding: '16px 8px',
+      borderBottomWidth: 2,
+      cursor: 'pointer',
+      '&:first-child': {
+        width: '40%',
+        paddingLeft: 0,
+        [breakpoints.down(breakpoints.values.sm)]: {
+          width: '30%',
         },
       },
-      tr: {
-        height: 56,
-        '& > *:first-child > *': {
-          paddingLeft: 0,
-        },
-        '& > * > *': {
-          display: 'block',
-          height: '100%',
-          width: '100%',
-          padding: '16px 8px',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        },
-        '&:hover > * > a': {
-          marginBottom: -1,
-          paddingBottom: 15,
-          borderBottomStyle: 'solid',
-          borderBottomColor: palette.primary.main,
-          borderBottomWidth: 2,
-        },
+      '&.active': {
+        borderBottomColor: palette.primary.main,
       },
-      paginationToolbar: {
+      '& svg': {
+        marginTop: -2,
+      },
+      '& > * > div': {
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
+      },
+    },
+
+    [`& .${classes.tr}`]: {
+      height: 56,
+      '& > *:first-child > *': {
         paddingLeft: 0,
       },
-      paginationSpacer: {
-        display: 'none',
-      },
-      paginationCaption: {
-        marginRight: 'auto',
-      },
-      paginationButton: {
-        borderRadius: shape.borderRadius,
-      },
-      visuallyHidden: {
-        border: 0,
-        clip: 'rect(0 0 0 0)',
-        height: 1,
-        margin: -1,
+      '& > * > *': {
+        display: 'block',
+        height: '100%',
+        width: '100%',
+        padding: '16px 8px',
         overflow: 'hidden',
-        padding: 0,
-        position: 'absolute',
-        top: 20,
-        width: 1,
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap',
       },
-    })
+      '&:hover > * > a': {
+        marginBottom: -1,
+        paddingBottom: 15,
+        borderBottomStyle: 'solid',
+        borderBottomColor: palette.primary.main,
+        borderBottomWidth: 2,
+      },
+    },
+
+    [`& .${classes.paginationToolbar}`]: {
+      paddingLeft: 0,
+    },
+
+    [`& .${classes.paginationSpacer}`]: {
+      display: 'none',
+    },
+
+    [`& .${classes.paginationCaption}`]: {
+      marginRight: 'auto',
+    },
+
+    [`& .${classes.paginationButton}`]: {
+      borderRadius: shape.borderRadius,
+    },
+
+    [`& .${classes.visuallyHidden}`]: {
+      border: 0,
+      clip: 'rect(0 0 0 0)',
+      height: 1,
+      margin: -1,
+      overflow: 'hidden',
+      padding: 0,
+      position: 'absolute',
+      top: 20,
+      width: 1,
+    },
+  })
 )
 
 type CalendarMenuProps = {
   dates: Date[]
-  classes: any
   setFilters: any
 }
 
-const CalendarMenu = React.memo(({ classes, dates, setFilters }: CalendarMenuProps) => {
+const CalendarMenu = React.memo(({ dates, setFilters }: CalendarMenuProps) => {
   const [open, setOpen] = React.useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
 
@@ -207,7 +234,7 @@ const CalendarMenu = React.memo(({ classes, dates, setFilters }: CalendarMenuPro
     }
   }
 
-  const handleClose = (event: React.MouseEvent<EventTarget>) => {
+  const handleClose = (event: MouseEvent | TouchEvent) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
       return
     }
@@ -232,7 +259,7 @@ const CalendarMenu = React.memo(({ classes, dates, setFilters }: CalendarMenuPro
 
   return (
     <>
-      <IconButton ref={anchorRef} color='primary' onClick={handleToggle}>
+      <IconButton ref={anchorRef} color='primary' onClick={handleToggle} size='large'>
         <Icon name='calendar' height={28} width={28} />
       </IconButton>
       <Popper
@@ -275,7 +302,7 @@ const getDateHyphenFormat = (date: Date) => {
   return date.toISOString().split('T')[0]
 }
 
-const IPOsTable = ({ classes }: any) => {
+const IPOsTable = () => {
   const matches = useMediaQuery(({ breakpoints }: Theme) => breakpoints.down(440))
 
   const range = React.useMemo(() => {
@@ -392,7 +419,7 @@ const IPOsTable = ({ classes }: any) => {
         <Typography variant='h5' color='textPrimary' gutterBottom>
           Upcoming IPOs
         </Typography>
-        <CalendarMenu classes={classes} dates={dates} setFilters={setFilters} />
+        <CalendarMenu dates={dates} setFilters={setFilters} />
       </div>
       <TableContainer>
         <Table
@@ -459,7 +486,7 @@ const IPOsTable = ({ classes }: any) => {
         classes={{
           toolbar: classes.paginationToolbar,
           spacer: classes.paginationSpacer,
-          caption: classes.paginationCaption,
+          // caption: classes.paginationCaption,
         }}
         component='div'
         variant='footer'
@@ -503,7 +530,7 @@ const menuOptions: MenuOption[] = [
 
 let count = 0
 
-const MarketMoversMenu = ({ classes, selectedOption, setSelectedOption }: any) => {
+const MarketMoversMenu = ({ selectedOption, setSelectedOption }: any) => {
   const [open, setOpen] = React.useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
 
@@ -511,7 +538,7 @@ const MarketMoversMenu = ({ classes, selectedOption, setSelectedOption }: any) =
     setOpen(prevState => !prevState)
   }
 
-  const handleClose = (event: React.MouseEvent<EventTarget>) => {
+  const handleClose = (event: MouseEvent | TouchEvent) => {
     if (anchorRef.current && anchorRef.current.contains(event.target as HTMLElement)) {
       return
     }
@@ -540,6 +567,7 @@ const MarketMoversMenu = ({ classes, selectedOption, setSelectedOption }: any) =
         aria-expanded={open ? 'true' : undefined}
         aria-haspopup='true'
         onClick={handleToggle}
+        size='large'
       >
         <Icon name='vertical-dots' height={30} width={30} />
       </IconButton>
@@ -578,7 +606,7 @@ const MarketMoversMenu = ({ classes, selectedOption, setSelectedOption }: any) =
   )
 }
 
-const TopMoversTable = ({ classes }: any) => {
+const TopMoversTable = () => {
   // eslint-disable-next-line no-plusplus
   console.log('Table: ', ++count)
   const matches = useMediaQuery(({ breakpoints }: Theme) => breakpoints.down(440))
@@ -732,12 +760,10 @@ const TopMoversTable = ({ classes }: any) => {
 }
 
 export default () => {
-  const classes = useStyles()
-
   return (
-    <div>
-      <TopMoversTable classes={classes} />
-      <IPOsTable classes={classes} />
-    </div>
+    <Root>
+      <TopMoversTable />
+      <IPOsTable />
+    </Root>
   )
 }

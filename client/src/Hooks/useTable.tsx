@@ -1,5 +1,5 @@
 import React from 'react'
-// import { Skeleton } from '@material-ui/lab'
+// import { Skeleton } from '@mui/lab'
 
 type Data = { [key: string]: string | number }
 

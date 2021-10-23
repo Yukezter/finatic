@@ -1,9 +1,9 @@
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
-import List, { ListProps } from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import ListItemText from '@material-ui/core/ListItemText'
-import Skeleton from '@material-ui/lab/Skeleton'
+import List, { ListProps } from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+import Skeleton from '@mui/material/Skeleton'
 
 interface Props extends ListProps {
   list?: any[]

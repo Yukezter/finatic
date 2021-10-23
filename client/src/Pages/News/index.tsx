@@ -1,52 +1,71 @@
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
+import { styled } from '@mui/material/styles'
 import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
-import { makeStyles } from '@material-ui/core'
-import Grid from '@material-ui/core/Grid'
-import Divider from '@material-ui/core/Divider'
-import Typography from '@material-ui/core/Typography'
-import List from '@material-ui/core/List'
-import ListItem from '@material-ui/core/ListItem'
-import Container from '@material-ui/core/Container'
-import Hidden from '@material-ui/core/Hidden'
-import Skeleton from '@material-ui/lab/Skeleton'
+import Grid from '@mui/material/Grid'
+import Divider from '@mui/material/Divider'
+import Typography from '@mui/material/Typography'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import Container from '@mui/material/Container'
+import Hidden from '@mui/material/Hidden'
+import Skeleton from '@mui/material/Skeleton'
 
-import { Chip, Button, Grid as MyGrid } from '../../Components'
+import { Chip, Button } from '../../Components'
 
-const useStyles = makeStyles(theme => ({
-  root: {
-    '& img': {
-      height: '100%',
-      width: '100%',
-      objectFit: 'cover',
-      borderRadius: theme.spacing(0.75),
-    },
-    '& a': {
-      textDecoration: 'none',
-      textDecorationColor: 'inherit',
-    },
+const PREFIX = 'News'
+
+const classes = {
+  root: `${PREFIX}-root`,
+  datetime: `${PREFIX}-datetime`,
+  dot: `${PREFIX}-dot`,
+  divider: `${PREFIX}-divider`,
+  thumbnail: `${PREFIX}-thumbnail`,
+  featuredArticle: `${PREFIX}-featuredArticle`,
+  featuredArticleImageContainer: `${PREFIX}-featuredArticleImageContainer`,
+  marginLeftAutoSmUp: `${PREFIX}-marginLeftAutoSmUp`,
+  articles: `${PREFIX}-articles`,
+  article: `${PREFIX}-article`,
+  hoverUnderline: `${PREFIX}-hoverUnderline`,
+}
+
+// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
+const Root = styled('div')(({ theme }) => ({
+  '& img': {
+    height: '100%',
+    width: '100%',
+    objectFit: 'cover',
+    borderRadius: theme.spacing(0.75),
   },
-  datetime: {
-    color: theme.palette.text.hint,
+  '& a': {
+    textDecoration: 'none',
+    textDecorationColor: 'inherit',
   },
-  dot: {
+
+  [`& .${classes.datetime}`]: {
+    color: theme.palette.text.disabled,
+  },
+
+  [`& .${classes.dot}`]: {
     display: 'inline-block',
     width: 2,
     height: 2,
     margin: 4,
-    background: theme.palette.text.hint,
+    background: theme.palette.text.disabled,
     borderRadius: '50%',
   },
-  divider: {
+
+  [`& .${classes.divider}`]: {
     marginTop: theme.spacing(4),
     [theme.breakpoints.up('sm')]: {
       marginTop: theme.spacing(5),
     },
   },
-  thumbnail: {
+
+  [`& .${classes.thumbnail}`]: {
     display: 'flex',
     flexShrink: 0,
     float: 'right',
@@ -55,7 +74,8 @@ const useStyles = makeStyles(theme => ({
     marginLeft: theme.spacing(3),
     marginBottom: theme.spacing(0.5),
   },
-  featuredArticle: {
+
+  [`& .${classes.featuredArticle}`]: {
     overflow: 'hidden',
     '& .content': {
       height: '100%',
@@ -72,7 +92,8 @@ const useStyles = makeStyles(theme => ({
       textAlign: 'right',
     },
   },
-  featuredArticleImageContainer: {
+
+  [`& .${classes.featuredArticleImageContainer}`]: {
     overflow: 'hidden',
     height: '100%',
     display: 'flex',
@@ -88,16 +109,19 @@ const useStyles = makeStyles(theme => ({
       paddingBottom: theme.spacing(3),
     },
   },
-  marginLeftAutoSmUp: {
+
+  [`& .${classes.marginLeftAutoSmUp}`]: {
     [theme.breakpoints.up('sm')]: {
       marginLeft: 'auto',
     },
   },
-  articles: {
+
+  [`& .${classes.articles}`]: {
     paddingTop: 0,
     paddingBottom: 0,
   },
-  article: {
+
+  [`& .${classes.article}`]: {
     paddingTop: 0,
     paddingBottom: 0,
     '& > div': {
@@ -114,7 +138,8 @@ const useStyles = makeStyles(theme => ({
       },
     },
   },
-  hoverUnderline: {
+
+  [`& .${classes.hoverUnderline}`]: {
     '&:hover': {
       textDecoration: 'underline',
       textDecorationColor: theme.palette.primary.main,
@@ -148,13 +173,13 @@ const RelatedSymbols = withRouter(({ symbols = '', history }: RelatedSymbolsProp
   </div>
 ))
 
-const FeaturedArticle = ({ classes, isLoading, article }: any) => (
+const FeaturedArticle = ({ isLoading, article }: any) => (
   <div className={classes.featuredArticle}>
-    <MyGrid container spacing={4} size='lg' direction='row-reverse'>
+    <Grid container spacing={4} direction='row-reverse'>
       <Grid item xs={12}>
         <div className={classes.featuredArticleImageContainer}>
           {isLoading ? (
-            <Skeleton variant='rect' height='100%' width='100%' />
+            <Skeleton variant='rectangular' height='100%' width='100%' />
           ) : (
             <a href={article.url} target='_blank' rel='noopener noreferrer'>
               <img src={article.image} alt={article.headline} />
@@ -167,11 +192,11 @@ const FeaturedArticle = ({ classes, isLoading, article }: any) => (
           {!isLoading && <RelatedSymbols symbols={article.related} />}
           <Typography className='headline' component='h2' variant='h5' gutterBottom>
             {isLoading ? (
-              <>
+              <Root>
                 <Skeleton className={classes.marginLeftAutoSmUp} />
                 <Skeleton className={classes.marginLeftAutoSmUp} />
                 <Skeleton className={classes.marginLeftAutoSmUp} width='60%' />
-              </>
+              </Root>
             ) : (
               <a href={article.qmUrl} target='_blank' rel='noopener noreferrer'>
                 {article.headline}
@@ -191,15 +216,15 @@ const FeaturedArticle = ({ classes, isLoading, article }: any) => (
           </Typography>
         </div>
       </Grid>
-    </MyGrid>
+    </Grid>
   </div>
 )
 
-const Article = ({ classes, isLoading, article }: any) => {
+const Article = ({ isLoading, article }: any) => {
   return (
     <ListItem className={classes.article} disableGutters>
       <div>
-        <Hidden mdDown>
+        <Hidden lgDown>
           <div style={{ minWidth: 130 }}>
             <Typography className={classes.datetime} variant='caption' gutterBottom>
               {isLoading ? (
@@ -212,7 +237,7 @@ const Article = ({ classes, isLoading, article }: any) => {
         </Hidden>
         <Container maxWidth={false} disableGutters>
           {!isLoading && (
-            <Hidden mdDown>
+            <Hidden lgDown>
               <a
                 className={classes.thumbnail}
                 href={article.url}
@@ -267,8 +292,8 @@ const Article = ({ classes, isLoading, article }: any) => {
           </Typography>
         </Container>
         {isLoading && (
-          <Hidden mdDown>
-            <Skeleton className={classes.thumbnail} variant='rect' />
+          <Hidden lgDown>
+            <Skeleton className={classes.thumbnail} variant='rectangular' />
           </Hidden>
         )}
       </div>
@@ -279,8 +304,6 @@ const Article = ({ classes, isLoading, article }: any) => {
 const loadMoreGroupSize = 2
 
 const News = () => {
-  const classes = useStyles()
-
   const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>('/news')
   // const isSuccess = a && !!''
 
@@ -309,12 +332,12 @@ const News = () => {
   }, [])
 
   return (
-    <>
+    <Root>
       <Typography variant='h2' component='h1' paragraph>
         News
       </Typography>
-      <Grid className={classes.root} container>
-        <Grid className={classes.root} item xs={12}>
+      <Grid container>
+        <Grid item xs={12}>
           <FeaturedArticle
             classes={classes}
             isLoading={!isSuccess}
@@ -347,7 +370,7 @@ const News = () => {
           </Container>
         </Grid>
       </Grid>
-    </>
+    </Root>
   )
 }
 

@@ -1,5 +1,5 @@
 import { BrowserRouter } from 'react-router-dom'
-import { MuiThemeProvider, CssBaseline } from '@material-ui/core'
+import { ThemeProvider, StyledEngineProvider, CssBaseline } from '@mui/material'
 import { QueryClient, QueryClientProvider, QueryFunction } from 'react-query'
 import axios, { AxiosResponse } from 'axios'
 
@@ -47,10 +47,12 @@ const AppContainer = () => {
   return (
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <MuiThemeProvider theme={light}>
-          <CssBaseline />
-          <App />
-        </MuiThemeProvider>
+        <StyledEngineProvider injectFirst>
+          <ThemeProvider theme={light}>
+            <CssBaseline />
+            <App />
+          </ThemeProvider>
+        </StyledEngineProvider>
       </QueryClientProvider>
     </BrowserRouter>
   )
