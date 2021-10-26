@@ -33,7 +33,7 @@ const Root = styled('div')(
       paddingLeft: spacing(3),
       paddingRight: spacing(3),
     },
-    '& > div:first-child': {
+    '& > div:first-of-type': {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -53,12 +53,10 @@ const Root = styled('div')(
 
 const SkeletonList = ({ length = 5 }: { length: number }) => (
   <List dense>
-    {new Array(length).fill(null).map(() => (
-      <ListItem disableGutters>
-        <ListItemText
-          primary={<Skeleton width={80} />}
-          secondary={<Skeleton width={60} />}
-        />
+    {Array.from(Array(length)).map((_, index: number) => (
+      // eslint-disable-next-line react/no-array-index-key
+      <ListItem key={index} disableGutters>
+        <ListItemText primary={<Skeleton width={80} />} secondary={<Skeleton width={60} />} />
         <ListItemText primary={<Skeleton />} />
       </ListItem>
     ))}

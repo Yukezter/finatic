@@ -13,6 +13,14 @@ interface Channel {
 class SSE extends EventEmitter {
   public channels: Map<string, Channel> = new Map()
 
+  private keepAliveInterval = (res: Response): NodeJS.Timer => {
+    return setInterval(() => {
+      res.write(`event: keep-alive\n`)
+      res.write(`data: \n\n`)
+      res.flush()
+    }, 1000 * 60)
+  }
+
   createChannel = async (id: string, targetURL: string): Promise<Channel> => {
     let stream: any
     let partialMessage: string
@@ -52,7 +60,6 @@ class SSE extends EventEmitter {
         if (message) {
           try {
             const { symbol } = JSON.parse(message)[0]
-            // this.emit(id, { event: symbol, data: message })
             this.emit(id, { data: message })
 
             cache.set(symbol, message)
@@ -71,17 +78,16 @@ class SSE extends EventEmitter {
           'Connection': 'keep-alive',
         })
 
-        // const listener = ({ event, data }: { event: string; data: string }) => {
-        //   res.write(`event: ${event}\n`)
-        //   res.write(`data: ${data}\n\n`)
-        //   res.flush()
-        // }
         const listener = ({ data }: { data: string }) => {
+          console.log('data event')
           res.write(`data: ${data}\n\n`)
           res.flush()
         }
 
         this.on(id, listener)
+
+        console.log('opened connection')
+        console.log('total listeners', this.listenerCount(id))
 
         if (this.listenerCount(id) > 1) {
           cache.forEach((data, symbol) => {
@@ -89,8 +95,12 @@ class SSE extends EventEmitter {
           })
         }
 
+        const intervalID = this.keepAliveInterval(res)
+
         res.on('close', () => {
+          console.log('closed connection')
           this.off(id, listener)
+          clearInterval(intervalID)
 
           if (this.listenerCount(id) === 0) {
             stream.destroy()

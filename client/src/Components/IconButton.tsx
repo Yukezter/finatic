@@ -1,13 +1,10 @@
-import withStyles from '@mui/styles/withStyles';
+import withStyles from '@mui/styles/withStyles'
 import IconButton from '@mui/material/IconButton'
 
 export default withStyles(({ palette }) => ({
   root: {
-    padding: 0,
+    padding: 4,
     borderRadius: 4,
-    '&:hover': {
-      background: 'initial',
-    },
   },
   colorPrimary: {
     '&:hover': {

@@ -3,14 +3,13 @@ import React from 'react'
 import { styled } from '@mui/material/styles'
 import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
-import {
-  Theme,
-  // alpha,
-  useMediaQuery,
-} from '@mui/material'
+import { Theme } from '@mui/material'
 import Grid from '@mui/material/Grid'
-import Typography from '@mui/material/Typography'
-import Divider from '@mui/material/Divider'
+import Box from '@mui/material/Box'
+import List from '@mui/material/List'
+import ListItem from '@mui/material/ListItem'
+import ListItemText from '@mui/material/ListItemText'
+// import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
 
 import { Icon } from '../../Components'
@@ -22,9 +21,18 @@ const PREFIX = 'Market'
 const classes = {
   cards: `${PREFIX}-cards`,
   card: `${PREFIX}-card`,
+  economicDataIcon: `${PREFIX}-economicDataIcon`,
 }
 
 const StyledGrid = styled(Grid)(({ theme }) => ({
+  [`& .${classes.economicDataIcon}`]: {
+    width: 42,
+    height: 42,
+    display: 'flex',
+    marginRight: 16,
+    color: theme.palette.primary.main,
+  },
+
   [`& .${classes.cards}`]: {
     // overflow: 'hidden',
     marginTop: theme.spacing(3),
@@ -34,13 +42,6 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
   [`& .${classes.card}`]: {
     '& > div': {
       display: 'flex',
-      '& > span': {
-        width: 42,
-        height: 42,
-        display: 'flex',
-        marginRight: 16,
-        color: theme.palette.primary.main,
-      },
     },
     [theme.breakpoints.down(theme.breakpoints.values.sm)]: {
       // height: 160,
@@ -91,61 +92,53 @@ const economicData = [
   },
 ]
 
-const EconomicDataCard = ({ icon, title, queryKey }: any) => {
+const EconomicData = ({ icon, title, queryKey }: any) => {
   const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>(`economy/${queryKey}`)
 
   return (
-    <div className={classes.card}>
-      <div>
-        <span>
-          <Icon name={icon} height={28} width={28} style={{ margin: 'auto' }} />
-        </span>
-        <div>
-          <Typography variant='body2'>{title}</Typography>
-          {!isSuccess ? (
-            <Skeleton />
-          ) : (
-            <Typography variant='h6' gutterBottom>
-              {data!.data}
-            </Typography>
-          )}
-        </div>
-      </div>
-    </div>
+    <ListItem divider>
+      <Box color={theme => theme.palette.primary.main} flexBasis={50}>
+        <Icon name={icon} height={28} width={28} />
+      </Box>
+      <ListItemText
+        sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
+        primary={isSuccess && title}
+        primaryTypographyProps={{ color: 'textSecondary' }}
+        secondary={<>{!isSuccess ? <Skeleton width='80%' /> : data!.data}</>}
+        secondaryTypographyProps={{ color: 'textPrimary' }}
+      />
+    </ListItem>
   )
 }
 
 const Market: React.FC<{ theme: Theme }> = ({ theme }: { theme: Theme }) => {
-  const matches = useMediaQuery(({ breakpoints }: Theme) => breakpoints.up('lg'))
-
   return (
-    <StyledGrid container spacing={matches ? 5 : 0}>
-      <Grid item xs={12} lg={8}>
-        <Typography variant='h2' style={{ marginBottom: 32 }}>
-          Markets
-        </Typography>
-        <Typography variant='h5' paragraph>
-          Economic Data
-        </Typography>
-        <Divider />
-        <div className={classes.cards}>
-          <Grid container spacing={2}>
-            {economicData.map(props => (
-              <Grid item xs={6} sm={6}>
-                <EconomicDataCard classes={classes} {...props} />
-              </Grid>
-            ))}
-          </Grid>
-        </div>
-        <Tables />
-      </Grid>
-      <Grid item xs={12} sm={6} lg={4}>
-        <Lists theme={theme} />
-      </Grid>
-      {/* <Grid item xs={12} sm={6} lg={8}>
-    
-  </Grid> */}
-    </StyledGrid>
+    <>
+      <StyledGrid container spacing={{ lg: 8 }}>
+        <Grid item xs={12} lg={8}>
+          <div className={classes.cards}>
+            {/* <Grid container spacing={2}>
+              {economicData.map(props => (
+                // eslint-disable-next-line react/prop-types
+                <Grid key={props.title} item xs={6} sm={6}>
+                  <EconomicData classes={classes} {...props} />
+                </Grid>
+              ))}
+            </Grid> */}
+            <List dense>
+              {economicData.map(props => (
+                // eslint-disable-next-line react/prop-types
+                <EconomicData classes={classes} {...props} />
+              ))}
+            </List>
+          </div>
+          <Tables />
+        </Grid>
+        <Grid item xs={12} sm={6} lg={4}>
+          <Lists theme={theme} />
+        </Grid>
+      </StyledGrid>
+    </>
   )
 }
 

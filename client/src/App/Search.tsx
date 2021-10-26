@@ -16,7 +16,7 @@ import useAutocomplete, {
 
 import { SearchState, SearchActionKind } from '../types'
 
-import { Icon, Link, Input } from '../Components'
+import { Icon, RouterLink, Input } from '../Components'
 
 const PREFIX = 'Search'
 
@@ -152,21 +152,18 @@ const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) =>
           <MenuList dense {...getListboxProps()}>
             {groupedOptions.map((option, index) => (
               <MenuItem
-                key={option.symbol}
                 className={classes.li}
                 {...getOptionProps({ option, index })}
+                key={option.symbol}
               >
-                <Link to='/'>
-                  <Typography
-                    noWrap
-                    style={{ width: 80, marginRight: 8, overflow: 'hidden' }}
-                  >
+                <RouterLink to='/' underline='none'>
+                  <Typography noWrap style={{ width: 80, marginRight: 8, overflow: 'hidden' }}>
                     {option.symbol}
                   </Typography>
                   <Typography noWrap style={{ width: '100%', overflow: 'hidden' }}>
                     {option.securityName}
                   </Typography>
-                </Link>
+                </RouterLink>
               </MenuItem>
             ))}
           </MenuList>

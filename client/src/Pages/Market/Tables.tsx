@@ -26,7 +26,7 @@ import Paper from '@mui/material/Paper'
 import ChevronLeft from '@mui/icons-material/ChevronLeft'
 import ChevronRight from '@mui/icons-material/ChevronRight'
 
-import { Icon, IconButton, Link, DirectionIcon } from '../../Components'
+import { Icon, IconButton, RouterLink, DirectionIcon } from '../../Components'
 import { useTable } from '../../Hooks'
 
 import 'react-calendar/dist/Calendar.css'
@@ -138,9 +138,14 @@ const Root = styled('div')(
       padding: '16px 8px',
       borderBottomWidth: 2,
       cursor: 'pointer',
-      '&:first-child': {
-        width: '40%',
+      '&:first-of-type': {
         paddingLeft: 0,
+      },
+      '&.market-movers:first-of-type': {
+        width: '40%',
+      },
+      '&.ipos:first-of-type': {
+        width: '40%',
         [breakpoints.down(breakpoints.values.sm)]: {
           width: '30%',
         },
@@ -160,7 +165,7 @@ const Root = styled('div')(
 
     [`& .${classes.tr}`]: {
       height: 56,
-      '& > *:first-child > *': {
+      '& > *:first-of-type > *': {
         paddingLeft: 0,
       },
       '& > * > *': {
@@ -413,9 +418,7 @@ const IPOsTable = () => {
 
   return (
     <div style={{ marginBottom: 48 }}>
-      <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant='h5' color='textPrimary' gutterBottom>
           Upcoming IPOs
         </Typography>
@@ -433,7 +436,7 @@ const IPOsTable = () => {
               {headers.map(column => (
                 <TableCell
                   {...column.getHeaderProps()}
-                  className={classNames(classes.th, column.isSorted && 'active')}
+                  className={classNames(classes.th, 'ipos', column.isSorted && 'active')}
                   sortDirection={isSuccess && column.isSorted ? state.order : false}
                 >
                   <TableSortLabel
@@ -446,9 +449,7 @@ const IPOsTable = () => {
                     <div>{column.render()}</div>
                     {column.isSorted ? (
                       <span className={classes.visuallyHidden}>
-                        {state.order === 'desc'
-                          ? 'sorted descending'
-                          : 'sorted ascending'}
+                        {state.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                       </span>
                     ) : null}
                   </TableSortLabel>
@@ -468,7 +469,9 @@ const IPOsTable = () => {
                   <TableRow {...row.getRowProps()} className={classes.tr}>
                     {row.cells.map(cell => (
                       <TableCell {...cell.getCellProps()} padding='none'>
-                        <Link to={`/symbol/${row.original.symbol}`}>{cell.render()}</Link>
+                        <RouterLink to={`/symbol/${row.original.symbol}`} underline='none'>
+                          {cell.render()}
+                        </RouterLink>
                       </TableCell>
                     ))}
                   </TableRow>
@@ -692,9 +695,7 @@ const TopMoversTable = () => {
 
   return (
     <div style={{ marginBottom: 48 }}>
-      <div
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-      >
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography variant='h5' color='textPrimary' gutterBottom>
           {selectedOption.label}
         </Typography>
@@ -716,7 +717,11 @@ const TopMoversTable = () => {
               {headers.map(column => (
                 <TableCell
                   {...column.getHeaderProps()}
-                  className={`${classes.th} ${column.isSorted ? 'active' : ''}`}
+                  className={classNames(
+                    classes.th,
+                    'market-movers',
+                    column.isSorted && 'active'
+                  )}
                   sortDirection={isSuccess && column.isSorted ? state.order : false}
                 >
                   <TableSortLabel
@@ -729,9 +734,7 @@ const TopMoversTable = () => {
                     <div>{column.render()}</div>
                     {column.isSorted ? (
                       <span className={classes.visuallyHidden}>
-                        {state.order === 'desc'
-                          ? 'sorted descending'
-                          : 'sorted ascending'}
+                        {state.order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                       </span>
                     ) : null}
                   </TableSortLabel>
@@ -746,7 +749,9 @@ const TopMoversTable = () => {
                 <TableRow {...row.getRowProps()} className={classes.tr}>
                   {row.cells.map(cell => (
                     <TableCell {...cell.getCellProps()} padding='none'>
-                      <Link to={`/company/${row.original.symbol}`}>{cell.render()}</Link>
+                      <RouterLink to={`/company/${row.original.symbol}`} underline='none'>
+                        {cell.render()}
+                      </RouterLink>
                     </TableCell>
                   ))}
                 </TableRow>

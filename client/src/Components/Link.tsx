@@ -1,30 +1,28 @@
+/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
-import { Link as RouterLink } from 'react-router-dom'
-import { Link as MuiLink, LinkProps } from '@mui/material'
+import Link, { LinkProps } from '@mui/material/Link'
 
-interface Props extends LinkProps {
-  to: string
+interface CustomLinkProps extends LinkProps {
+  targetBlank?: boolean
 }
 
-const Link: React.FC<Props> = ({
-  children,
-  underline,
-  className = '',
-  to,
-  style,
-}: Props) => {
-  return (
-    <MuiLink
-      to={to}
-      component={RouterLink}
-      color='inherit'
-      underline={underline}
-      className={className}
-      style={style}
-    >
-      {children}
-    </MuiLink>
-  )
+const targetBlankProps = {
+  target: '_blank',
+  rel: 'noopener noreferrer',
 }
 
-export default Link
+export default React.forwardRef(
+  ({ children, targetBlank = false, ...props }: CustomLinkProps, ref) => {
+    return (
+      <Link
+        ref={ref as React.Ref<HTMLAnchorElement>}
+        color='inherit'
+        underline='hover'
+        {...(targetBlank ? targetBlankProps : {})}
+        {...props}
+      >
+        {children}
+      </Link>
+    )
+  }
+)

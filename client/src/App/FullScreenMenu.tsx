@@ -10,7 +10,7 @@ import Slide, { SlideProps } from '@mui/material/Slide'
 
 import { SearchState, SearchAction } from '../types'
 
-import { Icon, Link, Button } from '../Components'
+import { Icon, IconButton, RouterLink } from '../Components'
 import Search from './Search'
 
 const PREFIX = 'FullScreenMenu'
@@ -67,7 +67,7 @@ const StyledDialog = styled(Dialog)(({ theme: { palette, spacing } }) => ({
 
 type DialogProps = {
   open: boolean
-  onClose: () => void
+  handleClose: () => void
   searchState: SearchState
   dispatch: React.Dispatch<SearchAction>
 }
@@ -77,7 +77,7 @@ const Transition = React.forwardRef<unknown, SlideProps>((props, ref) => {
   return <Slide direction='left' ref={ref} {...props} />
 })
 
-const FullScreenMenu = ({ open, onClose, searchState, dispatch }: DialogProps) => {
+const FullScreenMenu = ({ open, handleClose, searchState, dispatch }: DialogProps) => {
   return (
     <StyledDialog
       fullScreen
@@ -90,20 +90,24 @@ const FullScreenMenu = ({ open, onClose, searchState, dispatch }: DialogProps) =
         className: classes.Paper,
       }}
     >
-      <AppBar
-        position='static'
-        color='transparent'
-        elevation={0}
-        className={classes.AppBar}
-      >
+      <AppBar position='static' color='transparent' elevation={0} className={classes.AppBar}>
         <Toolbar component='nav' variant='dense' className={classes.Toolbar}>
           <Container disableGutters maxWidth='sm' className={classes.Container}>
-            <Link className={classes.Logo} to='/'>
+            <RouterLink className={classes.Logo} to='/'>
               <Icon name='logo' title='Finatic' />
-            </Link>
-            <Button className={classes.closeMenuButton} onClick={onClose}>
-              <Icon name='close' title='Close Menu' height={26} />
-            </Button>
+            </RouterLink>
+            <IconButton
+              onClick={handleClose}
+              className={classes.closeMenuButton}
+              size='small'
+              sx={{
+                ':hover': {
+                  background: 'none',
+                },
+              }}
+            >
+              <Icon name='close' title='Close Menu' height={26} width={26} />
+            </IconButton>
           </Container>
         </Toolbar>
       </AppBar>
@@ -111,21 +115,13 @@ const FullScreenMenu = ({ open, onClose, searchState, dispatch }: DialogProps) =
         <Typography variant='h1' color='inherit' paragraph>
           Search
         </Typography>
-        <Search
-          className={classes.Search}
-          searchState={searchState}
-          dispatch={dispatch}
-        />
-        <Box py={2}>
+        <Search className={classes.Search} searchState={searchState} dispatch={dispatch} />
+        <Box py={4}>
           <Typography variant='h3' color='inherit' gutterBottom>
-            <Link underline='hover' to='/news'>
-              News
-            </Link>
+            <RouterLink to='/news'>News</RouterLink>
           </Typography>
           <Typography variant='h3' color='inherit' gutterBottom>
-            <Link underline='hover' to='/market'>
-              Market
-            </Link>
+            <RouterLink to='/market'>Market</RouterLink>
           </Typography>
         </Box>
       </Container>

@@ -1,10 +1,12 @@
+/* eslint-disable react/jsx-props-no-spreading */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import React from 'react'
 import { createStyles, styled } from '@mui/material'
 import Container, { ContainerProps } from '@mui/material/Container'
 
 const StyledContainer = styled(Container)(({ theme }) =>
   createStyles({
-    // overflow: 'hidden',
+    display: 'flex',
     [theme.breakpoints.up('sm')]: {
       maxWidth: theme.breakpoints.values.sm + 80,
     },
@@ -14,9 +16,10 @@ const StyledContainer = styled(Container)(({ theme }) =>
   })
 )
 
-export default ({ children, ...props }: ContainerProps) => (
-  // eslint-disable-next-line react/jsx-props-no-spreading
-  <StyledContainer maxWidth='md' disableGutters {...props}>
-    {children}
-  </StyledContainer>
-)
+export default React.forwardRef(({ children, ...props }: ContainerProps, ref) => (
+  <Container ref={ref as React.Ref<HTMLDivElement>} maxWidth={false} {...props}>
+    <StyledContainer maxWidth='md' disableGutters>
+      {children}
+    </StyledContainer>
+  </Container>
+))

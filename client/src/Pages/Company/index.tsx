@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/mouse-events-have-key-events */
 import React from 'react'
-// import { AxiosResponse } from 'axios'
+import { AxiosResponse } from 'axios'
 import { useParams } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import { useQuery } from 'react-query'
@@ -17,7 +17,7 @@ import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
 
 import { group, abbreviate, percent } from '../../Utils/numberFormats'
-import { Button } from '../../Components'
+import { Button, Link } from '../../Components'
 import PriceDisplayAndChart from './PriceDisplayAndChart'
 import EarningsChart from './EarningsChart'
 import Related from './Related'
@@ -25,12 +25,21 @@ import Related from './Related'
 const PREFIX = 'index'
 
 const classes = {
+  link: `${PREFIX}-link`,
   statGrid: `${PREFIX}-statGrid`,
   statsListItemText: `${PREFIX}-statsListItemText`,
+  article: `${PREFIX}-article`,
 }
 
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')(({ theme }) => ({
+  width: '100%',
+  paddingTop: theme.spacing(8),
+
+  [`& .${classes.link}`]: {
+    textDecoration: 'none',
+  },
+
   [`& .${classes.statGrid}`]: {},
 
   [`& .${classes.statsListItemText}`]: {
@@ -117,34 +126,32 @@ const Stats = ({ symbol }: { symbol: string }) => {
     <div>
       <List dense>
         <Grid container rowSpacing={{ xs: 0.5, sm: 0 }} columnSpacing={{ xs: 4, sm: 2 }}>
-          {(!isSuccess ? Array.from(Array(16)) : data).map(
-            (stat: any = {}, index: number) => (
-              // eslint-disable-next-line react/no-array-index-key
-              <Grid key={index} item xs={6} sm={3} classes={{ item: classes.statGrid }}>
-                <ListItem disableGutters>
-                  {!isSuccess ? (
-                    <Skeleton />
-                  ) : (
-                    <ListItemText
-                      className={classes.statsListItemText}
-                      primary={stat.name}
-                      primaryTypographyProps={{
-                        noWrap: true,
-                        color: 'textSecondary',
-                        style: {
-                          marginRight: 16,
-                        },
-                      }}
-                      secondary={stat.value}
-                      secondaryTypographyProps={{
-                        color: 'textPrimary',
-                      }}
-                    />
-                  )}
-                </ListItem>
-              </Grid>
-            )
-          )}
+          {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any = {}, index: number) => (
+            // eslint-disable-next-line react/no-array-index-key
+            <Grid key={index} item xs={6} sm={3} classes={{ item: classes.statGrid }}>
+              <ListItem disableGutters>
+                {!isSuccess ? (
+                  <Skeleton />
+                ) : (
+                  <ListItemText
+                    className={classes.statsListItemText}
+                    primary={stat.name}
+                    primaryTypographyProps={{
+                      noWrap: true,
+                      color: 'textSecondary',
+                      style: {
+                        marginRight: 16,
+                      },
+                    }}
+                    secondary={stat.value}
+                    secondaryTypographyProps={{
+                      color: 'textPrimary',
+                    }}
+                  />
+                )}
+              </ListItem>
+            </Grid>
+          ))}
         </Grid>
       </List>
     </div>
@@ -154,7 +161,7 @@ const Stats = ({ symbol }: { symbol: string }) => {
 const maxLength = 400
 
 const About = ({ symbol }: { symbol: string }) => {
-  const { isSuccess, data } = useQuery<any, Error>({
+  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>({
     queryKey: `/stock/${symbol}/company`,
     cacheTime: 1000 * 30,
   })
@@ -164,19 +171,19 @@ const About = ({ symbol }: { symbol: string }) => {
   return (
     <div>
       <Typography variant='h5' component='h4' gutterBottom>
-        {!isSuccess ? <Skeleton width='20%' /> : `About ${data.data.companyName}`}
+        {!isSuccess ? <Skeleton width='20%' /> : `About ${data!.data.companyName}`}
       </Typography>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography variant='body1' component='p' paragraph>
           {!isSuccess ? (
             <Skeleton />
-          ) : data.data.description.length > maxLength && !readMore ? (
-            `${data.data.description.slice(0, maxLength - 3)}...`
+          ) : data!.data.description.length > maxLength && !readMore ? (
+            `${data!.data.description.slice(0, maxLength - 3)}...`
           ) : (
-            data.data.description
+            data!.data.description
           )}
         </Typography>
-        {isSuccess && data.data.description.length > maxLength && (
+        {isSuccess && data!.data.description.length > maxLength && (
           <Button variant='outlined' onClick={() => setReadMore(prev => !prev)}>
             Read More
           </Button>
@@ -186,17 +193,82 @@ const About = ({ symbol }: { symbol: string }) => {
   )
 }
 
+const News = ({ symbol }: { symbol: string }) => {
+  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>(`/stock/${symbol}/news`)
+
+  return (
+    <section>
+      <Typography variant='h5' component='h4' gutterBottom>
+        News
+      </Typography>
+      <List dense>
+        {!isSuccess
+          ? Array.from(Array(5)).map((_, index) => (
+              // eslint-disable-next-line react/no-array-index-key
+              <ListItem key={index} disablePadding>
+                <ListItemText
+                  primary={<Skeleton width='100%' />}
+                  primaryTypographyProps={{
+                    variant: 'h6',
+                  }}
+                  secondary={
+                    <>
+                      <Skeleton width='100%' />
+                      <Skeleton width='40%' />
+                    </>
+                  }
+                />
+              </ListItem>
+            ))
+          : data!.data.map((article: any) => (
+              <ListItem key={article.url} className={classes.article} disablePadding>
+                <ListItemText
+                  disableTypography
+                  primary={
+                    <Link
+                      variant='h6'
+                      href={article.url}
+                      sx={{
+                        mb: 1,
+                        ':hover': {
+                          textDecorationColor: theme => theme.palette.primary.main,
+                        },
+                      }}
+                    >
+                      {article.headline}
+                    </Link>
+                  }
+                  secondary={
+                    <Typography
+                      variant='body2'
+                      component='p'
+                      color='textSecondary'
+                      gutterBottom
+                    >
+                      {article.summary.length > 125
+                        ? `${article.summary.slice(0, 122)}...`
+                        : article.summary}
+                    </Typography>
+                  }
+                />
+              </ListItem>
+            ))}
+      </List>
+    </section>
+  )
+}
+
 export default ({ theme }: { theme: Theme }) => {
   const { symbol }: { symbol: string } = useParams()
 
   return (
     <Root>
-      <Typography variant='h2' component='h1' style={{ lineHeight: 1 }}>
-        {symbol}
-      </Typography>
-      <Grid container rowSpacing={{ xs: 2, sm: 0 }} columnSpacing={{ md: 5 }}>
+      <Grid container rowSpacing={{ xs: 2, sm: 4 }} columnSpacing={{ md: 8 }}>
         <Grid container item xs={12} lg={8} rowSpacing={{ xs: 2, sm: 4 }}>
           <Grid item xs={12}>
+            <Typography variant='h2' component='h1' style={{ lineHeight: 1 }}>
+              {symbol}
+            </Typography>
             <PriceDisplayAndChart theme={theme} symbol={symbol} />
           </Grid>
           <Grid item xs={12}>
@@ -213,7 +285,7 @@ export default ({ theme }: { theme: Theme }) => {
           </Grid>
         </Grid>
         <Grid item xs={12} lg={4}>
-          Wow
+          <News symbol={symbol} />
         </Grid>
       </Grid>
     </Root>

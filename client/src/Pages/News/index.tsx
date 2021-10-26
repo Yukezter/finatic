@@ -1,8 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-nested-ternary */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { withRouter, RouteComponentProps } from 'react-router-dom'
 import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
 import Grid from '@mui/material/Grid'
@@ -13,40 +13,29 @@ import ListItem from '@mui/material/ListItem'
 import Container from '@mui/material/Container'
 import Hidden from '@mui/material/Hidden'
 import Skeleton from '@mui/material/Skeleton'
+import Stack from '@mui/material/Stack'
+import Card from '@mui/material/Card'
+import CardHeader from '@mui/material/CardHeader'
+import CardMedia from '@mui/material/CardMedia'
+import CardContent from '@mui/material/CardContent'
 
-import { Chip, Button } from '../../Components'
+import { Chip, Button, RouterLink, Link } from '../../Components'
 
 const PREFIX = 'News'
 
 const classes = {
   root: `${PREFIX}-root`,
-  datetime: `${PREFIX}-datetime`,
   dot: `${PREFIX}-dot`,
-  divider: `${PREFIX}-divider`,
   thumbnail: `${PREFIX}-thumbnail`,
-  featuredArticle: `${PREFIX}-featuredArticle`,
-  featuredArticleImageContainer: `${PREFIX}-featuredArticleImageContainer`,
-  marginLeftAutoSmUp: `${PREFIX}-marginLeftAutoSmUp`,
-  articles: `${PREFIX}-articles`,
-  article: `${PREFIX}-article`,
-  hoverUnderline: `${PREFIX}-hoverUnderline`,
 }
 
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')(({ theme }) => ({
+  width: '100%',
   '& img': {
     height: '100%',
     width: '100%',
     objectFit: 'cover',
     borderRadius: theme.spacing(0.75),
-  },
-  '& a': {
-    textDecoration: 'none',
-    textDecorationColor: 'inherit',
-  },
-
-  [`& .${classes.datetime}`]: {
-    color: theme.palette.text.disabled,
   },
 
   [`& .${classes.dot}`]: {
@@ -58,245 +47,153 @@ const Root = styled('div')(({ theme }) => ({
     borderRadius: '50%',
   },
 
-  [`& .${classes.divider}`]: {
-    marginTop: theme.spacing(4),
-    [theme.breakpoints.up('sm')]: {
-      marginTop: theme.spacing(5),
-    },
-  },
-
   [`& .${classes.thumbnail}`]: {
     display: 'flex',
     flexShrink: 0,
     float: 'right',
     height: theme.spacing(12),
     width: theme.spacing(12),
-    marginLeft: theme.spacing(3),
+    marginLeft: theme.spacing(2),
     marginBottom: theme.spacing(0.5),
-  },
-
-  [`& .${classes.featuredArticle}`]: {
-    overflow: 'hidden',
-    '& .content': {
-      height: '100%',
-      width: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'center',
-    },
-    '& .headline:hover': {
-      textDecoration: 'underline',
-      textDecorationColor: theme.palette.primary.main,
-    },
-    [theme.breakpoints.up('lg')]: {
-      textAlign: 'right',
-    },
-  },
-
-  [`& .${classes.featuredArticleImageContainer}`]: {
-    overflow: 'hidden',
-    height: '100%',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 300,
-    // maxHeight: 400,
-    borderRadius: 4,
-    '& > a': {
-      height: '100%',
-    },
-    [theme.breakpoints.down('xl')]: {
-      paddingBottom: theme.spacing(3),
-    },
-  },
-
-  [`& .${classes.marginLeftAutoSmUp}`]: {
-    [theme.breakpoints.up('sm')]: {
-      marginLeft: 'auto',
-    },
-  },
-
-  [`& .${classes.articles}`]: {
-    paddingTop: 0,
-    paddingBottom: 0,
-  },
-
-  [`& .${classes.article}`]: {
-    paddingTop: 0,
-    paddingBottom: 0,
-    '& > div': {
-      display: 'flex',
-      flexDirection: 'column',
-      width: '100%',
-      paddingTop: theme.spacing(3),
-      paddingBottom: theme.spacing(3),
-      borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-    [theme.breakpoints.up('lg')]: {
-      '& > div': {
-        flexDirection: 'row',
-      },
-    },
-  },
-
-  [`& .${classes.hoverUnderline}`]: {
-    '&:hover': {
-      textDecoration: 'underline',
-      textDecorationColor: theme.palette.primary.main,
-    },
   },
 }))
 
-// const img =
-//   'https://images.pexels.com/photos/414974/pexels-photo-414974.jpeg?auto=compress&cs=tinysrgb&dpr=3&h=750&w=1260'
-
-interface RelatedSymbolsProps extends RouteComponentProps {
-  symbols?: string
-}
-
-const RelatedSymbols = withRouter(({ symbols = '', history }: RelatedSymbolsProps) => (
-  <div style={{ marginBottom: 4 }}>
+const RelatedSymbols = ({ symbols = '' }: { symbols: string }) => (
+  <Stack direction='row' spacing={0.75} sx={{ my: 1 }}>
     {symbols
       .split(',')
-      .slice(0, 5)
+      .slice(0, 4)
       .map((symbol: string) => (
         <Chip
           key={symbol}
           label={symbol}
           color='primary'
           clickable
-          onClick={() => {
-            history.push(`/company/${symbol}`)
-          }}
+          component={RouterLink}
+          to={`/company/${symbol}`}
+          underline='none'
         />
       ))}
-  </div>
-))
-
-const FeaturedArticle = ({ isLoading, article }: any) => (
-  <div className={classes.featuredArticle}>
-    <Grid container spacing={4} direction='row-reverse'>
-      <Grid item xs={12}>
-        <div className={classes.featuredArticleImageContainer}>
-          {isLoading ? (
-            <Skeleton variant='rectangular' height='100%' width='100%' />
-          ) : (
-            <a href={article.url} target='_blank' rel='noopener noreferrer'>
-              <img src={article.image} alt={article.headline} />
-            </a>
-          )}
-        </div>
-      </Grid>
-      <Grid item xs={12}>
-        <div className='content'>
-          {!isLoading && <RelatedSymbols symbols={article.related} />}
-          <Typography className='headline' component='h2' variant='h5' gutterBottom>
-            {isLoading ? (
-              <Root>
-                <Skeleton className={classes.marginLeftAutoSmUp} />
-                <Skeleton className={classes.marginLeftAutoSmUp} />
-                <Skeleton className={classes.marginLeftAutoSmUp} width='60%' />
-              </Root>
-            ) : (
-              <a href={article.qmUrl} target='_blank' rel='noopener noreferrer'>
-                {article.headline}
-              </a>
-            )}
-          </Typography>
-          <Typography className={classes.datetime} variant='caption' gutterBottom>
-            {isLoading ? (
-              <Skeleton className={classes.marginLeftAutoSmUp} width='20%' />
-            ) : (
-              <>
-                {new Date(article.datetime).toDateString()}
-                <span className={classes.dot} />
-                By {article.source}
-              </>
-            )}
-          </Typography>
-        </div>
-      </Grid>
-    </Grid>
-  </div>
+  </Stack>
 )
 
-const Article = ({ isLoading, article }: any) => {
-  return (
-    <ListItem className={classes.article} disableGutters>
-      <div>
-        <Hidden lgDown>
-          <div style={{ minWidth: 130 }}>
-            <Typography className={classes.datetime} variant='caption' gutterBottom>
-              {isLoading ? (
-                <Skeleton width='80%' style={{ maxWidth: 130 }} />
-              ) : (
-                new Date(article.datetime).toDateString()
-              )}
-            </Typography>
-          </div>
-        </Hidden>
-        <Container maxWidth={false} disableGutters>
-          {!isLoading && (
-            <Hidden lgDown>
-              <a
-                className={classes.thumbnail}
-                href={article.url}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                <img src={article.image} alt={article.headline} />
-              </a>
-            </Hidden>
-          )}
-          {!isLoading && <RelatedSymbols symbols={article.related} />}
-          <Typography className='headline' variant='h6' component='h3' gutterBottom>
-            {isLoading ? (
-              <>
-                <Skeleton />
-                <Skeleton />
-                <Skeleton width='60%' />
-              </>
-            ) : (
-              <a
-                className={classes.hoverUnderline}
-                href={article.url}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                {article.headline}
-              </a>
-            )}
-          </Typography>
+const ArticleCard = ({ article, index }: { article: any; index: number }) => (
+  <Grid item xs={12} sm={4}>
+    <Card sx={{ background: theme => theme.palette.secondary.dark }}>
+      {/* <CardHeader
+        title={new Date(article.datetime).toDateString()}
+        titleTypographyProps={{ variant: 'caption', color: 'textSecondary' }}
+      /> */}
+      <CardMedia
+        component='img'
+        height='200'
+        image={`https://picsum.photos/400?random=${index}`}
+        alt='random image'
+      />
+      <CardContent>
+        <RelatedSymbols symbols={article.related} />
+        <Typography component='h4' variant='h6' gutterBottom>
+          {article.headline.length > 80
+            ? article.headline.slice(0, 77).concat('...')
+            : article.headline}
+        </Typography>
+        <Typography
+          variant='caption'
+          gutterBottom
+          noWrap
+          sx={{ color: theme => theme.palette.text.disabled }}
+        >
+          {new Date(article.datetime).toDateString()}
+          <span className={classes.dot} />
+          By {article.source}
+        </Typography>
+      </CardContent>
+    </Card>
+  </Grid>
+)
 
-          {!isLoading && (
-            <Typography variant='body2' color='textSecondary' paragraph>
-              <a href={article.url} target='_blank' rel='noopener noreferrer'>
-                {article.summary.length > 400
-                  ? article.summary.slice(0, 397).concat('...')
-                  : article.summary}
-              </a>
-            </Typography>
+const Article = ({ isLoading, article, index }: any) => {
+  return (
+    <ListItem
+      divider
+      disableGutters
+      sx={{ flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'flex-start', py: 2 }}
+    >
+      <Hidden lgDown>
+        <Typography
+          variant='caption'
+          gutterBottom
+          sx={{ color: theme => theme.palette.text.disabled, mt: 0.75, minWidth: 130 }}
+        >
+          {isLoading ? (
+            <Skeleton width='80%' style={{ maxWidth: 130 }} />
+          ) : (
+            new Date(article.datetime).toDateString()
           )}
-          <Typography className={classes.datetime} variant='caption' gutterBottom>
-            {isLoading ? (
-              <Skeleton width='10%' />
-            ) : (
-              <>
-                <Hidden lgUp>
-                  {new Date(article.datetime).toDateString()}
-                  <span className={classes.dot} />
-                </Hidden>
-                {`By ${article.source}`}
-              </>
-            )}
-          </Typography>
-        </Container>
-        {isLoading && (
+        </Typography>
+      </Hidden>
+      <Container maxWidth={false} disableGutters>
+        {!isLoading && (
           <Hidden lgDown>
-            <Skeleton className={classes.thumbnail} variant='rectangular' />
+            <Link className={classes.thumbnail} href={article.url} targetBlank>
+              <img src={`https://picsum.photos/100?random=${index}`} alt={article.headline} />
+            </Link>
           </Hidden>
         )}
-      </div>
+        {!isLoading && <RelatedSymbols symbols={article.related} />}
+        <Typography variant='h6' component='h3' gutterBottom>
+          {isLoading ? (
+            <>
+              <Skeleton />
+              <Skeleton />
+              <Skeleton width='60%' />
+            </>
+          ) : (
+            <Link
+              href={article.url}
+              targetBlank
+              sx={{
+                ':hover': theme => ({
+                  textDecorationColor: theme.palette.primary.main,
+                }),
+              }}
+            >
+              {article.headline}
+            </Link>
+          )}
+        </Typography>
+        {!isLoading && (
+          <Typography variant='body2' color='textSecondary' paragraph>
+            <Link href={article.url} underline='none' targetBlank>
+              {article.summary.length > 350
+                ? article.summary.slice(0, 347).concat('...')
+                : article.summary}
+            </Link>
+          </Typography>
+        )}
+        <Typography
+          variant='caption'
+          gutterBottom
+          sx={{ color: theme => theme.palette.text.disabled }}
+        >
+          {isLoading ? (
+            <Skeleton width='10%' />
+          ) : (
+            <>
+              <Hidden lgUp>
+                {new Date(article.datetime).toDateString()}
+                <span className={classes.dot} />
+              </Hidden>
+              {`By ${article.source}`}
+            </>
+          )}
+        </Typography>
+      </Container>
+      {isLoading && (
+        <Hidden lgDown>
+          <Skeleton className={classes.thumbnail} variant='rectangular' />
+        </Hidden>
+      )}
     </ListItem>
   )
 }
@@ -304,65 +201,41 @@ const Article = ({ isLoading, article }: any) => {
 const loadMoreGroupSize = 2
 
 const News = () => {
-  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>('/news')
+  const { isSuccess, data } = useQuery<AxiosResponse<any[]>, Error>('/news')
   // const isSuccess = a && !!''
-
-  const articles = React.useMemo(() => {
-    if (isSuccess) {
-      return data!.data
-    }
-
-    return [...new Array(5)]
-  }, [isSuccess])
-
-  const featuredArticle = React.useMemo(() => {
-    if (isSuccess) {
-      return articles.shift()
-    }
-
-    return {}
-  }, [articles])
 
   const [count, setCount] = React.useState(1)
 
   const handleLoadMore = React.useCallback(() => {
-    if (articles.length - count * loadMoreGroupSize > 0) {
+    if (data!.data.length - count * loadMoreGroupSize > 0) {
       setCount(prevCount => prevCount + 1)
     }
-  }, [])
+  }, [data])
 
   return (
     <Root>
-      <Typography variant='h2' component='h1' paragraph>
-        News
-      </Typography>
       <Grid container>
         <Grid item xs={12}>
-          <FeaturedArticle
-            classes={classes}
-            isLoading={!isSuccess}
-            article={featuredArticle}
-          />
-          <Divider className={classes.divider} />
           <Container disableGutters>
-            <List className={classes.articles}>
-              {articles
-                .slice(0, loadMoreGroupSize * count)
-                .map((article: any = {}, index: number) => (
-                  <Article
-                    key={!isSuccess ? index : article.subkey}
-                    classes={classes}
-                    isLoading={!isSuccess}
-                    article={!isSuccess ? {} : article}
-                  />
-                ))}
+            <List>
+              {(!isSuccess
+                ? Array.from(Array(10))
+                : data!.data.slice(0, loadMoreGroupSize * count)
+              ).map((article: any = {}, index: number) => (
+                <Article
+                  key={!isSuccess ? index : article.subkey}
+                  isLoading={!isSuccess}
+                  article={!isSuccess ? {} : article}
+                  index={index}
+                />
+              ))}
             </List>
             <div style={{ display: 'flex', justifyContent: 'center', padding: 32 }}>
               <Button
                 variant='outlined'
                 color='primary'
                 onClick={handleLoadMore}
-                disabled={!isSuccess || count * loadMoreGroupSize >= articles.length}
+                disabled={!isSuccess || count * loadMoreGroupSize >= data!.data.length}
               >
                 More Articles
               </Button>

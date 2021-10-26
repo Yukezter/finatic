@@ -17,7 +17,6 @@ import {
   ActiveElement,
   ChartEvent,
   ChartItem,
-  Plugin,
 } from 'chart.js'
 import 'chartjs-adapter-date-fns'
 import { enUS } from 'date-fns/locale'
@@ -27,6 +26,7 @@ import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
 
 import { percent, currency } from '../../Utils/numberFormats'
+import { useEventSource } from '../../Hooks'
 import { Button } from '../../Components'
 
 Chart.register(
@@ -130,7 +130,7 @@ const PriceChart = React.memo(
         tooltipEl.style.fontFamily = theme.typography.body2.fontFamily as string
         tooltipEl.style.fontSize = theme.typography.body2.fontSize as string
         tooltipEl.style.fontWeight = theme.typography.body2.fontWeightRegular as string
-        tooltipEl.style.color = theme.palette.text.disabled
+        tooltipEl.style.color = theme.palette.text.secondary
         tooltipEl.style.pointerEvents = 'none'
 
         if (tooltip.caretX < halfTooltipWidth) {
@@ -140,7 +140,7 @@ const PriceChart = React.memo(
           tooltipEl.style.right = '0'
         }
       },
-      []
+      [theme]
     )
 
     const hideTooltip = React.useCallback(() => {
@@ -154,27 +154,24 @@ const PriceChart = React.memo(
       setHoverRangeData({})
     }, [])
 
-    const onHover = React.useCallback(
-      (_e: ChartEvent, activeElements: ActiveElement[]) => {
-        const newState: any = {}
-        const activeElement: any = activeElements[0]
+    const onHover = React.useCallback((_e: ChartEvent, activeElements: ActiveElement[]) => {
+      const newState: any = {}
+      const activeElement: any = activeElements[0]
 
-        if (activeElement) {
-          const price = activeElement.element.parsed.y
-          if (price) {
-            newState.price = price
-            if (firstPrice) {
-              const diff = price - firstPrice
-              newState.change = diff
-              newState.changePercent = diff / firstPrice
-            }
+      if (activeElement) {
+        const price = activeElement.element.parsed.y
+        if (price) {
+          newState.price = price
+          if (firstPrice) {
+            const diff = price - firstPrice
+            newState.change = diff
+            newState.changePercent = diff / firstPrice
           }
         }
+      }
 
-        setHoverRangeData(newState)
-      },
-      []
-    )
+      setHoverRangeData(newState)
+    }, [])
 
     const beforeEvent = React.useCallback((chart: Chart, args: any) => {
       const { event } = args
@@ -212,6 +209,12 @@ const PriceChart = React.memo(
       }
     }, [])
 
+    const strokeColorRef = React.useRef<string>()
+
+    React.useEffect(() => {
+      strokeColorRef.current = theme.palette.text.secondary
+    }, [theme])
+
     const beforeDraw = React.useCallback((chart: Chart) => {
       const activeElements = chart.getActiveElements()
       if (activeElements && activeElements.length) {
@@ -222,105 +225,108 @@ const PriceChart = React.memo(
         ctx.moveTo(x, chart.scales.y.top)
         ctx.lineTo(x, chart.scales.y.bottom)
         ctx.lineWidth = 1
-        ctx.strokeStyle = theme.palette.text.disabled
+        ctx.strokeStyle = strokeColorRef.current as string
         ctx.stroke()
         ctx.restore()
       }
     }, [])
 
-    const configRef = React.useRef<ChartConfiguration>({
-      type: 'line',
-      data: {
-        datasets: [
-          {
-            data,
-            fill: false,
-            borderWidth: 3,
-            borderColor: theme.palette.primary.main,
-            tension: 0,
-            spanGaps: false,
-            pointRadius: 0,
-            pointHoverRadius: 5,
-            pointHoverBorderWidth: 2,
-            pointHoverBackgroundColor: theme.palette.primary.main,
-            hoverBorderColor: theme.palette.background.default,
-            backgroundColor: theme.palette.primary.main,
-            pointHitRadius: 10,
-          },
-        ],
-      },
-      options: {
-        events: ['mousemove', 'mouseout', 'touchmove', 'touchend'],
-        normalized: true,
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        onHover,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            enabled: false,
-            external: customTooltip,
-          },
-        },
-        scales: {
-          y: {
-            type: 'linear',
-            grid: {
-              display: false,
-              drawBorder: false,
-              drawTicks: false,
+    const config = React.useMemo<ChartConfiguration>(
+      () => ({
+        type: 'line',
+        data: {
+          datasets: [
+            {
+              data,
+              fill: false,
+              borderWidth: 3,
+              borderColor: theme.palette.primary.main,
+              tension: 0,
+              spanGaps: true,
+              pointRadius: 0,
+              pointHoverRadius: 6,
+              pointHoverBorderWidth: 3,
+              pointHoverBackgroundColor: theme.palette.primary.main,
+              hoverBorderColor: theme.palette.background.default,
+              backgroundColor: theme.palette.primary.main,
+              pointHitRadius: 10,
             },
-            ticks: {
-              display: false,
+          ],
+        },
+        options: {
+          events: ['mousemove', 'mouseout', 'touchmove', 'touchend'],
+          normalized: true,
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          interaction: {
+            mode: 'index',
+            intersect: false,
+          },
+          onHover,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: false,
+              external: customTooltip,
             },
           },
-          x: {
-            type: 'timeseries',
-            adapters: {
-              date: {
-                locale: enUS,
+          scales: {
+            y: {
+              type: 'linear',
+              grid: {
+                display: false,
+                drawBorder: false,
+                drawTicks: false,
+              },
+              ticks: {
+                display: false,
               },
             },
-            time: {
-              tooltipFormat: getTooltipFormat(range),
+            x: {
+              type: 'timeseries',
+              adapters: {
+                date: {
+                  locale: enUS,
+                },
+              },
+              time: {
+                tooltipFormat: getTooltipFormat(range),
+              },
+              grid: {
+                display: false,
+                drawBorder: false,
+                drawTicks: false,
+              },
+              ticks: {
+                display: false,
+              },
             },
-            grid: {
-              display: false,
-              drawBorder: false,
-              drawTicks: false,
-            },
-            ticks: {
-              display: false,
+          },
+          layout: {
+            padding: {
+              left: Number(theme.spacing(0.75)),
+              right: Number(theme.spacing(0.75)),
             },
           },
         },
-        layout: {
-          padding: {
-            left: Number(theme.spacing(0.75)),
-            right: Number(theme.spacing(0.75)),
+        plugins: [
+          {
+            id: 'b4',
+            beforeEvent,
           },
-        },
-      },
-      plugins: [
-        {
-          id: 'b4',
-          beforeEvent,
-        },
-        {
-          id: 'aft',
-          afterEvent,
-        },
-        {
-          id: 'vertical-line',
-          beforeDraw,
-        },
-      ],
-    })
+          {
+            id: 'aft',
+            afterEvent,
+          },
+          {
+            id: 'vertical-line',
+            beforeDraw,
+          },
+        ],
+      }),
+      []
+    )
 
     React.useEffect(() => {
       const chart = chartRef.current
@@ -334,9 +340,19 @@ const PriceChart = React.memo(
     }, [data])
 
     React.useEffect(() => {
+      const chart = chartRef.current
+      if (chart) {
+        console.log('updated chart!!!')
+        chart.data.datasets[0].hoverBorderColor = theme.palette.background.default
+        chart.options.plugins!.tooltip!.external = customTooltip
+        chart.update()
+      }
+    }, [theme])
+
+    React.useEffect(() => {
       const ctx = canvasRef.current!.getContext('2d')
-      setMinMaxYAxis(configRef.current)
-      const chart = new Chart(ctx as ChartItem, configRef.current)
+      setMinMaxYAxis(config)
+      const chart = new Chart(ctx as ChartItem, config)
       chartRef.current = chart
 
       return () => {
@@ -363,11 +379,7 @@ const PriceChart = React.memo(
           paddingTop: theme.spacing(3),
         }}
       >
-        <canvas
-          ref={canvasRef}
-          id='stock-price-chart'
-          onTouchEnd={handleOnTouchEnd as any}
-        />
+        <canvas ref={canvasRef} id='stock-price-chart' onTouchEnd={handleOnTouchEnd as any} />
       </div>
     )
   }
@@ -394,47 +406,23 @@ const PriceDisplay = ({
   rangeData,
   hoverRangeData,
 }: { symbol: string; isSuccess: boolean } | any) => {
-  const [state, setState] = React.useState<{
-    isLoading: boolean
-    quote?: any
-  }>({
-    isLoading: true,
-  })
-
-  React.useEffect(() => {
-    const es = new EventSource(`http://localhost:8001/sse/stock/quote?symbols=${symbol}`)
-
-    es.onerror = () => {
-      es.close()
-    }
-
-    const handleData = ({ data }: MessageEvent) => {
-      setState({
-        isLoading: false,
-        quote: JSON.parse(data)[0],
-      })
-    }
-
-    es.addEventListener('message', handleData)
-    return () => {
-      es.removeEventListener('message', handleData)
-      es.close()
-
-      setState({ isLoading: true })
-    }
-  }, [symbol])
+  const symbolData = React.useMemo(() => ({ symbol }), [])
+  const { isLoading, data } = useEventSource(
+    `http://localhost:8001/sse/stock/quote?symbols=${symbol}`,
+    symbolData
+  )
 
   return (
     <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column' }}>
       <Typography variant='h2' component='h4'>
-        {state.isLoading ? (
+        {isLoading ? (
           <Skeleton width='15%' />
         ) : (
-          currency(hoverRangeData.price || state.quote.latestPrice)
+          currency(hoverRangeData.price || data[0].data.latestPrice)
         )}
       </Typography>
       <div style={{ minHeight: 50 }}>
-        {state.isLoading ? (
+        {isLoading ? (
           <Typography variant='body1'>
             <Skeleton width='15%' />
           </Typography>
@@ -442,30 +430,28 @@ const PriceDisplay = ({
           isSuccess && (
             <div style={{ display: 'flex' }}>
               <Typography variant='body1' style={{ marginRight: 4 }}>
-                {currency(
-                  hoverRangeData.change || rangeData.change || state.quote.change
-                )}
+                {currency(hoverRangeData.change || rangeData.change || data[0].data.change)}
               </Typography>
               <Typography variant='body1' component='h5'>
                 {`(${percent(
                   hoverRangeData.changePercent ||
                     rangeData.changePercent ||
-                    state.quote.changePercent
+                    data[0].data.changePercent
                 )}) ${getRangeTitle(rangeData.range)}`}
               </Typography>
             </div>
           )
         )}
-        {!state.isLoading &&
-          state.quote.extendedChange &&
+        {!isLoading &&
+          data[0].data.extendedChange &&
           !hoverRangeData.price &&
           rangeData.range === '1d' && (
             <div style={{ display: 'flex' }}>
               <Typography variant='body1' component='h5' style={{ marginRight: 4 }}>
-                {currency(state.quote.extendedChange)}
+                {currency(data[0].data.extendedChange)}
               </Typography>
               <Typography variant='body1' component='h5'>
-                {`(${percent(state.quote.extendedChangePercent)})`}
+                {`(${percent(data[0].data.extendedChangePercent)})`}
               </Typography>
             </div>
           )}
@@ -583,8 +569,6 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
     },
   })
 
-  // const isSuccess = a && !!''
-
   return (
     <Container disableGutters maxWidth={false}>
       <PriceDisplayAndChart
@@ -597,9 +581,9 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
         {ranges.map(range => (
           <Button
             key={range}
-            // size='small'
+            size='small'
+            style={{ marginRight: 4 }}
             disabled={!isSuccess}
-            var
             color={range === selectedRange ? 'primary' : 'inherit'}
             variant={range === selectedRange ? 'outlined' : 'text'}
             onClick={() => setSelectedRange(range)}

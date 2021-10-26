@@ -75,14 +75,6 @@ const queryParams = (paramsObject: { [key: string]: string }): string => {
   return `?${new URLSearchParams(paramsObject).toString()}`
 }
 
-// News
-// router.get(
-//   '/news',
-//   cache(24 * 60 * 60),
-//   proxy('finnhub')
-//   // proxy('finnhub', req => `${req.originalUrl}${queryParams({ category: 'general' })}`)
-// )
-
 router.get(
   '/news',
   cache(24 * 60 * 60),
@@ -220,9 +212,9 @@ router.get('/stock/:symbol/peers', cache(60 * 60), proxy('iex'))
 
 // Company News
 router.get(
-  '/stock/:symbol/news/last/:last',
+  '/stock/:symbol/news',
   cache(60 * 60),
-  proxy('iex', req => `${req.originalUrl}${queryParams({ language: 'en' })}`)
+  proxy('iex', req => `${req.originalUrl}/last/5${queryParams({ language: 'en' })}`)
 )
 
 // Peers

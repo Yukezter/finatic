@@ -1,31 +1,24 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { Switch, Route, RouteComponentProps } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import classNames from 'classnames'
 import { useQuery } from 'react-query'
-import {
-  // debounce,
-  ThemeProvider,
-  StyledEngineProvider,
-  Theme,
-} from '@mui/material'
+import { ThemeProvider, StyledEngineProvider, Theme } from '@mui/material'
 import AppBar from '@mui/material/AppBar'
 import Toolbar from '@mui/material/Toolbar'
 import Container from '@mui/material/Container'
 import Typography from '@mui/material/Typography'
 import Hidden from '@mui/material/Hidden'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import useScrollTrigger from '@mui/material/useScrollTrigger'
 
 import { SearchState, SearchAction, SearchActionKind } from '../types'
 
 import { light } from '../theme'
-import { Wrapper, Icon, Link, IconButton } from '../Components'
+import { Wrapper, Icon, RouterLink, IconButton } from '../Components'
 import Search from './Search'
 import FullScreenMenu from './FullScreenMenu'
-
-const illustrationContainerHeight = 240
 
 const PREFIX = 'Header'
 
@@ -38,20 +31,27 @@ const classes = {
   pages: `${PREFIX}-pages`,
   openMenuButton: `${PREFIX}-openMenuButton`,
   illustrationContainer: `${PREFIX}-illustrationContainer`,
+  illustration: `${PREFIX}-illustration`,
 }
 
 const Root = styled('div')(({ theme }) => ({
   [`& .${classes.AppBar}`]: {
+    // position: 'relative',
     flexDirection: 'row',
     justifyContent: 'center',
     backgroundColor: theme.palette.background.default,
-    transition: 'none',
-    transitionProperty: 'color, background-color, box-shadow',
-    transitionDuration: `${theme.transitions.duration.standard}ms`,
-    '&.trigger': {
-      [theme.breakpoints.up('lg')]: {
-        backgroundColor: theme.palette.secondary.main,
-        // boxShadow: 'none',
+
+    '&.transition': {
+      transition: 'none',
+      transitionProperty: 'color, background-color, box-shadow',
+      transitionDuration: `${theme.transitions.duration.standard}ms`,
+    },
+
+    '&.active': {
+      backgroundColor: theme.palette.secondary.main,
+
+      [`& .${classes.pages}`]: {
+        color: theme.palette.getContrastText(theme.palette.secondary.main),
       },
     },
   },
@@ -59,7 +59,8 @@ const Root = styled('div')(({ theme }) => ({
   [`& .${classes.Toolbar}`]: {
     minHeight: 56,
     width: '100%',
-    margin: '0 auto',
+    position: 'static',
+    // margin: '0 auto',
   },
 
   [`& .${classes.Container}`]: {
@@ -81,7 +82,7 @@ const Root = styled('div')(({ theme }) => ({
 
   [`& .${classes.Search}`]: {
     width: theme.spacing(50),
-    [theme.breakpoints.down(Number(theme.breakpoints.values.sm + theme.spacing(8)))]: {
+    [theme.breakpoints.down('md')]: {
       width: theme.spacing(40),
     },
   },
@@ -91,11 +92,6 @@ const Root = styled('div')(({ theme }) => ({
     display: 'flex',
     '& > *': {
       marginLeft: theme.spacing(1),
-    },
-    '&.trigger': {
-      [theme.breakpoints.up('lg')]: {
-        color: theme.palette.getContrastText(theme.palette.secondary.main),
-      },
     },
   },
 
@@ -107,10 +103,23 @@ const Root = styled('div')(({ theme }) => ({
   },
 
   [`& .${classes.illustrationContainer}`]: {
-    height: illustrationContainerHeight,
+    height: 180,
     display: 'flex',
     alignItems: 'center',
     background: theme.palette.secondary.main,
+    [theme.breakpoints.up('sm')]: {
+      height: 220,
+    },
+  },
+
+  [`& .${classes.illustration}`]: {
+    height: 150,
+    width: 150,
+    marginLeft: '30%',
+    [theme.breakpoints.up('sm')]: {
+      height: 220,
+      width: 220,
+    },
   },
 }))
 
@@ -150,124 +159,10 @@ const searchReducer: React.Reducer<SearchState, SearchAction> = (
   }
 }
 
-const newsIllustration = (
-  <Icon name='news_illustration' width={220} height={220} style={{ marginLeft: '30%' }} />
-)
-
-const marketsIllustration = (
-  <Icon
-    name='markets_illustration'
-    width={220}
-    height={220}
-    style={{ marginLeft: '30%' }}
-  />
-)
-
-const IllustrationContainer = ({ illustration }: { illustration: JSX.Element }) => (
-  <Hidden lgDown>
-    <Container className={classes.illustrationContainer} maxWidth={false} disableGutters>
-      {illustration}
-    </Container>
-  </Hidden>
-)
-
-const ScrollTrigger = ({ children }: { children: JSX.Element }) => {
-  const trigger = useScrollTrigger({
-    disableHysteresis: true,
-    threshold: illustrationContainerHeight,
-  })
-
-  return React.cloneElement(children, {
-    trigger: !trigger,
-  })
-}
-
-const HeaderView = ({
-  open,
-  handleOpen,
-  handleClose,
-  searchState,
-  dispatch,
-  trigger,
-}: any) => (
-  <AppBar
-    color='default'
-    elevation={0}
-    classes={{ root: classNames(classes.AppBar, trigger && 'trigger') }}
-  >
-    <Toolbar component='nav' variant='dense' className={classes.Toolbar}>
-      <Wrapper className={classes.Container}>
-        <Link className={classes.Logo} to='/'>
-          <Icon name='logo' title='Finatic' />
-        </Link>
-        <Hidden smDown>
-          <Search
-            className={classes.Search}
-            searchState={searchState}
-            dispatch={dispatch}
-          />
-          <div className={classNames(classes.pages, trigger && 'trigger')}>
-            <Typography variant='h6' color='inherit'>
-              <Link underline='hover' to='/news'>
-                News
-              </Link>
-            </Typography>
-            <Typography variant='h6' color='inherit'>
-              <Link underline='hover' to='/market'>
-                Market
-              </Link>
-            </Typography>
-          </div>
-        </Hidden>
-        <IconButton onClick={handleOpen} className={classes.openMenuButton} size='small'>
-          <Icon name='menu' title='Open Menu' height={30} />
-        </IconButton>
-        <StyledEngineProvider injectFirst>
-          <ThemeProvider theme={light}>
-            <FullScreenMenu
-              open={open}
-              onClose={handleClose}
-              searchState={searchState}
-              dispatch={dispatch}
-            />
-          </ThemeProvider>
-        </StyledEngineProvider>
-      </Wrapper>
-    </Toolbar>
-  </AppBar>
-)
-
-const Header = (props: any) => (
-  <Switch>
-    <Route
-      path={['/news', '/market']}
-      exact
-      render={(routeProps: RouteComponentProps) => (
-        <>
-          <ScrollTrigger>
-            <HeaderView {...routeProps} {...props} />
-          </ScrollTrigger>
-          <IllustrationContainer
-            illustration={
-              routeProps.match.path === '/news' ? newsIllustration : marketsIllustration
-            }
-          />
-        </>
-      )}
-    />
-    <Route
-      path='/'
-      render={(routeProps: RouteComponentProps) => (
-        <HeaderView {...routeProps} {...props} />
-      )}
-    />
-  </Switch>
-)
-
 export default () => {
-  const matches = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'))
-
   const [open, setOpen] = React.useState(false)
+  const matches = useMediaQuery((theme: Theme) => theme.breakpoints.up('sm'))
+  const location = useLocation()
 
   const handleOpen = () => {
     setOpen(true)
@@ -280,6 +175,47 @@ export default () => {
   if (open && matches) {
     handleClose()
   }
+
+  React.useEffect(() => {
+    handleClose()
+    window.scrollTo(0, 0)
+  }, [location.pathname])
+
+  const headerRef = React.useRef<HTMLDivElement>(null)
+  const illustrationContainerRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    const headerEl = headerRef.current
+    const illustrationContainerEl = illustrationContainerRef.current
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting) {
+          headerEl!.classList.add('active')
+        } else {
+          headerEl!.classList.remove('active')
+        }
+      },
+      {
+        root: null,
+        threshold: illustrationContainerEl
+          ? headerEl!.getBoundingClientRect().height /
+            illustrationContainerEl!.getBoundingClientRect().height
+          : 0,
+      }
+    )
+
+    if (illustrationContainerEl) {
+      headerEl!.classList.add('transition')
+      observer.observe(illustrationContainerEl)
+    }
+
+    return () => {
+      if (illustrationContainerEl) {
+        observer.unobserve(illustrationContainerEl)
+        headerEl!.classList.remove('transition')
+      }
+    }
+  }, [illustrationContainerRef.current])
 
   const [searchState, dispatch] = React.useReducer(searchReducer, initialState)
 
@@ -296,13 +232,70 @@ export default () => {
 
   return (
     <Root>
-      <Header
-        open={open}
-        handleOpen={handleOpen}
-        handleClose={handleClose}
-        searchState={searchState}
-        dispatch={dispatch}
-      />
+      <AppBar
+        ref={headerRef}
+        component={Wrapper}
+        color='default'
+        elevation={0}
+        classes={{
+          root: classNames(
+            classes.AppBar,
+            ['/news', '/market'].includes(location.pathname) && 'active'
+          ),
+        }}
+      >
+        <Toolbar className={classes.Toolbar} component='nav' variant='dense' disableGutters>
+          <RouterLink className={classes.Logo} to='/'>
+            <Icon name='logo' title='Finatic' />
+          </RouterLink>
+          <Hidden smDown>
+            <Search className={classes.Search} searchState={searchState} dispatch={dispatch} />
+            <div className={classNames(classes.pages)}>
+              <Typography variant='h6' color='inherit'>
+                <RouterLink to='/news'>News</RouterLink>
+              </Typography>
+              <Typography variant='h6' color='inherit'>
+                <RouterLink to='/market'>Market</RouterLink>
+              </Typography>
+            </div>
+          </Hidden>
+          <IconButton
+            onClick={handleOpen}
+            className={classes.openMenuButton}
+            size='small'
+            sx={{
+              ':hover': {
+                background: 'none',
+              },
+            }}
+          >
+            <Icon name='menu' title='Open Menu' height={30} />
+          </IconButton>
+          <StyledEngineProvider injectFirst>
+            <ThemeProvider theme={light}>
+              <FullScreenMenu
+                open={open}
+                handleClose={handleClose}
+                searchState={searchState}
+                dispatch={dispatch}
+              />
+            </ThemeProvider>
+          </StyledEngineProvider>
+        </Toolbar>
+      </AppBar>
+      {['/news', '/market'].includes(location.pathname) && (
+        <Container
+          ref={illustrationContainerRef}
+          className={classes.illustrationContainer}
+          maxWidth={false}
+          disableGutters
+        >
+          <Icon
+            name={location.pathname === '/news' ? 'news_illustration' : 'markets_illustration'}
+            className={classes.illustration}
+          />
+        </Container>
+      )}
     </Root>
   )
 }

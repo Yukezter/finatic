@@ -121,6 +121,9 @@ const themeOptions: ThemeOptions = {
         '::selection': {
           background: 'var(--primary)',
         },
+        // html: {
+        //   scrollBehavior: 'smooth',
+        // },
         a: {
           textDecorationColor: 'inherit',
           color: 'inherit',
@@ -160,5 +163,6 @@ export const light = responsiveFontSizes(createTheme(themeOptions))
 
 themeOptions.palette!.mode = 'dark'
 themeOptions.palette!.background!.default = colors.secondary
+themeOptions.palette!.background!.paper = light.palette.secondary.dark
 
 export const dark = responsiveFontSizes(createTheme(themeOptions))

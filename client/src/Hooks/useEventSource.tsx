@@ -1,5 +1,7 @@
 import React from 'react'
 
+// import useWindowUnload from './useWindowUnload'
+
 type SymbolData<T> = T & { data: any }
 
 const useEventSource = <T extends { readonly symbol: string }>(
@@ -8,14 +10,14 @@ const useEventSource = <T extends { readonly symbol: string }>(
 ): { isLoading: boolean; data: SymbolData<T>[] } => {
   const initialData: SymbolData<T>[] = React.useMemo(() => {
     if (!symbols) return []
-    return [...(Array.isArray(symbols) ? symbols : [symbols])].map(symbol => ({
+    return (Array.isArray(symbols) ? symbols : [symbols]).map(symbol => ({
       ...symbol,
       data: undefined,
     }))
   }, [symbols])
 
   const [state, setState] = React.useState({
-    data: initialData,
+    data: [...initialData],
     isLoading: true,
   })
 
@@ -24,7 +26,7 @@ const useEventSource = <T extends { readonly symbol: string }>(
   React.useEffect(() => {
     if (rendered.current) {
       setState({
-        data: initialData,
+        data: [...initialData],
         isLoading: true,
       })
     } else {
@@ -32,35 +34,23 @@ const useEventSource = <T extends { readonly symbol: string }>(
     }
   }, [initialData])
 
-  // const getUpdatedList = React.useCallback(
-  //   (list: SymbolData<T>[], data: any) => {
-  //     return list.map(value => {
-  //       if (value.symbol === data.symbol) {
-  //         value.data = data
-  //       }
-  //       return value
-  //     })
-  //   },
-  //   []
-  // )
+  console.log('rendering', initialData)
 
-  // const updateList = React.useCallback((quote: any) => {
-  //   setState(prevState => ({
-  //     ...prevState,
-  //     data: getUpdatedList(prevState.data, quote),
-  //   }))
-  // }, [])
-
-  // eslint-disable-next-line consistent-return
   React.useEffect(() => {
     let es: EventSource
+    console.log('useEventSource useEffect')
 
     const getUpdatedList = (list: SymbolData<T>[], data: any) => {
       return list.map(value => {
-        if (value.symbol === data.symbol) {
-          value.data = data
+        const newValue = {
+          ...value,
         }
-        return value
+
+        if (value.symbol === data.symbol) {
+          newValue.data = data
+        }
+
+        return newValue
       })
     }
 
@@ -72,44 +62,59 @@ const useEventSource = <T extends { readonly symbol: string }>(
     }
 
     const handleData = ({ data }: any) => {
+      console.log('WTF!!!')
       updateList(JSON.parse(data)[0])
     }
 
-    const itemsLoaded = new Set()
+    const symbolsLoadedSet = new Set()
+    let tempSymbolsData = [...initialData]
 
     const handleLoading = ({ data }: any) => {
       const quote = JSON.parse(data)[0]
-      itemsLoaded.add(quote.symbol)
+      symbolsLoadedSet.add(quote.symbol)
+      console.log('useEventSource useEffect handleLoading')
 
-      if (itemsLoaded.size === state.data.length) {
-        setState(prevState => ({
+      if (symbolsLoadedSet.size === initialData.length) {
+        console.log('useEventSource useEffect loaded')
+
+        setState({
           isLoading: false,
-          data: getUpdatedList(prevState.data, quote),
-        }))
+          data: getUpdatedList(tempSymbolsData, quote),
+        })
 
         es.removeEventListener('message', handleLoading)
         es.addEventListener('message', handleData)
       } else {
-        updateList(quote)
+        tempSymbolsData = getUpdatedList(tempSymbolsData, quote)
       }
     }
 
     const closeConnection = () => {
-      es.removeEventListener('message', handleLoading)
-      es.removeEventListener('message', handleData)
-      es.close()
+      if (es) {
+        console.log('closed')
+        es.removeEventListener('message', handleLoading)
+        es.removeEventListener('message', handleData)
+        es.close()
+      }
     }
 
     if (initialData.length) {
+      console.log(initialData.length)
       es = new EventSource(url)
       es.onerror = closeConnection
       es.addEventListener('message', handleLoading)
     }
 
+    const handleBeforeUnload = () => {
+      closeConnection()
+    }
+
+    window.addEventListener('beforeunload', handleBeforeUnload)
+
     return () => {
-      if (es) {
-        closeConnection()
-      }
+      closeConnection()
+
+      window.removeEventListener('beforeunload', handleBeforeUnload)
     }
   }, [initialData])
 

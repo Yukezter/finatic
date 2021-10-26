@@ -50,6 +50,35 @@ const Root = styled('div')(({ theme }) =>
       width: '100%',
       display: 'flex',
       justifyContent: 'center',
+      '& ul': {
+        display: 'flex',
+      },
+      '& li': {
+        display: 'flex',
+        flexDirection: 'column',
+        padding: theme.spacing(2),
+        '& div': {
+          display: 'flex',
+          alignItems: 'center',
+        },
+      },
+      '& p': {
+        ...theme.typography.body2,
+        margin: 0,
+        marginRight: theme.spacing(1.5),
+      },
+      '& .legend-label': {
+        color: theme.palette.primary.main,
+      },
+      '& .legend-value': {
+        color: theme.palette.text.secondary,
+      },
+      '& span': {
+        display: 'inline-block',
+        height: theme.spacing(1.5),
+        width: theme.spacing(1.5),
+        borderRadius: '50%',
+      },
     },
   })
 )
@@ -60,11 +89,6 @@ const getOrCreateLegendList = (chart: Chart, id: string) => {
 
   if (!listContainer) {
     listContainer = document.createElement('ul')
-    listContainer.style.display = 'flex'
-    listContainer.style.flexDirection = 'row'
-    listContainer.style.margin = '0'
-    listContainer.style.padding = '0'
-
     legendContainer.appendChild(listContainer)
   }
 
@@ -92,35 +116,18 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
 
         items.forEach(item => {
           const li = document.createElement('li')
-          li.style.display = 'flex'
-          li.style.flexDirection = 'column'
-          li.style.padding = '16px'
-
-          const pointColor =
-            item.datasetIndex === 0
-              ? alpha(theme.palette.primary.main, 0.5)
-              : theme.palette.primary.main
 
           const div = document.createElement('div')
-          div.style.display = 'flex'
-          div.style.alignItems = 'center'
 
-          // Text
           const labelTextContainer = document.createElement('p')
-          labelTextContainer.style.fontSize = theme.typography.body2.fontSize as string
-          labelTextContainer.style.color = theme.palette.text.secondary as string
-          labelTextContainer.style.margin = '0'
-          labelTextContainer.style.padding = '0'
-          labelTextContainer.style.marginRight = '12px'
-
-          const valueTextContainer = labelTextContainer.cloneNode()
-          labelTextContainer.style.color = theme.palette.primary.main as string
-          labelTextContainer.style.fontWeight = theme.typography
-            .fontWeightMedium as string
+          labelTextContainer.className += ' legend-label'
 
           const labelText = document.createTextNode(item.text)
           labelTextContainer.appendChild(labelText)
           div.appendChild(labelTextContainer)
+
+          const valueTextContainer = labelTextContainer.cloneNode() as HTMLParagraphElement
+          valueTextContainer.className += ' legend-value'
 
           const itemValue =
             item.datasetIndex === 0
@@ -131,15 +138,14 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
           const valueText = document.createTextNode(itemValue)
           valueTextContainer.appendChild(valueText)
 
-          // Color point
           const boxSpan = document.createElement('span')
-          boxSpan.style.background = pointColor
           boxSpan.style.borderColor = item.strokeStyle as string
           boxSpan.style.borderWidth = `${item.lineWidth}px` as string
-          boxSpan.style.display = 'inline-block'
-          boxSpan.style.height = '12px'
-          boxSpan.style.width = '12px'
-          boxSpan.style.borderRadius = '50%'
+          boxSpan.style.background =
+            item.datasetIndex === 0
+              ? alpha(theme.palette.primary.main, 0.5)
+              : theme.palette.primary.main
+
           div.appendChild(boxSpan)
 
           li.appendChild(div)
@@ -224,6 +230,15 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
     },
     plugins: [legendPlugin],
   })
+
+  React.useEffect(() => {
+    const chart = chartRef.current
+    if (chart) {
+      chart.options.scales!.y!.ticks!.color = theme.palette.text.secondary
+      chart.options.scales!.x!.ticks!.color = theme.palette.text.secondary
+      chart.update()
+    }
+  }, [theme])
 
   React.useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d')
