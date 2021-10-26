@@ -165,8 +165,8 @@ const Article = ({ isLoading, article, index }: any) => {
         {!isLoading && (
           <Typography variant='body2' color='textSecondary' paragraph>
             <Link href={article.url} underline='none' targetBlank>
-              {article.summary.length > 350
-                ? article.summary.slice(0, 347).concat('...')
+              {article.summary.length > 320
+                ? article.summary.slice(0, 317).concat('...')
                 : article.summary}
             </Link>
           </Typography>
@@ -217,7 +217,7 @@ const News = () => {
       <Grid container>
         <Grid item xs={12}>
           <Container disableGutters>
-            <List>
+            <List disablePadding>
               {(!isSuccess
                 ? Array.from(Array(10))
                 : data!.data.slice(0, loadMoreGroupSize * count)

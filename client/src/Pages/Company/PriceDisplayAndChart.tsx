@@ -582,7 +582,7 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
           <Button
             key={range}
             size='small'
-            style={{ marginRight: 4 }}
+            sx={{ mr: 0.5, minWidth: { xs: 50 } }}
             disabled={!isSuccess}
             color={range === selectedRange ? 'primary' : 'inherit'}
             variant={range === selectedRange ? 'outlined' : 'text'}

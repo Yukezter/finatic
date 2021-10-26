@@ -26,7 +26,6 @@ const PREFIX = 'index'
 
 const classes = {
   link: `${PREFIX}-link`,
-  statGrid: `${PREFIX}-statGrid`,
   statsListItemText: `${PREFIX}-statsListItemText`,
   article: `${PREFIX}-article`,
 }
@@ -39,8 +38,6 @@ const Root = styled('div')(({ theme }) => ({
   [`& .${classes.link}`]: {
     textDecoration: 'none',
   },
-
-  [`& .${classes.statGrid}`]: {},
 
   [`& .${classes.statsListItemText}`]: {
     [theme.breakpoints.down('sm')]: {
@@ -128,10 +125,10 @@ const Stats = ({ symbol }: { symbol: string }) => {
         <Grid container rowSpacing={{ xs: 0.5, sm: 0 }} columnSpacing={{ xs: 4, sm: 2 }}>
           {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any = {}, index: number) => (
             // eslint-disable-next-line react/no-array-index-key
-            <Grid key={index} item xs={6} sm={3} classes={{ item: classes.statGrid }}>
+            <Grid key={index} item xs={6} sm={3}>
               <ListItem disableGutters>
                 {!isSuccess ? (
-                  <Skeleton />
+                  <Skeleton width='100%' />
                 ) : (
                   <ListItemText
                     className={classes.statsListItemText}

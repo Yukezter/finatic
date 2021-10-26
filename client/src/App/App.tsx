@@ -29,8 +29,8 @@ const App = styles(({ classes }: any) => {
       <Header />
       <Wrapper
         sx={{
-          pt: 4,
-          pb: 6,
+          pt: { xs: 2, sm: 4 },
+          pb: 8,
           flex: {
             xs: '1 1 calc(100vh - 56px)',
             sm: '1 1 auto',

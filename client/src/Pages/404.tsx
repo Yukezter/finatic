@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import Divider from '@mui/material/Divider'
@@ -6,7 +5,12 @@ import Divider from '@mui/material/Divider'
 export default () => {
   return (
     <Box width='100%' height='100%' display='flex' justifyContent='center' alignItems='center'>
-      <Box display='flex' flexDirection='column' alignItems='center' mt='-20%'>
+      <Box
+        display='flex'
+        flexDirection='column'
+        alignItems='center'
+        mt={{ xs: '-20%', sm: 0 }}
+      >
         <div>
           <Typography variant='h1' component='h1' color='primary'>
             404

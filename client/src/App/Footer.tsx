@@ -29,7 +29,7 @@ export default () => {
                 },
               }}
             >
-              <GitHubIcon color='inherit' />
+              <GitHubIcon style={{ height: 34, width: 34 }} color='inherit' />
             </Link>
           </Box>
           <Typography variant='caption' sx={{ color: theme => theme.palette.text.disabled }}>

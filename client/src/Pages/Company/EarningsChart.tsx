@@ -52,15 +52,20 @@ const Root = styled('div')(({ theme }) =>
       justifyContent: 'center',
       '& ul': {
         display: 'flex',
+        justifyContent: 'center',
+        padding: 0,
       },
       '& li': {
         display: 'flex',
         flexDirection: 'column',
-        padding: theme.spacing(2),
+        marginRight: theme.spacing(2),
         '& div': {
           display: 'flex',
           alignItems: 'center',
         },
+      },
+      '& li:last-of-type': {
+        marginRight: 0,
       },
       '& p': {
         ...theme.typography.body2,
@@ -69,6 +74,7 @@ const Root = styled('div')(({ theme }) =>
       },
       '& .legend-label': {
         color: theme.palette.primary.main,
+        whiteSpace: 'nowrap',
       },
       '& .legend-value': {
         color: theme.palette.text.secondary,
