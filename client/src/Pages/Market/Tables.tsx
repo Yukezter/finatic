@@ -52,7 +52,7 @@ const Root = styled('div')(
   ({ theme: { palette, shape, zIndex, shadows, typography, spacing, breakpoints } }) => ({
     [`& .${classes.Calendar}`]: {
       '& .react-calendar': {
-        width: 300,
+        width: 280,
         padding: spacing(1),
         borderRadius: shape.borderRadius,
         background: palette.background.default,
@@ -114,6 +114,12 @@ const Root = styled('div')(
           background: `${palette.primary.main} !important`,
         },
       },
+
+      [breakpoints.up(350)]: {
+        '& .react-calendar': {
+          width: 300,
+        },
+      },
     },
 
     [`& .${classes.removeTransform}`]: {
@@ -130,7 +136,7 @@ const Root = styled('div')(
 
     [`& .${classes.table}`]: {
       borderCollapse: 'separate',
-      tableLayout: 'fixed',
+      tableLayout: 'auto',
     },
 
     [`& .${classes.th}`]: {
@@ -140,15 +146,6 @@ const Root = styled('div')(
       cursor: 'pointer',
       '&:first-of-type': {
         paddingLeft: 0,
-      },
-      '&.market-movers:first-of-type': {
-        width: '40%',
-      },
-      '&.ipos:first-of-type': {
-        width: '40%',
-        [breakpoints.down(breakpoints.values.sm)]: {
-          width: '30%',
-        },
       },
       '&.active': {
         borderBottomColor: palette.primary.main,
@@ -163,10 +160,21 @@ const Root = styled('div')(
       },
     },
 
+    [breakpoints.up(350)]: {
+      [`& .${classes.table}`]: {
+        tableLayout: 'fixed',
+      },
+
+      [`& .${classes.th}:first-of-type`]: {
+        width: '40%',
+      },
+    },
+
     [`& .${classes.tr}`]: {
       height: 56,
       '& > *:first-of-type > *': {
         paddingLeft: 0,
+        fontWeight: typography.fontWeightMedium,
       },
       '& > * > *': {
         display: 'block',
@@ -187,6 +195,7 @@ const Root = styled('div')(
     },
 
     [`& .${classes.paginationToolbar}`]: {
+      justifyContent: 'space-between',
       paddingLeft: 0,
     },
 
@@ -272,10 +281,9 @@ const CalendarMenu = React.memo(({ dates, setFilters }: CalendarMenuProps) => {
         anchorEl={anchorRef.current}
         open={open}
         role={undefined}
-        placement='left-start'
+        placement='bottom-end'
         disablePortal
         keepMounted
-        style={{ marginRight: 8 }}
       >
         <ClickAwayListener onClickAway={handleClose}>
           <div className={classes.Calendar}>
@@ -489,7 +497,6 @@ const IPOsTable = () => {
         classes={{
           toolbar: classes.paginationToolbar,
           spacer: classes.paginationSpacer,
-          // caption: classes.paginationCaption,
         }}
         component='div'
         variant='footer'
@@ -578,7 +585,6 @@ const MarketMoversMenu = ({ selectedOption, setSelectedOption }: any) => {
         className={classes.Popper}
         open={open}
         anchorEl={anchorRef.current}
-        // placement='left-start'
         placement='bottom-end'
         role={undefined}
         keepMounted

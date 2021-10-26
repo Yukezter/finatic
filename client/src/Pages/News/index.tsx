@@ -198,7 +198,7 @@ const Article = ({ isLoading, article, index }: any) => {
   )
 }
 
-const loadMoreGroupSize = 2
+const loadMoreGroupSize = 4
 
 const News = () => {
   const { isSuccess, data } = useQuery<AxiosResponse<any[]>, Error>('/news')

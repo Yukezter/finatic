@@ -6,8 +6,8 @@ import Divider from '@mui/material/Divider'
 export default () => {
   return (
     <Box width='100%' height='100%' display='flex' justifyContent='center' alignItems='center'>
-      <Box display='flex' flexDirection='column' alignItems='center'>
-        <div style={{ marginRight: 16 }}>
+      <Box display='flex' flexDirection='column' alignItems='center' mt='-20%'>
+        <div>
           <Typography variant='h1' component='h1' color='primary'>
             404
           </Typography>

@@ -34,7 +34,7 @@ const classes = {
 // TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')(({ theme }) => ({
   width: '100%',
-  paddingTop: theme.spacing(8),
+  // paddingTop: theme.spacing(8),
 
   [`& .${classes.link}`]: {
     textDecoration: 'none',

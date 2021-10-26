@@ -115,7 +115,7 @@ const Root = styled('div')(({ theme }) => ({
   [`& .${classes.illustration}`]: {
     height: 150,
     width: 150,
-    marginLeft: '30%',
+    marginLeft: '25%',
     [theme.breakpoints.up('sm')]: {
       height: 220,
       width: 220,

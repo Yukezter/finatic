@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
 import { styled } from '@mui/material/styles'
@@ -9,8 +10,9 @@ import Box from '@mui/material/Box'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
-// import Typography from '@mui/material/Typography'
+import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
+import Hidden from '@mui/material/Hidden'
 
 import { Icon } from '../../Components'
 import Lists from './Lists'
@@ -35,7 +37,6 @@ const StyledGrid = styled(Grid)(({ theme }) => ({
 
   [`& .${classes.cards}`]: {
     // overflow: 'hidden',
-    marginTop: theme.spacing(3),
     marginBottom: theme.spacing(5),
   },
 
@@ -96,10 +97,12 @@ const EconomicData = ({ icon, title, queryKey }: any) => {
   const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>(`economy/${queryKey}`)
 
   return (
-    <ListItem divider>
-      <Box color={theme => theme.palette.primary.main} flexBasis={50}>
-        <Icon name={icon} height={28} width={28} />
-      </Box>
+    <ListItem divider disableGutters>
+      <Hidden smDown>
+        <Box color={theme => theme.palette.primary.main} flexBasis={40}>
+          <Icon name={icon} height={20} width={20} />
+        </Box>
+      </Hidden>
       <ListItemText
         sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
         primary={isSuccess && title}
@@ -125,6 +128,9 @@ const Market: React.FC<{ theme: Theme }> = ({ theme }: { theme: Theme }) => {
                 </Grid>
               ))}
             </Grid> */}
+            <Typography variant='h5' color='textPrimary' gutterBottom>
+              Economic Data
+            </Typography>
             <List dense>
               {economicData.map(props => (
                 // eslint-disable-next-line react/prop-types
