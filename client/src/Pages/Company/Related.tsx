@@ -16,7 +16,7 @@ import ChevronLeft from '@mui/icons-material/ChevronLeft'
 import ChevronRight from '@mui/icons-material/ChevronRight'
 
 import { percent } from '../../Utils/numberFormats'
-import { useEventSource } from '../../Hooks'
+import { useEventSource, useQuotes } from '../../Hooks'
 import { IconButton } from '../../Components'
 
 const PREFIX = 'Related'
@@ -93,14 +93,10 @@ const RelatedSymbolCardContainer = ({
   symbols: string[]
 }) => {
   const history = useHistory()
-  const symbolsData = React.useMemo(() => symbols.map(symbol => ({ symbol })), [])
-
-  const { isLoading, data } = useEventSource(
-    `http://localhost:8001/sse/stock/quote?symbols=${symbols.join(',')}`,
-    symbolsData
+  const { isLoading, data } = useQuotes(
+    `/sse/stock/quote?symbols=${symbols.join(',')}`,
+    symbols
   )
-
-  console.log('card container render', symbolsData, data)
 
   React.useEffect(() => {
     if (!isLoading) {
@@ -112,8 +108,12 @@ const RelatedSymbolCardContainer = ({
     <>
       {isLoading
         ? skeletonCards
-        : data.map(stock => (
-            <RelatedSymbolCard key={stock.symbol} history={history} quote={stock.data} />
+        : data.map(symbolData => (
+            <RelatedSymbolCard
+              key={symbolData.symbol}
+              history={history}
+              quote={symbolData.quote}
+            />
           ))}
     </>
   )
@@ -180,7 +180,7 @@ export default ({ symbol }: { symbol: string }) => {
           size='large'
           sx={{
             display: { xs: 'none', sm: 'flex' },
-            marginRight: 2,
+            marginRight: 1,
           }}
           onMouseDown={() => handleOnMouseDown(-50)}
           onMouseUp={handleOnMouseUp}
@@ -199,7 +199,8 @@ export default ({ symbol }: { symbol: string }) => {
             <RelatedSymbolCardContainer
               skeletonCards={skeletonCards}
               setCardsLoading={setCardsLoading}
-              symbols={data!.data}
+              // symbols={data!.data}
+              symbols={['AAPL', 'NVDA', 'F', 'CLNE', 'OCGN', 'SOFI']}
             />
           )}
         </div>
@@ -207,7 +208,7 @@ export default ({ symbol }: { symbol: string }) => {
           size='large'
           sx={{
             display: { xs: 'none', sm: 'flex' },
-            marginLeft: 2,
+            marginLeft: 1,
           }}
           onMouseDown={() => handleOnMouseDown(50)}
           onMouseUp={handleOnMouseUp}

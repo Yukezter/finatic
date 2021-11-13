@@ -15,6 +15,7 @@ import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
+import Divider from '@mui/material/Divider'
 
 import { group, abbreviate, percent } from '../../Utils/numberFormats'
 import { Button, Link } from '../../Components'
@@ -121,38 +122,62 @@ const Stats = ({ symbol }: { symbol: string }) => {
 
   return (
     <div>
-      <List dense>
-        <Grid container rowSpacing={{ xs: 0.5, sm: 0 }} columnSpacing={{ xs: 4, sm: 2 }}>
-          {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any = {}, index: number) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <Grid key={index} item xs={6} sm={3}>
-              <ListItem disableGutters>
-                {!isSuccess ? (
-                  <Skeleton width='100%' />
-                ) : (
-                  <ListItemText
-                    className={classes.statsListItemText}
-                    primary={stat.name}
-                    primaryTypographyProps={{
-                      noWrap: true,
-                      color: 'textSecondary',
-                      style: {
-                        marginRight: 16,
-                      },
-                    }}
-                    secondary={stat.value}
-                    secondaryTypographyProps={{
-                      color: 'textPrimary',
-                    }}
-                  />
-                )}
-              </ListItem>
-            </Grid>
-          ))}
-        </Grid>
-      </List>
+      <Typography variant='h5' component='h4' paragraph>
+        Stats
+      </Typography>
+      <Grid
+        component={List}
+        dense
+        container
+        rowSpacing={{ xs: 0.5, sm: 0 }}
+        columnSpacing={{ xs: 4, sm: 2 }}
+      >
+        {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any = {}, index: number) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <Grid key={index} component={ListItem} disableGutters item xs={6} sm={3}>
+            <>
+              {!isSuccess ? (
+                <Skeleton width='100%' />
+              ) : (
+                <ListItemText
+                  className={classes.statsListItemText}
+                  primary={stat.name}
+                  primaryTypographyProps={{
+                    noWrap: true,
+                    color: 'textSecondary',
+                    style: {
+                      marginRight: 16,
+                    },
+                  }}
+                  secondary={stat.value}
+                  secondaryTypographyProps={{
+                    color: 'textPrimary',
+                  }}
+                />
+              )}
+            </>
+          </Grid>
+        ))}
+      </Grid>
     </div>
   )
+}
+
+const displayHeadquarters = (
+  city: string | undefined,
+  state: string | undefined,
+  country: string | undefined
+): string => {
+  let address = ''
+  if (city && state) {
+    address += `${city}, ${state}`
+  } else if (country) {
+    address = country
+  } else {
+    address = '-'
+  }
+
+  return address
 }
 
 const maxLength = 400
@@ -167,9 +192,59 @@ const About = ({ symbol }: { symbol: string }) => {
 
   return (
     <div>
-      <Typography variant='h5' component='h4' gutterBottom>
+      <Typography variant='h5' component='h4' paragraph>
         {!isSuccess ? <Skeleton width='20%' /> : `About ${data!.data.companyName}`}
       </Typography>
+      <Grid container rowSpacing={1} columnSpacing={4} marginBottom={2}>
+        <Grid item xs={12} sm={6}>
+          <ListItemText
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+            primary='CEO'
+            primaryTypographyProps={{
+              color: 'textSecondary',
+            }}
+            secondary={!isSuccess ? <Skeleton /> : data!.data.CEO || '-'}
+            secondaryTypographyProps={{
+              color: 'textPrimary',
+            }}
+          />
+          {/* <Divider /> */}
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <ListItemText
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+            primary='Employees'
+            primaryTypographyProps={{
+              color: 'textSecondary',
+            }}
+            secondary={!isSuccess ? <Skeleton /> : group(data!.data.employees) || '-'}
+            secondaryTypographyProps={{
+              color: 'textPrimary',
+            }}
+          />
+          {/* <Divider /> */}
+        </Grid>
+        <Grid item xs={12}>
+          <ListItemText
+            style={{ display: 'flex', justifyContent: 'space-between' }}
+            primary='Headquarters'
+            primaryTypographyProps={{
+              color: 'textSecondary',
+            }}
+            secondary={
+              !isSuccess ? (
+                <Skeleton />
+              ) : (
+                displayHeadquarters(data!.data.city, data!.data.state, data!.data.country)
+              )
+            }
+            secondaryTypographyProps={{
+              color: 'textPrimary',
+            }}
+          />
+          {/* <Divider /> */}
+        </Grid>
+      </Grid>
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography variant='body1' component='p' paragraph>
           {!isSuccess ? (
@@ -269,10 +344,10 @@ export default ({ theme }: { theme: Theme }) => {
             <PriceDisplayAndChart theme={theme} symbol={symbol} />
           </Grid>
           <Grid item xs={12}>
-            <Stats symbol={symbol} />
+            <About symbol={symbol} />
           </Grid>
           <Grid item xs={12}>
-            <About symbol={symbol} />
+            <Stats symbol={symbol} />
           </Grid>
           <Grid item xs={12}>
             <EarningsChart symbol={symbol} theme={theme} />

@@ -14,7 +14,9 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
 
-import { useEventSource } from '../../Hooks'
+import { mergeArrays } from '../../Utils'
+import { percent } from '../../Utils/numberFormats'
+import { useQuotes } from '../../Hooks'
 import { Icon, IconButton, DirectionIcon } from '../../Components'
 
 const PREFIX = 'Lists'
@@ -127,24 +129,27 @@ const fxPairs = [
 ]
 
 const FxRatesList = ({ theme }: any) => {
-  const { isLoading, data } = useEventSource('http://localhost:8001/sse/fx', fxPairs)
+  const { isLoading, data } = useQuotes(
+    'http://localhost:8001/sse/forex',
+    fxPairs.map(v => v.symbol)
+  )
 
   return isLoading ? (
     <SkeletonList length={data.length} />
   ) : (
     <List dense>
-      {data.map(fxPair => (
+      {mergeArrays(fxPairs, data).map(symbolData => (
         <StyledListItem
-          key={fxPair.symbol}
+          key={symbolData.symbol}
           theme={theme}
-          label={fxPair.symbol}
+          label={symbolData.symbol}
           value={
             <>
-              {fxPair.data.rate}
+              {symbolData.quote.rate}
               <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
             </>
           }
-          timestamp={fxPair.data.timestamp}
+          timestamp={symbolData.quote.timestamp}
         />
       ))}
     </List>
@@ -179,24 +184,27 @@ const cryptos = [
 ]
 
 const CryptoList = ({ theme }: any) => {
-  const { isLoading, data } = useEventSource('http://localhost:8001/sse/cryptos', cryptos)
+  const { isLoading, data } = useQuotes(
+    'http://localhost:8001/sse/cryptos',
+    cryptos.map(v => v.symbol)
+  )
 
   return isLoading ? (
     <SkeletonList length={data.length} />
   ) : (
     <List dense>
-      {data.map(crypto => (
+      {mergeArrays(cryptos, data).map(symbolData => (
         <StyledListItem
-          key={crypto.name}
+          key={symbolData.name}
           theme={theme}
-          label={crypto.name}
+          label={symbolData.name}
           value={
             <>
-              {crypto.data.latestPrice}
+              {symbolData.quote.latestPrice}
               <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
             </>
           }
-          timestamp={crypto.data.latestUpdate}
+          timestamp={symbolData.quote.latestUpdate}
         />
       ))}
     </List>
@@ -271,7 +279,7 @@ const SectorList = ({ theme }: any) => {
           value={
             <>
               <DirectionIcon value={sector.performance} />
-              {(sector.performance * 100).toFixed(2)}%
+              {percent(sector.performance)}
             </>
           }
           timestamp={sector.lastUpdated}

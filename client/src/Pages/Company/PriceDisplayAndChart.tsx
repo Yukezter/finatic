@@ -1,3 +1,5 @@
+/* eslint-disable react/no-unused-prop-types */
+/* eslint-disable react/prop-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/mouse-events-have-key-events */
 import React from 'react'
@@ -38,6 +40,18 @@ Chart.register(
   Tooltip
 )
 
+const getRandomData = () => {
+  const firstDate = new Date()
+  const data = Array.from(new Array(78)).map((_, index) => {
+    return {
+      y: index < 50 ? 143 + Math.random() * 15 : null,
+      x: new Date(firstDate.getTime() + index * 1000 * 60 * 5),
+    }
+  })
+
+  return data
+}
+
 const getTooltipFormat = (range: Range): string => {
   if (range === '1d') return 'p'
   if (range === '5d') return 'MMM dd, h:mm a'
@@ -54,28 +68,36 @@ const getPrices = (data: any[]) =>
     return acc
   }, [])
 
-const setMinMaxYAxis = (chart: Chart | ChartConfiguration) => {
+const setMinMaxAxesValues = (chart: Chart | ChartConfiguration) => {
+  const { data } = chart.data.datasets[0] as any
+
+  // Y axis
   const yTicks = chart.options!.scales!.y
-  const prices = getPrices(chart.data.datasets[0].data)
-  const min = Math.min(...prices)
-  const max = Math.max(...prices)
-  const buffer = (max - min) * 0.02
-  yTicks!.min = min - buffer
-  yTicks!.max = max + buffer
+  const prices = getPrices(data)
+  const minY = Math.min(...prices)
+  const maxY = Math.max(...prices)
+  const buffer = (maxY - minY) * 0.02
+  yTicks!.min = minY - buffer
+  yTicks!.max = maxY + buffer
+
+  // X axis
+  const minX = data[0].x.getTime()
+  const maxX = data[data.length - 1].x.getTime()
+  // const offset = (maxX - data[data.length - 2].x.getTime()) * 0.4
+  chart!.options!.scales!.x!.min = minX
+  chart!.options!.scales!.x!.max = maxX
+}
+
+type PriceChartProps = {
+  theme: Theme
+  chartCallback: (chart: Chart) => void
+  rangeData: any
+  setHoverRangeData: any
 }
 
 const PriceChart = React.memo(
-  ({
-    theme,
-    rangeData,
-    setHoverRangeData,
-  }: {
-    theme: Theme
-    rangeData: any
-    setHoverRangeData: any
-  }) => {
+  ({ theme, chartCallback, rangeData, setHoverRangeData }: PriceChartProps) => {
     const { range, data, firstPrice } = rangeData
-
     const canvasRef = React.useRef<HTMLCanvasElement>(null)
     const chartRef = React.useRef<Chart>()
 
@@ -173,28 +195,11 @@ const PriceChart = React.memo(
       setHoverRangeData(newState)
     }, [])
 
-    const beforeEvent = React.useCallback((chart: Chart, args: any) => {
+    const afterEvent = React.useCallback((_, args: any) => {
       const { event } = args
-      console.log('beforeEvent')
-      console.log(args)
-      console.log('\n\n')
-
-      if (event.type === 'mouseout') {
-        console.log('beforeEvent: mouseout')
-      }
-    }, [])
-
-    const afterEvent = React.useCallback((chart: Chart, args: any) => {
-      const { event } = args
-      console.log('afterEvent')
-      console.log(args)
-      console.log('\n\n')
-
       if (event.type === 'mousemove') {
-        console.log('afterEvent: mousemove')
-
-        // Hide the tooltip if any throttled touchmove
-        // events occur after the ontouchend event
+        /* Hide the tooltip if any throttled touchmove
+        events occur after the ontouchend event */
         if (
           event.native.type === 'touchmove' &&
           lastTouchEndTimestamp.current &&
@@ -204,13 +209,11 @@ const PriceChart = React.memo(
       }
 
       if (event.type === 'mouseout') {
-        console.log('afterEvent: mouseout')
         resetHoverRangeData()
       }
     }, [])
 
     const strokeColorRef = React.useRef<string>()
-
     React.useEffect(() => {
       strokeColorRef.current = theme.palette.text.secondary
     }, [theme])
@@ -256,7 +259,6 @@ const PriceChart = React.memo(
         options: {
           events: ['mousemove', 'mouseout', 'touchmove', 'touchend'],
           normalized: true,
-          responsive: true,
           maintainAspectRatio: false,
           animation: false,
           interaction: {
@@ -292,6 +294,7 @@ const PriceChart = React.memo(
               },
               time: {
                 tooltipFormat: getTooltipFormat(range),
+                unit: 'day',
               },
               grid: {
                 display: false,
@@ -301,20 +304,11 @@ const PriceChart = React.memo(
               ticks: {
                 display: false,
               },
-            },
-          },
-          layout: {
-            padding: {
-              left: Number(theme.spacing(0.75)),
-              right: Number(theme.spacing(0.75)),
+              offset: true,
             },
           },
         },
         plugins: [
-          {
-            id: 'b4',
-            beforeEvent,
-          },
           {
             id: 'aft',
             afterEvent,
@@ -333,8 +327,7 @@ const PriceChart = React.memo(
       if (chart) {
         chart!.data.datasets[0].data = data
         setTooltipFormat(chart, range)
-        setMinMaxYAxis(chart)
-
+        setMinMaxAxesValues(chart)
         chart.update()
       }
     }, [data])
@@ -342,7 +335,6 @@ const PriceChart = React.memo(
     React.useEffect(() => {
       const chart = chartRef.current
       if (chart) {
-        console.log('updated chart!!!')
         chart.data.datasets[0].hoverBorderColor = theme.palette.background.default
         chart.options.plugins!.tooltip!.external = customTooltip
         chart.update()
@@ -351,19 +343,19 @@ const PriceChart = React.memo(
 
     React.useEffect(() => {
       const ctx = canvasRef.current!.getContext('2d')
-      setMinMaxYAxis(config)
-      const chart = new Chart(ctx as ChartItem, config)
+      setMinMaxAxesValues(config)
+      const chart: Chart = new Chart(ctx as ChartItem, config)
       chartRef.current = chart
 
+      /* This callback sets parent ref to chart.js instance, that way the
+      the Price (sibling) component can update the intraday chart in real-time */
+      chartCallback(chart)
       return () => {
         chart.destroy()
       }
     }, [])
 
     const handleOnTouchEnd = React.useCallback((event: TouchEvent) => {
-      console.log('handleOnTouchEnd')
-      console.log(event)
-
       lastTouchEndTimestamp.current = event.timeStamp
 
       hideTooltip()
@@ -374,12 +366,18 @@ const PriceChart = React.memo(
       <div
         style={{
           position: 'relative',
-          height: 'inherit',
+          height: 250,
+          width: '100%',
           overflow: 'hidden',
           paddingTop: theme.spacing(3),
         }}
       >
-        <canvas ref={canvasRef} id='stock-price-chart' onTouchEnd={handleOnTouchEnd as any} />
+        <canvas
+          ref={canvasRef}
+          id='stock-price-chart'
+          style={{ height: '100%' }}
+          onTouchEnd={handleOnTouchEnd as any}
+        />
       </div>
     )
   }
@@ -400,70 +398,122 @@ const getRangeTitle = (range: Range): string => {
   }
 }
 
-const PriceDisplay = ({
-  symbol,
-  isSuccess,
-  rangeData,
-  hoverRangeData,
-}: { symbol: string; isSuccess: boolean } | any) => {
-  const symbolData = React.useMemo(() => ({ symbol }), [])
-  const { isLoading, data } = useEventSource(
-    `http://localhost:8001/sse/stock/quote?symbols=${symbol}`,
-    symbolData
-  )
+const getFirstDefinedNumber = (
+  format: (n: number) => string,
+  ...args: (number | undefined)[]
+): string | null => {
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] !== undefined) {
+      return format(args[i] as number)
+    }
+  }
 
-  return (
-    <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column' }}>
-      <Typography variant='h2' component='h4'>
-        {isLoading ? (
-          <Skeleton width='15%' />
-        ) : (
-          currency(hoverRangeData.price || data[0].data.latestPrice)
-        )}
-      </Typography>
-      <div style={{ minHeight: 50 }}>
-        {isLoading ? (
-          <Typography variant='body1'>
-            <Skeleton width='15%' />
-          </Typography>
-        ) : (
-          isSuccess && (
-            <div style={{ display: 'flex' }}>
-              <Typography variant='body1' style={{ marginRight: 4 }}>
-                {currency(hoverRangeData.change || rangeData.change || data[0].data.change)}
-              </Typography>
-              <Typography variant='body1' component='h5'>
-                {`(${percent(
-                  hoverRangeData.changePercent ||
-                    rangeData.changePercent ||
-                    data[0].data.changePercent
-                )}) ${getRangeTitle(rangeData.range)}`}
-              </Typography>
-            </div>
-          )
-        )}
-        {!isLoading &&
-          data[0].data.extendedChange &&
-          !hoverRangeData.price &&
-          rangeData.range === '1d' && (
-            <div style={{ display: 'flex' }}>
-              <Typography variant='body1' component='h5' style={{ marginRight: 4 }}>
-                {currency(data[0].data.extendedChange)}
-              </Typography>
-              <Typography variant='body1' component='h5'>
-                {`(${percent(data[0].data.extendedChangePercent)})`}
-              </Typography>
-            </div>
-          )}
-      </div>
-    </div>
-  )
+  return null
 }
 
-type PriceDisplayAndChartProps = {
+const Price = React.forwardRef<Chart, { symbol: string; isChartDataSuccess: boolean } | any>(
+  ({ symbol, isChartDataSuccess, rangeData, hoverRangeData }, chartRef) => {
+    const [realtime, setRealtime] = React.useState<{
+      isLoading: boolean
+      quote: any
+    }>({
+      isLoading: true,
+      quote: undefined,
+    })
+
+    useEventSource(`/sse/stock/quote?symbols=${symbol}`, (event: MessageEvent) => {
+      const data = JSON.parse(event.data)[0]
+      if (data) {
+        setRealtime({
+          isLoading: false,
+          quote: data,
+        })
+      }
+    })
+
+    React.useEffect(() => {
+      if (realtime.quote) {
+        const chart = (chartRef as React.MutableRefObject<Chart>).current
+        if (chart && rangeData.range === '1d') {
+          /* Here we update the last active data point whenever the realtime price updates */
+          const chartData: any[] = chart.data.datasets[0].data
+          const lastChartPrice = [...chartData].reverse().find(v => v.y !== null)
+          if (lastChartPrice) {
+            lastChartPrice.y = realtime.quote.latestPrice
+            chart.update()
+          }
+        }
+      }
+    }, [realtime.quote])
+
+    return (
+      <div style={{ marginBottom: 16, display: 'flex', flexDirection: 'column' }}>
+        <Typography variant='h2' component='h4'>
+          {realtime.isLoading ? (
+            <Skeleton width='15%' />
+          ) : (
+            currency(hoverRangeData.price || realtime.quote.latestPrice)
+          )}
+        </Typography>
+        <div style={{ minHeight: 50 }}>
+          {realtime.isLoading ? (
+            <Typography variant='body1'>
+              <Skeleton width='15%' />
+            </Typography>
+          ) : (
+            isChartDataSuccess && (
+              <div style={{ display: 'flex' }}>
+                <Typography variant='body1' style={{ marginRight: 4 }}>
+                  {getFirstDefinedNumber(
+                    currency,
+                    hoverRangeData.change,
+                    rangeData.change,
+                    realtime.quote.change
+                  )}
+                </Typography>
+                <Typography variant='body1' component='h5'>
+                  {`(${getFirstDefinedNumber(
+                    percent,
+                    hoverRangeData.changePercent,
+                    rangeData.changePercent,
+                    realtime.quote.changePercent
+                  )}) ${getRangeTitle(rangeData.range)}`}
+                </Typography>
+              </div>
+            )
+          )}
+          {!realtime.isLoading &&
+            realtime.quote.extendedChange !== null &&
+            hoverRangeData.price === undefined &&
+            rangeData.range === '1d' && (
+              <div style={{ display: 'flex' }}>
+                <Typography variant='body1' component='h5' style={{ marginRight: 4 }}>
+                  {currency(realtime.quote.extendedChange)}
+                </Typography>
+                <Typography variant='body1' component='h5'>
+                  {`(${percent(realtime.quote.extendedChangePercent)})`}
+                </Typography>
+              </div>
+            )}
+        </div>
+      </div>
+    )
+  }
+)
+
+const getFirstPrice = (data: any[]): number | undefined => {
+  const firstDefinedPrice = data.find(element => element && element.y)
+  if (firstDefinedPrice) {
+    return firstDefinedPrice.y
+  }
+
+  return undefined
+}
+
+type InteractiveChartProps = {
   theme: Theme
   symbol: string
-  isSuccess: boolean
+  isChartDataSuccess: boolean
   rangeData: {
     range: Range
     data: any[]
@@ -473,27 +523,55 @@ type PriceDisplayAndChartProps = {
   }
 }
 
-const getFirstPrice = (data: any[]): number | undefined => {
-  const firstElement = data.find(element => element && element.y)
-  if (firstElement) {
-    return firstElement.y
-  }
+const InteractiveChart = ({
+  theme,
+  symbol,
+  isChartDataSuccess,
+  rangeData,
+}: InteractiveChartProps) => {
+  const chartRef = React.useRef<Chart>()
 
-  return undefined
+  const chartCallback = React.useCallback((chart: Chart) => {
+    chartRef.current = chart
+  }, [])
+
+  const [hoverRangeData, setHoverRangeData] = React.useState<any>({})
+
+  return (
+    <>
+      <Price
+        ref={chartRef as React.MutableRefObject<Chart>}
+        isChartDataSuccess={isChartDataSuccess}
+        symbol={symbol}
+        rangeData={rangeData}
+        hoverRangeData={hoverRangeData}
+      />
+      <div style={{ height: 250, marginBottom: 16 }}>
+        {isChartDataSuccess && (
+          <PriceChart
+            theme={theme}
+            chartCallback={chartCallback}
+            rangeData={rangeData}
+            setHoverRangeData={setHoverRangeData}
+          />
+        )}
+      </div>
+    </>
+  )
 }
 
 const formatData = (data: any[], range: Range): any[] => {
-  // if (range === '1d' && data.length < 78) {
-  //   const firstDate = new Date(`${data[0].date} ${data[0].minute}`)
-  //   const newData = [...new Array(78)].map((_, index) => {
-  //     return {
-  //       y: data[index] ? data[index].average : null,
-  //       x: new Date(firstDate.getTime() + index * 1000 * 60 * 5),
-  //     }
-  //   })
+  if (range === '1d' && data.length < 78) {
+    const firstDate = new Date(`${data[0].date} ${data[0].minute}`)
+    const newData = [...new Array(78)].map((_, index) => {
+      return {
+        y: data[index] ? data[index].average : null,
+        x: new Date(firstDate.getTime() + index * 1000 * 60 * 5),
+      }
+    })
 
-  //   return newData
-  // }
+    return newData
+  }
 
   if (range === '1d' || range === '5d') {
     return data.map(d => ({
@@ -508,35 +586,6 @@ const formatData = (data: any[], range: Range): any[] => {
   }))
 }
 
-const PriceDisplayAndChart = ({
-  theme,
-  symbol,
-  isSuccess,
-  rangeData,
-}: PriceDisplayAndChartProps) => {
-  const [hoverRangeData, setHoverRangeData] = React.useState<any>({})
-
-  return (
-    <>
-      <PriceDisplay
-        symbol={symbol}
-        isSuccess={isSuccess}
-        rangeData={rangeData}
-        hoverRangeData={hoverRangeData}
-      />
-      <div style={{ height: 250, marginBottom: 16 }}>
-        {isSuccess && (
-          <PriceChart
-            theme={theme}
-            rangeData={rangeData}
-            setHoverRangeData={setHoverRangeData}
-          />
-        )}
-      </div>
-    </>
-  )
-}
-
 type Range = '1d' | '5d' | '1m' | '3m' | '1y'
 
 const ranges: Range[] = ['1d', '5d', '1m', '3m', '1y']
@@ -546,9 +595,12 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
   const { isSuccess, data: rangeData } = useQuery<any, Error>({
     queryKey: `/stock/${symbol}/chart/${selectedRange}`,
     cacheTime: 1000 * 30,
+    refetchInterval: 1000 * 30,
+    refetchIntervalInBackground: true,
     select: ({ data }) => {
+      /* After receiving chart data, format it for chart.js,
+      and attach any additional meta data needed */
       const chartData = formatData(data, selectedRange)
-      console.log(chartData)
       const firstPrice = getFirstPrice(chartData)
       const newData: any = {
         range: selectedRange,
@@ -570,11 +622,11 @@ export default ({ theme, symbol }: { theme: Theme; symbol: string }) => {
   })
 
   return (
-    <Container disableGutters maxWidth={false}>
-      <PriceDisplayAndChart
+    <Container disableGutters maxWidth={false} sx={{ mb: 2 }}>
+      <InteractiveChart
         theme={theme}
         symbol={symbol}
-        isSuccess={isSuccess}
+        isChartDataSuccess={isSuccess}
         rangeData={rangeData || {}}
       />
       <div>

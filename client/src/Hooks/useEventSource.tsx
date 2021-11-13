@@ -1,124 +1,128 @@
 import React from 'react'
 
-// import useWindowUnload from './useWindowUnload'
-
-type SymbolData<T> = T & { data: any }
-
-const useEventSource = <T extends { readonly symbol: string }>(
-  url: string,
-  symbols: T | T[] | undefined
-): { isLoading: boolean; data: SymbolData<T>[] } => {
-  const initialData: SymbolData<T>[] = React.useMemo(() => {
-    if (!symbols) return []
-    return (Array.isArray(symbols) ? symbols : [symbols]).map(symbol => ({
-      ...symbol,
-      data: undefined,
-    }))
-  }, [symbols])
-
-  const [state, setState] = React.useState({
-    data: [...initialData],
-    isLoading: true,
-  })
-
-  const rendered = React.useRef(false)
+export default (url: string, messageEventCallback: (event: MessageEvent) => void) => {
+  const esRef = React.useRef<EventSource>()
 
   React.useEffect(() => {
-    if (rendered.current) {
-      setState({
-        data: [...initialData],
-        isLoading: true,
-      })
-    } else {
-      rendered.current = true
+    const es = new EventSource(url)
+    esRef.current = es
+
+    es.onerror = () => {
+      es.close()
     }
-  }, [initialData])
-
-  console.log('rendering', initialData)
-
-  React.useEffect(() => {
-    let es: EventSource
-    console.log('useEventSource useEffect')
-
-    const getUpdatedList = (list: SymbolData<T>[], data: any) => {
-      return list.map(value => {
-        const newValue = {
-          ...value,
-        }
-
-        if (value.symbol === data.symbol) {
-          newValue.data = data
-        }
-
-        return newValue
-      })
-    }
-
-    const updateList = (quote: any) => {
-      setState(prevState => ({
-        ...prevState,
-        data: getUpdatedList(prevState.data, quote),
-      }))
-    }
-
-    const handleData = ({ data }: any) => {
-      console.log('WTF!!!')
-      updateList(JSON.parse(data)[0])
-    }
-
-    const symbolsLoadedSet = new Set()
-    let tempSymbolsData = [...initialData]
-
-    const handleLoading = ({ data }: any) => {
-      const quote = JSON.parse(data)[0]
-      symbolsLoadedSet.add(quote.symbol)
-      console.log('useEventSource useEffect handleLoading')
-
-      if (symbolsLoadedSet.size === initialData.length) {
-        console.log('useEventSource useEffect loaded')
-
-        setState({
-          isLoading: false,
-          data: getUpdatedList(tempSymbolsData, quote),
-        })
-
-        es.removeEventListener('message', handleLoading)
-        es.addEventListener('message', handleData)
-      } else {
-        tempSymbolsData = getUpdatedList(tempSymbolsData, quote)
-      }
-    }
-
-    const closeConnection = () => {
-      if (es) {
-        console.log('closed')
-        es.removeEventListener('message', handleLoading)
-        es.removeEventListener('message', handleData)
-        es.close()
-      }
-    }
-
-    if (initialData.length) {
-      console.log(initialData.length)
-      es = new EventSource(url)
-      es.onerror = closeConnection
-      es.addEventListener('message', handleLoading)
-    }
-
-    const handleBeforeUnload = () => {
-      closeConnection()
-    }
-
-    window.addEventListener('beforeunload', handleBeforeUnload)
 
     return () => {
-      closeConnection()
-
-      window.removeEventListener('beforeunload', handleBeforeUnload)
+      es.close()
+      esRef.current = undefined
     }
-  }, [initialData])
+  }, [])
 
-  return state
+  React.useEffect(() => {
+    if (esRef.current) {
+      esRef.current.onmessage = event => {
+        messageEventCallback(event)
+      }
+    }
+  }, [messageEventCallback])
 }
 
-export default useEventSource
+// type SymbolData<T> = T & { data: any }
+
+// type State<T> = {
+//   data: SymbolData<T>[]
+//   isLoading: boolean
+// }
+
+// const useEventSource = <T extends { readonly symbol: string }>(
+//   url: string,
+//   symbolsData: T | T[]
+// ): { isLoading: boolean; data: SymbolData<T>[] } => {
+//   const [state, setState] = React.useState<State<T>>({
+//     data: (Array.isArray(symbolsData) ? symbolsData : [symbolsData]).map((v: T) => ({
+//       ...v,
+//       data: undefined,
+//     })),
+//     isLoading: true,
+//   })
+
+//   React.useEffect(() => {
+//     const es = new EventSource(url)
+
+//     console.log('useEventSource useEffect')
+
+//     const getUpdatedList = (list: SymbolData<T>[], data: any) => {
+//       return list.map(value => {
+//         const newValue = {
+//           ...value,
+//         }
+
+//         if (value.symbol === data.symbol) {
+//           newValue.data = data
+//         }
+
+//         return newValue
+//       })
+//     }
+
+//     const updateList = (quote: any) => {
+//       setState(prevState => ({
+//         ...prevState,
+//         data: getUpdatedList(prevState.data, quote),
+//       }))
+//     }
+
+//     const handleData = ({ data }: any) => {
+//       console.log('WTF!!!')
+//       updateList(JSON.parse(data)[0])
+//     }
+
+//     let loadedSymbolsData = (Array.isArray(symbolsData) ? symbolsData : [symbolsData]).map(
+//       (v: T) => ({ ...v, data: undefined })
+//     )
+//     const handleLoading = ({ data }: any) => {
+//       const quote = JSON.parse(data)[0]
+//       console.log('useEventSource useEffect handleLoading', quote)
+
+//       if (!loadedSymbolsData.find(v => !v.data)) {
+//         console.log('useEventSource useEffect loaded', state.data, loadedSymbolsData)
+
+//         setState({
+//           isLoading: false,
+//           data: getUpdatedList(loadedSymbolsData, quote),
+//         })
+
+//         es.removeEventListener('message', handleLoading)
+//         es.addEventListener('message', handleData)
+//       } else {
+//         loadedSymbolsData = getUpdatedList(loadedSymbolsData, quote)
+//       }
+//     }
+
+//     const closeConnection = () => {
+//       if (es) {
+//         console.log('closed')
+//         es.removeEventListener('message', handleLoading)
+//         es.removeEventListener('message', handleData)
+//         es.close()
+//       }
+//     }
+
+//     es.onerror = closeConnection
+//     es.addEventListener('message', handleLoading)
+
+//     const handleBeforeUnload = () => {
+//       closeConnection()
+//     }
+
+//     window.addEventListener('beforeunload', handleBeforeUnload)
+
+//     return () => {
+//       closeConnection()
+//       window.removeEventListener('beforeunload', handleBeforeUnload)
+//     }
+//   }, [])
+
+//   return state
+// }
+
+// export default useEventSource

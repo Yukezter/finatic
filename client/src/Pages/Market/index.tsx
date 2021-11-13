@@ -117,7 +117,7 @@ const EconomicData = ({ icon, title, queryKey }: any) => {
 const Market: React.FC<{ theme: Theme }> = ({ theme }: { theme: Theme }) => {
   return (
     <>
-      <StyledGrid container spacing={{ lg: 8 }}>
+      <StyledGrid container rowSpacing={{ xs: 2, sm: 4 }} columnSpacing={{ md: 8 }}>
         <Grid item xs={12} lg={8}>
           <div className={classes.cards}>
             {/* <Grid container spacing={2}>
@@ -134,7 +134,7 @@ const Market: React.FC<{ theme: Theme }> = ({ theme }: { theme: Theme }) => {
             <List dense>
               {economicData.map(props => (
                 // eslint-disable-next-line react/prop-types
-                <EconomicData classes={classes} {...props} />
+                <EconomicData key={props.title} classes={classes} {...props} />
               ))}
             </List>
           </div>

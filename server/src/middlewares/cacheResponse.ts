@@ -26,7 +26,7 @@ const shouldCacheResponse = (res: Response): boolean => {
   return res.statusCode === 200
 }
 
-const accumulateData = (res: Response, chunk: unknown): void => {
+const accumulateData = (res: Response, chunk: unknown) => {
   if (typeof chunk === 'string') {
     res.cache.data += chunk
   } else if (Buffer.isBuffer(chunk)) {
@@ -40,7 +40,7 @@ const accumulateData = (res: Response, chunk: unknown): void => {
   }
 }
 
-const cacheResponse = (key: string, data: unknown, ttl: number): void => {
+const cacheResponse = (key: string, data: unknown, ttl: number) => {
   try {
     redisClient.set(key, JSON.stringify(data))
     redisClient.expire(key, ttl)
@@ -49,7 +49,7 @@ const cacheResponse = (key: string, data: unknown, ttl: number): void => {
   }
 }
 
-const patchResponse = (res: Response, next: NextFunction, key: string, ttl: number): void => {
+const patchResponse = (res: Response, next: NextFunction, key: string, ttl: number) => {
   res.cache = {
     data: undefined,
     writeHead: res.writeHead,
@@ -73,7 +73,7 @@ const patchResponse = (res: Response, next: NextFunction, key: string, ttl: numb
     return res.cache.write.apply(this, args)
   }
 
-  res.end = function end(...args: any[]): void {
+  res.end = function end(...args: any[]) {
     const [chunk, encoding] = args
 
     if (shouldCacheResponse(res)) {
@@ -96,7 +96,7 @@ const patchResponse = (res: Response, next: NextFunction, key: string, ttl: numb
   next()
 }
 
-const sendCachedResponse = (res: Response, cached: Cached, ttl: number): void => {
+const sendCachedResponse = (res: Response, cached: Cached, ttl: number) => {
   const headers = { ...cached.headers }
   headers['Cache-Control'] = `max-age=${ttl}`
 
@@ -109,27 +109,31 @@ const sendCachedResponse = (res: Response, cached: Cached, ttl: number): void =>
   return res.end(data, data.encoding)
 }
 
-const middleware = (duration = 5 * 60): Handler => {
+const middleware = (duration = 0): Handler => {
   const ttl = Math.min(duration, 2147483647)
 
   return (req, res, next) => {
-    const key = req.originalUrl
+    if (ttl) {
+      const key = req.originalUrl
 
-    try {
-      redisClient
-        .multi()
-        .get(key)
-        .ttl(key)
-        .exec((error, reply) => {
-          if (error || !reply[0] || !reply[1]) {
-            patchResponse(res, next, key, ttl)
-          } else {
-            sendCachedResponse(res, JSON.parse(reply[0]), reply[1])
-          }
-        })
-    } catch (error) {
-      console.log('redis error')
-      next(error)
+      try {
+        redisClient
+          .multi()
+          .get(key)
+          .ttl(key)
+          .exec((error, reply) => {
+            if (error || !reply[0] || !reply[1]) {
+              patchResponse(res, next, key, ttl)
+            } else {
+              sendCachedResponse(res, JSON.parse(reply[0]), reply[1])
+            }
+          })
+      } catch (error) {
+        console.log(error)
+        next(error)
+      }
+    } else {
+      next()
     }
   }
 }

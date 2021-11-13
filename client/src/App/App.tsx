@@ -2,12 +2,13 @@
 import { Switch, Route, RouteProps } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import withStyles from '@mui/styles/withStyles'
-// import Divider from '@mui/material/Divider'
 import createStyles from '@mui/styles/createStyles'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
 
 import Header from './Header'
 import Footer from './Footer'
-import { Wrapper } from '../Components'
+import { Wrapper, Icon } from '../Components'
 import { Market, News, Company, NotFound } from '../Pages'
 
 const styles = withStyles(() =>
@@ -22,8 +23,29 @@ const styles = withStyles(() =>
   })
 )
 
-const App = styles(({ classes }: any) => {
+const InitialLoadingScreen = () => (
+  <Box
+    height='100vh'
+    width='100vw'
+    display='flex'
+    justifyContent='center'
+    alignItems='center'
+    sx={{ background: theme => theme.palette.primary.main }}
+  >
+    <Box display='flex' alignItems='center'>
+      <Icon name='logo' title='logo' height={48} width={48} style={{ marginRight: 8 }} />
+      <Typography variant='h1'>Finatic</Typography>
+    </Box>
+  </Box>
+)
+
+const App = styles(({ isLoading, classes }: any) => {
   const theme = useTheme()
+
+  if (isLoading) {
+    return <InitialLoadingScreen />
+  }
+
   return (
     <div className={classes.root}>
       <Header />
