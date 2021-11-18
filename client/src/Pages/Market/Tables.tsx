@@ -758,7 +758,7 @@ export const UpcomingEarningsTable = () => {
                   <TableRow {...row.getRowProps()} className={classes.tr}>
                     {row.cells.map(cell => (
                       <TableCell {...cell.getCellProps()} padding='none'>
-                        <RouterLink to={`/symbol/${row.original.symbol}`} underline='none'>
+                        <RouterLink to={`/company/${row.original.symbol}`} underline='none'>
                           {cell.render()}
                         </RouterLink>
                       </TableCell>

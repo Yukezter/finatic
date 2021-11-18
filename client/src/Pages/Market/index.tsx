@@ -86,7 +86,7 @@ const EconomicData = () => {
               sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
               primary={isSuccess && title}
               primaryTypographyProps={{ color: 'textSecondary' }}
-              secondary={<>{!isSuccess ? <Skeleton width='80%' /> : query.data}</>}
+              secondary={<>{!isSuccess ? <Skeleton width={60} /> : query.data}</>}
               secondaryTypographyProps={{ color: 'textPrimary' }}
             />
           </ListItem>

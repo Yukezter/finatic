@@ -63,6 +63,9 @@ const themeOptions: ThemeOptions = {
     success: {
       main: colors.green,
     },
+    info: {
+      main: colors.primary,
+    },
   },
   typography: {
     fontSize: 15,

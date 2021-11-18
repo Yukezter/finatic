@@ -3,7 +3,6 @@ import React from 'react'
 import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz'
 import { useQueries } from 'react-query'
 import { ThemeProvider, StyledEngineProvider, CssBaseline } from '@mui/material'
-import { SnackbarProvider } from 'notistack'
 
 import { yyyymmdd } from '../Utils'
 import { defaultGlobalState, GlobalContext, GlobalState } from '../Context/Global'
@@ -186,11 +185,9 @@ export default () => {
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <SnackbarProvider maxSnack={3} preventDuplicate>
-          <GlobalContext.Provider value={globalState}>
-            <App isLoading={initialLoading} />
-          </GlobalContext.Provider>
-        </SnackbarProvider>
+        <GlobalContext.Provider value={globalState}>
+          <App isLoading={initialLoading} />
+        </GlobalContext.Provider>
       </ThemeProvider>
     </StyledEngineProvider>
   )

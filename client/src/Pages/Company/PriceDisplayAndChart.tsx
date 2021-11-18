@@ -506,10 +506,12 @@ const PriceData = React.forwardRef<PriceChartType, PriceDataProps>((props, chart
     const chart = (chartRef as React.MutableRefObject<PriceChartType>).current
     if (chart && chartData && chartData.range === '1d') {
       const { quote } = realtime
-      if (quote && quote.isUSMarketOpen) {
+      console.log(chart, chartData, quote)
+      if (quote) {
         const dataPoints = chart.data.datasets[0].data
         const latestDataPoint = getFirstDataPointInRange([...dataPoints].reverse())
 
+        console.log('latestDataPoint', latestDataPoint)
         if (latestDataPoint) {
           const { latestUpdate } = quote
           const fiveMinutes = 1000 * 60 * 60
@@ -522,7 +524,12 @@ const PriceData = React.forwardRef<PriceChartType, PriceDataProps>((props, chart
             chart.update()
           }
 
-          console.log('Latest update', latestUpdate)
+          console.log(
+            'Latest update',
+            latestUpdate,
+            new Date(latestDataPoint.x),
+            new Date(latestUpdate)
+          )
         }
       }
     }
@@ -631,7 +638,7 @@ const buildIntradayDataPoints = (range: Range, data: any[]): DataPoint[][] => {
   const realtimeDataPoints: DataPoint[] = []
   const delayedDataPoints: DataPoint[] = []
 
-  const addDataPoint = (bucket: any, time: number) => {
+  const addDataPoint = (bucket: any = {}, time: number) => {
     const dataPoint: any = {
       y: null,
       x: time,
@@ -692,15 +699,16 @@ type Props = {
 
 export default ({ globalState, theme, symbol }: Props) => {
   const { enqueueSnackbar } = useSnackbar()
+  const snackbarKey = React.useRef<SnackbarKey>()
   const [selectedRange, setSelectedRange] = React.useState(ranges[0])
 
   const cacheAndRefetchInterval = React.useMemo(() => {
-    // if (selectedRange === '1d' || selectedRange === '5d') {
-    //   return 1000 * 30
-    // }
+    if (selectedRange === '1d' || selectedRange === '5d') {
+      return 1000 * 30
+    }
 
-    // return 1000 * 60 * 60
-    return 0
+    return 1000 * 60 * 60
+    // return 0
   }, [selectedRange])
 
   const { isSuccess, data, refetch } = useQuery<any, Error>({
@@ -713,12 +721,25 @@ export default ({ globalState, theme, symbol }: Props) => {
       enqueueSnackbar(`Unable to display ${selectedRange} chart.`, { variant: 'error' })
       console.log(err)
     },
-    onSuccess: data => {
-      console.log('success renders!!!')
-      console.log(data)
-      enqueueSnackbar('Limited chart data for this company.', { variant: 'info' })
+    onSuccess: chartData => {
+      if (!snackbarKey.current && chartData.range === '1d') {
+        const definedDataPoints = chartData.data.filter(
+          (dataPoint: DataPoint) => dataPoint.y !== null
+        )
+
+        if (definedDataPoints.length < Math.floor(chartData.data.length * 0.8)) {
+          console.log('Defined data points', definedDataPoints)
+          snackbarKey.current = enqueueSnackbar(
+            'Limited intraday chart data for this company.',
+            {
+              variant: 'info',
+            }
+          )
+        }
+      }
     },
     select: data => {
+      console.log('data!!!!!', data)
       const dataPoints = buildDataPoints(selectedRange, data)
       const firstDataPoint = getFirstDataPointInRange(dataPoints)
       const firstPrice = firstDataPoint ? (firstDataPoint.y as number) : undefined
