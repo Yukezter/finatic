@@ -1,10 +1,11 @@
 /* eslint-disable no-nested-ternary */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react'
-import { AxiosResponse } from 'axios'
-import { useQueries, UseQueryResult } from 'react-query'
-import { format } from 'date-fns'
+import { useQueries } from 'react-query'
 import { styled, createStyles, Theme } from '@mui/material/styles'
+import { alpha } from '@mui/material'
+import Typography from '@mui/material/Typography'
+import { format } from 'date-fns'
+import 'chartjs-adapter-date-fns'
 import {
   Chart,
   ScatterController,
@@ -14,10 +15,12 @@ import {
   ChartConfiguration,
   ChartItem,
   LegendItem,
+  ChartOptions,
+  PluginOptionsByType,
+  Plugin,
+  LegendOptions,
 } from 'chart.js'
-import 'chartjs-adapter-date-fns'
-import { alpha } from '@mui/material'
-import Typography from '@mui/material/Typography'
+import { DeepPartial } from 'chart.js/types/utils'
 
 Chart.register(ScatterController, PointElement, TimeSeriesScale, Legend)
 
@@ -89,7 +92,26 @@ const Root = styled('div')(({ theme }) =>
   })
 )
 
-const getOrCreateLegendList = (chart: Chart, id: string) => {
+type DataPoint = {
+  y: number | null
+  x: number
+}
+
+type PluginOptions = Required<
+  DeepPartial<
+    PluginOptionsByType<'scatter'> & {
+      legend: Required<LegendOptions<'scatter'>>
+      htmlLegend: {
+        containerID: string
+        upcomingEarningsDate?: string
+      }
+    }
+  >
+>
+
+type EarningsChartType = Chart<'scatter', DataPoint[]>
+
+const getOrCreateLegendList = (id: string) => {
   const legendContainer = document.getElementById(id) as HTMLElement
   let listContainer = legendContainer.querySelector('ul')
 
@@ -103,22 +125,23 @@ const getOrCreateLegendList = (chart: Chart, id: string) => {
 
 export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
   const canvasRef = React.useRef<HTMLCanvasElement>(null)
-  const chartRef = React.useRef<Chart>()
+  const chartRef = React.useRef<EarningsChartType>()
 
-  const nextEarningsDateRef = React.useRef<string>()
-
-  const legendPlugin = React.useMemo(
+  const legendPlugin: Plugin<
+    'scatter',
+    { containerID: string; upcomingEarningsDate?: string }
+  > = React.useMemo(
     () => ({
       id: 'htmlLegend',
-      afterUpdate: (chart: any, args: any, options: any) => {
-        const ul = getOrCreateLegendList(chart, options.containerID)
+      afterUpdate: (chart, _, { containerID, upcomingEarningsDate }) => {
+        const ul = getOrCreateLegendList(containerID)
 
         while (ul.firstChild) {
           ul.firstChild.remove()
         }
 
-        const items: LegendItem[] =
-          chart.options!.plugins!.legend!.labels!.generateLabels(chart)
+        const legend = chart!.options!.plugins!.legend as Required<LegendOptions<'scatter'>>
+        const items: LegendItem[] = legend.labels.generateLabels(chart)
 
         items.forEach(item => {
           const li = document.createElement('li')
@@ -135,12 +158,15 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
           const valueTextContainer = labelTextContainer.cloneNode() as HTMLParagraphElement
           valueTextContainer.className += ' legend-value'
 
+          const estimateEPSDataPoints = chart.data.datasets[0].data as DataPoint[]
+
           const itemValue =
             item.datasetIndex === 0
-              ? '-'
-              : nextEarningsDateRef.current
-              ? `Available on ${nextEarningsDateRef.current}`
+              ? String(estimateEPSDataPoints[estimateEPSDataPoints.length - 1].y || '-')
+              : upcomingEarningsDate !== undefined
+              ? `Available on ${upcomingEarningsDate}`
               : '-'
+
           const valueText = document.createTextNode(itemValue)
           valueTextContainer.appendChild(valueText)
 
@@ -163,79 +189,96 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
     []
   )
 
-  const configRef = React.useRef<ChartConfiguration | any>({
-    type: 'scatter',
-    data: {
-      datasets: [
-        {
-          label: 'Estimate EPS',
-          data: [],
-          pointRadius: 8,
-          pointBackgroundColor: alpha(theme.palette.primary.main, 0.5),
-          pointBorderWidth: 0,
-        },
-        {
-          label: 'Actual EPS',
-          data: [],
-          pointRadius: 8,
-          pointBackgroundColor: theme.palette.primary.main,
-          pointBorderWidth: 0,
-        },
-      ],
-    },
-    options: {
-      events: [],
-      maintainAspectRatio: false,
-      animation: false,
-      plugins: {
-        htmlLegend: {
-          containerID: 'legend-container',
-        },
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        y: {
-          offset: true,
-          grid: {
-            display: false,
-            drawBorder: false,
-            drawTicks: false,
+  const makeDefaultDataPoints = React.useCallback(() => {
+    return Array.from(new Array(5)).map((_, index) => ({
+      y: null,
+      x: index,
+    }))
+  }, [])
+
+  interface EarningsChartConfiguration extends ChartConfiguration<'scatter', DataPoint[]> {
+    options: DeepPartial<
+      ChartOptions<'scatter'> & {
+        plugins: PluginOptions
+      }
+    >
+  }
+
+  const config = React.useMemo<EarningsChartConfiguration>(
+    () => ({
+      plugins: [legendPlugin],
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Estimate EPS',
+            data: makeDefaultDataPoints(),
+            pointRadius: 8,
+            pointBackgroundColor: alpha(theme.palette.primary.main, 0.5),
+            pointBorderWidth: 0,
           },
-          ticks: {
-            maxTicksLimit: 5,
-            color: theme.palette.text.secondary,
-            font: {
-              family: theme.typography.body2.fontFamily,
-              size: 15,
+          {
+            label: 'Actual EPS',
+            data: makeDefaultDataPoints(),
+            pointRadius: 8,
+            pointBackgroundColor: theme.palette.primary.main,
+            pointBorderWidth: 0,
+          },
+        ],
+      },
+      options: {
+        events: [],
+        maintainAspectRatio: false,
+        animation: false,
+        plugins: {
+          htmlLegend: {
+            containerID: 'legend-container',
+          },
+          legend: {
+            display: false,
+          },
+        },
+        scales: {
+          y: {
+            offset: true,
+            grid: {
+              display: false,
+              drawBorder: false,
+              drawTicks: false,
+            },
+            ticks: {
+              maxTicksLimit: 5,
+              color: theme.palette.text.secondary,
+              font: {
+                family: theme.typography.body2.fontFamily,
+                size: 15,
+              },
+            },
+          },
+          x: {
+            offset: true,
+            grid: {
+              display: false,
+              drawBorder: false,
+              drawTicks: false,
+            },
+            ticks: {
+              padding: 16,
+              stepSize: 1,
+              minRotation: 0,
+              maxRotation: 0,
+              color: theme.palette.text.secondary,
+              font: {
+                family: theme.typography.body2.fontFamily,
+                size: 14,
+              },
             },
           },
         },
-        x: {
-          reverse: true,
-          offset: true,
-          grid: {
-            display: false,
-            drawBorder: false,
-            drawTicks: false,
-          },
-          ticks: {
-            padding: 16,
-            stepSize: 1,
-            minRotation: 0,
-            maxRotation: 0,
-            color: theme.palette.text.secondary,
-            font: {
-              family: theme.typography.body2.fontFamily,
-              size: 14,
-            },
-          },
-        },
       },
-    },
-    plugins: [legendPlugin],
-  })
+    }),
+    []
+  )
 
   React.useEffect(() => {
     const chart = chartRef.current
@@ -248,7 +291,7 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
 
   React.useEffect(() => {
     const ctx = canvasRef.current!.getContext('2d')
-    const chart = new Chart(ctx as ChartItem, configRef.current)
+    const chart = new Chart(ctx as ChartItem, config)
     chartRef.current = chart
 
     return () => {
@@ -258,51 +301,61 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
 
   const queries = useQueries([
     {
-      queryKey: `/stock/${symbol}/earnings`,
+      queryKey: `/stock/${symbol}/past-earnings`,
     },
     {
       queryKey: `/stock/${symbol}/upcoming-earnings`,
     },
   ])
 
-  const isLoading = queries.some(query => !query.isSuccess)
+  const isSuccess = queries.every(query => query.isSuccess)
+
+  console.log(queries)
 
   React.useEffect(() => {
-    if (!isLoading) {
+    if (isSuccess) {
       const labels: string[] = []
-      const estimate: any[] = []
-      const actual: any[] = []
+      const estimateEPSDataPoints = chartRef.current!.data.datasets[0].data
+      const actualEPSDataPoints = chartRef.current!.data.datasets[1].data
 
-      const earningsResponse = queries[0].data as any
-      earningsResponse.data.earnings.forEach((report: any, index: number) => {
-        labels.unshift(report.fiscalPeriod)
+      /* Past 4 earnings reports */
+      const { earnings: pastEarnings = [] } = queries[0].data as any
 
-        estimate.push({
-          x: index,
-          y: report.consensusEPS,
-        })
+      Array.from(new Array(4)).forEach((_, index: number) => {
+        const { fiscalPeriod, consensusEPS, actualEPS } = pastEarnings[index] || {}
 
-        actual.push({
-          x: index,
-          y: report.actualEPS,
-        })
+        labels.unshift(fiscalPeriod || null)
+        estimateEPSDataPoints[3 - index].y = consensusEPS || null
+        actualEPSDataPoints[3 - index].y = actualEPS || null
       })
 
-      const upcomingEarningsResponse = queries[1].data as any
-      nextEarningsDateRef.current = format(
-        new Date(upcomingEarningsResponse.data[0].reportDate),
-        'MMM, yy'
-      )
+      /* Next earnings report */
+      const nextEarnings = (queries[1].data as any) || []
+      const { fiscalPeriod, consensusEPS, reportDate } = nextEarnings[0] || {}
 
-      chartRef.current!.data.datasets[0].data = estimate
-      chartRef.current!.data.datasets[1].data = actual
-      chartRef.current!.options.scales!.x!.ticks!.callback = (_, index) => {
+      labels.push(fiscalPeriod || null)
+      estimateEPSDataPoints[estimateEPSDataPoints.length - 1].y = consensusEPS || null
+
+      const plugins = chartRef.current!.options!.plugins as PluginOptions
+
+      if (reportDate) {
+        plugins.htmlLegend.upcomingEarningsDate = format(new Date(reportDate), 'MMM, yy')
+      }
+
+      // chartRef.current!.options.scales!.x!.labels = labels
+      chartRef.current!.options.scales!.x!.ticks!.callback = (tick, index) => {
         return labels[index]
       }
 
+      console.log('first size', chartRef.current!.width)
+
+      // chartRef.current!.options.onResize = (chart, size) => {
+      //   console.log(chart.width)
+      // }
+
       chartRef.current!.update()
     }
-  }, [isLoading])
+  }, [isSuccess])
 
   return (
     <Root className={classes.root}>

@@ -1,14 +1,16 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import { Switch, Route, RouteProps } from 'react-router-dom'
+import { Switch, Route, Redirect, RouteProps } from 'react-router-dom'
 import { useTheme } from '@mui/material/styles'
 import withStyles from '@mui/styles/withStyles'
 import createStyles from '@mui/styles/createStyles'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import Backdrop from '@mui/material/Backdrop'
 
 import Header from './Header'
 import Footer from './Footer'
-import { Wrapper, Icon } from '../Components'
+import { LogoIcon } from '../Icons'
+import { Wrapper } from '../Components'
 import { Market, News, Company, NotFound } from '../Pages'
 
 const styles = withStyles(() =>
@@ -23,31 +25,32 @@ const styles = withStyles(() =>
   })
 )
 
-const InitialLoadingScreen = () => (
-  <Box
-    height='100vh'
-    width='100vw'
-    display='flex'
-    justifyContent='center'
-    alignItems='center'
-    sx={{ background: theme => theme.palette.primary.main }}
+const InitialLoadingScreen = ({ open }: { open: boolean }) => (
+  <Backdrop
+    open={open}
+    sx={{
+      background: theme => theme.palette.primary.main,
+      zIndex: 2000,
+      overflow: 'hidden',
+    }}
   >
-    <Box display='flex' alignItems='center'>
-      <Icon name='logo' title='logo' height={48} width={48} style={{ marginRight: 8 }} />
+    <Box display='flex'>
+      <LogoIcon title='Finatic logo' height={40} width={40} style={{ marginRight: 8 }} />
       <Typography variant='h1'>Finatic</Typography>
     </Box>
-  </Box>
+  </Backdrop>
 )
 
 const App = styles(({ isLoading, classes }: any) => {
   const theme = useTheme()
 
   if (isLoading) {
-    return <InitialLoadingScreen />
+    return <InitialLoadingScreen open={isLoading} />
   }
 
   return (
     <div className={classes.root}>
+      {/* <InitialLoadingScreen open={isLoading} /> */}
       <Header />
       <Wrapper
         sx={{
@@ -74,7 +77,10 @@ const App = styles(({ isLoading, classes }: any) => {
               <Company key={props.location!.key} {...props} theme={theme} />
             )}
           />
-          <Route component={NotFound} />
+          <Route path='/404' exact component={NotFound} />
+          <Route>
+            <Redirect to='/404' />
+          </Route>
         </Switch>
       </Wrapper>
       <Footer />

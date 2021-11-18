@@ -27,7 +27,7 @@ const sse = axios.create({
 ;[api, sse].forEach(instance => {
   instance.interceptors.request.use(config => {
     console.log('Request date:', new Date())
-    console.log(config)
+    console.log('Request config', config)
     return config
   })
 

@@ -1,12 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-nested-ternary */
-/* eslint-disable react/jsx-props-no-spreading */
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
 import Grid from '@mui/material/Grid'
-import Divider from '@mui/material/Divider'
 import Typography from '@mui/material/Typography'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
@@ -14,11 +9,8 @@ import Container from '@mui/material/Container'
 import Hidden from '@mui/material/Hidden'
 import Skeleton from '@mui/material/Skeleton'
 import Stack from '@mui/material/Stack'
-import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
-import CardMedia from '@mui/material/CardMedia'
-import CardContent from '@mui/material/CardContent'
 
+import { GlobalContext } from '../../Context/Global'
 import { Chip, Button, RouterLink, Link } from '../../Components'
 
 const PREFIX = 'News'
@@ -58,12 +50,23 @@ const Root = styled('div')(({ theme }) => ({
   },
 }))
 
-const RelatedSymbols = ({ symbols = '' }: { symbols: string }) => (
-  <Stack direction='row' spacing={0.75} sx={{ my: 1 }}>
-    {symbols
-      .split(',')
-      .slice(0, 4)
-      .map((symbol: string) => (
+const RelatedSymbols = ({ symbols: unvalidatedSymbols }: { symbols: string }) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { refSymbolsMap } = React.useContext(GlobalContext)
+
+  const symbols = React.useMemo(() => {
+    return (
+      unvalidatedSymbols
+        .split(',')
+        // .filter(symbol => symbol && symbol !== '-')
+        .filter(symbol => symbol && refSymbolsMap.has(symbol))
+        .slice(0, 5)
+    )
+  }, [unvalidatedSymbols])
+
+  return (
+    <Stack direction='row' spacing={0.75} sx={{ my: 1 }}>
+      {symbols.map((symbol: string) => (
         <Chip
           key={symbol}
           label={symbol}
@@ -74,45 +77,17 @@ const RelatedSymbols = ({ symbols = '' }: { symbols: string }) => (
           underline='none'
         />
       ))}
-  </Stack>
-)
+    </Stack>
+  )
+}
 
-const ArticleCard = ({ article, index }: { article: any; index: number }) => (
-  <Grid item xs={12} sm={4}>
-    <Card sx={{ background: theme => theme.palette.secondary.dark }}>
-      {/* <CardHeader
-        title={new Date(article.datetime).toDateString()}
-        titleTypographyProps={{ variant: 'caption', color: 'textSecondary' }}
-      /> */}
-      <CardMedia
-        component='img'
-        height='200'
-        image={`https://picsum.photos/400?random=${index}`}
-        alt='random image'
-      />
-      <CardContent>
-        <RelatedSymbols symbols={article.related} />
-        <Typography component='h4' variant='h6' gutterBottom>
-          {article.headline.length > 80
-            ? article.headline.slice(0, 77).concat('...')
-            : article.headline}
-        </Typography>
-        <Typography
-          variant='caption'
-          gutterBottom
-          noWrap
-          sx={{ color: theme => theme.palette.text.disabled }}
-        >
-          {new Date(article.datetime).toDateString()}
-          <span className={classes.dot} />
-          By {article.source}
-        </Typography>
-      </CardContent>
-    </Card>
-  </Grid>
-)
+type ArticleProps = {
+  isLoading: boolean
+  article: { [key: string]: any }
+  index: number
+}
 
-const Article = ({ isLoading, article, index }: any) => {
+const Article = ({ isLoading, article = {}, index }: ArticleProps) => {
   return (
     <ListItem
       divider
@@ -198,16 +173,15 @@ const Article = ({ isLoading, article, index }: any) => {
   )
 }
 
-const loadMoreGroupSize = 4
+const loadMoreGroupSize = 5
 
 const News = () => {
-  const { isSuccess, data } = useQuery<AxiosResponse<any[]>, Error>('/news')
-  // const isSuccess = a && !!''
+  const { isSuccess, data } = useQuery<any[], Error>('/market/news')
 
   const [count, setCount] = React.useState(1)
 
   const handleLoadMore = React.useCallback(() => {
-    if (data!.data.length - count * loadMoreGroupSize > 0) {
+    if ((data as any[]).length - count * loadMoreGroupSize > 0) {
       setCount(prevCount => prevCount + 1)
     }
   }, [data])
@@ -220,12 +194,13 @@ const News = () => {
             <List disablePadding>
               {(!isSuccess
                 ? Array.from(Array(10))
-                : data!.data.slice(0, loadMoreGroupSize * count)
-              ).map((article: any = {}, index: number) => (
+                : (data as any[]).slice(0, loadMoreGroupSize * count)
+              ).map((article, index: number) => (
                 <Article
-                  key={!isSuccess ? index : article.subkey}
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={index}
                   isLoading={!isSuccess}
-                  article={!isSuccess ? {} : article}
+                  article={article}
                   index={index}
                 />
               ))}
@@ -235,7 +210,7 @@ const News = () => {
                 variant='outlined'
                 color='primary'
                 onClick={handleLoadMore}
-                disabled={!isSuccess || count * loadMoreGroupSize >= data!.data.length}
+                disabled={!isSuccess || count * loadMoreGroupSize >= (data as any[]).length}
               >
                 More Articles
               </Button>
@@ -248,3 +223,38 @@ const News = () => {
 }
 
 export default News
+
+// const ArticleCard = ({ article, index }: { article: any; index: number }) => (
+//   <Grid item xs={12} sm={4}>
+//     <Card sx={{ background: theme => theme.palette.secondary.dark }}>
+//       {/* <CardHeader
+//         title={new Date(article.datetime).toDateString()}
+//         titleTypographyProps={{ variant: 'caption', color: 'textSecondary' }}
+//       /> */}
+//       <CardMedia
+//         component='img'
+//         height='200'
+//         image={`https://picsum.photos/400?random=${index}`}
+//         alt='random image'
+//       />
+//       <CardContent>
+//         <RelatedSymbols symbols={article.related} />
+//         <Typography component='h4' variant='h6' gutterBottom>
+//           {article.headline.length > 80
+//             ? article.headline.slice(0, 77).concat('...')
+//             : article.headline}
+//         </Typography>
+//         <Typography
+//           variant='caption'
+//           gutterBottom
+//           noWrap
+//           sx={{ color: theme => theme.palette.text.disabled }}
+//         >
+//           {new Date(article.datetime).toDateString()}
+//           <span className={classes.dot} />
+//           By {article.source}
+//         </Typography>
+//       </CardContent>
+//     </Card>
+//   </Grid>
+// )

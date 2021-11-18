@@ -16,7 +16,8 @@ import useAutocomplete, {
 
 import { SearchState, SearchActionKind } from '../types'
 
-import { Icon, RouterLink, Input } from '../Components'
+import { SearchIcon } from '../Icons'
+import { RouterLink, Input } from '../Components'
 
 const PREFIX = 'Search'
 
@@ -137,7 +138,7 @@ const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) =>
           placeholder='Stonks...'
           startAdornment={
             <InputAdornment position='start' disablePointerEvents>
-              <Icon name='search' title='Search Icon' height={18} />
+              <SearchIcon title='Search icon' height={18} />
             </InputAdornment>
           }
           classes={{

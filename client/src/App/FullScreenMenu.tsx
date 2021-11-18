@@ -10,7 +10,8 @@ import Slide, { SlideProps } from '@mui/material/Slide'
 
 import { SearchState, SearchAction } from '../types'
 
-import { Icon, IconButton, RouterLink } from '../Components'
+import { LogoIcon, CloseIcon } from '../Icons'
+import { IconButton, RouterLink } from '../Components'
 import Search from './Search'
 
 const PREFIX = 'FullScreenMenu'
@@ -94,7 +95,7 @@ const FullScreenMenu = ({ open, handleClose, searchState, dispatch }: DialogProp
         <Toolbar component='nav' variant='dense' className={classes.Toolbar}>
           <Container disableGutters maxWidth='sm' className={classes.Container}>
             <RouterLink className={classes.Logo} to='/'>
-              <Icon name='logo' title='Finatic' />
+              <LogoIcon title='Finatic' />
             </RouterLink>
             <IconButton
               onClick={handleClose}
@@ -106,7 +107,7 @@ const FullScreenMenu = ({ open, handleClose, searchState, dispatch }: DialogProp
                 },
               }}
             >
-              <Icon name='close' title='Close Menu' height={26} width={26} />
+              <CloseIcon title='Close Menu' height={26} width={26} />
             </IconButton>
           </Container>
         </Toolbar>

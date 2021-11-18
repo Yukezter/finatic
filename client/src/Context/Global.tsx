@@ -1,5 +1,14 @@
 import { createContext } from 'react'
 
-const GlobalContext = createContext(null)
+export type GlobalState = {
+  initialLoading: boolean
+  isMarketOpen?: boolean
+  refSymbolsMap: Map<string, { [key: string]: any }>
+}
 
-export default GlobalContext
+export const defaultGlobalState = {
+  initialLoading: true,
+  refSymbolsMap: new Map(),
+}
+
+export const GlobalContext = createContext<GlobalState>(defaultGlobalState)

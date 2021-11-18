@@ -1,9 +1,11 @@
 import React from 'react'
 import { styled } from '@mui/material/styles'
-import { AxiosResponse } from 'axios'
-import { useQuery, useQueries } from 'react-query'
+import { useQuery, useQueries, UseQueryResult } from 'react-query'
+import { useSnackbar } from 'notistack'
+import { Theme } from '@mui/material'
 import ClickAwayListener from '@mui/material/ClickAwayListener'
 import Popper from '@mui/material/Popper'
+import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import MenuList from '@mui/material/MenuList'
@@ -14,44 +16,43 @@ import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
 
-import { mergeArrays } from '../../Utils'
 import { percent } from '../../Utils/numberFormats'
 import { useQuotes } from '../../Hooks'
-import { Icon, IconButton, DirectionIcon } from '../../Components'
+import { ClockIcon, VeritcalDotsIcon, MarketDirectionIcon } from '../../Icons'
+import { IconButton } from '../../Components'
 
 const PREFIX = 'Lists'
 
 const classes = {
+  selectedMenuItem: `${PREFIX}-selectedMenuItem`,
   Popper: `${PREFIX}-Popper`,
-  root: `${PREFIX}-root`,
 }
 
-const Root = styled('div')(
-  ({ theme: { spacing, shadows, shape, zIndex, palette, breakpoints } }) => ({
-    paddingTop: spacing(2),
-    paddingBottom: spacing(2),
-    marginBottom: spacing(4),
-    '& > div': {
-      paddingLeft: spacing(3),
-      paddingRight: spacing(3),
-    },
-    '& > div:first-of-type': {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingBottom: spacing(2),
-      borderBottom: `1px solid ${palette.divider}`,
-    },
-    [breakpoints.up('xs')]: {
-      boxShadow: shadows[5],
-      borderRadius: shape.borderRadius,
-    },
+const Root = styled(Box)(({ theme }) => ({
+  '& > div:first-of-type': {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingBottom: theme.spacing(2),
+    borderBottom: `1px solid ${theme.palette.divider}`,
+  },
 
-    [`& .${classes.Popper}`]: {
-      zIndex: zIndex.mobileStepper,
+  [theme.breakpoints.up('xs')]: {
+    boxShadow: theme.shadows[5],
+    borderRadius: theme.shape.borderRadius,
+  },
+
+  [`& .${classes.selectedMenuItem}`]: {
+    backgroundColor: theme.palette.action.selected,
+    '&:hover': {
+      backgroundColor: theme.palette.action.selected,
     },
-  })
-)
+  },
+
+  [`& .${classes.Popper}`]: {
+    zIndex: theme.zIndex.mobileStepper,
+  },
+}))
 
 const SkeletonList = ({ length = 5 }: { length: number }) => (
   <List dense>
@@ -74,8 +75,7 @@ const StyledListItem = ({ theme, label, value, timestamp }: any) => (
       }}
       secondary={
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Icon
-            name='clock'
+          <ClockIcon
             height={14}
             style={{
               color: theme.palette.text.primary,
@@ -129,27 +129,27 @@ const fxPairs = [
 ]
 
 const FxRatesList = ({ theme }: any) => {
-  const { isLoading, data } = useQuotes(
-    'http://localhost:8001/sse/forex',
-    fxPairs.map(v => v.symbol)
-  )
+  const { isLoading, data } = useQuotes('/forex', fxPairs, {
+    errorSnackbar: true,
+    errorMessage: 'An error occurred while requesting forex rates.',
+  })
 
   return isLoading ? (
-    <SkeletonList length={data.length} />
+    <SkeletonList length={fxPairs.length} />
   ) : (
     <List dense>
-      {mergeArrays(fxPairs, data).map(symbolData => (
+      {data.map(symbolData => (
         <StyledListItem
           key={symbolData.symbol}
           theme={theme}
           label={symbolData.symbol}
           value={
             <>
-              {symbolData.quote.rate}
+              {symbolData.data.rate}
               <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
             </>
           }
-          timestamp={symbolData.quote.timestamp}
+          timestamp={symbolData.data.timestamp}
         />
       ))}
     </List>
@@ -158,53 +158,53 @@ const FxRatesList = ({ theme }: any) => {
 
 const cryptos = [
   {
-    name: 'Bitcoin',
     symbol: 'BTCUSD',
+    name: 'Bitcoin',
   },
   {
-    name: 'Ethereum',
     symbol: 'ETHUSD',
+    name: 'Ethereum',
   },
   {
-    name: 'Litecoin',
     symbol: 'LTCUSD',
+    name: 'Litecoin',
   },
   {
-    name: 'Cardano',
     symbol: 'ADAUSDT',
+    name: 'Cardano',
   },
   {
-    name: 'Solana',
     symbol: 'SOLUSDT',
+    name: 'Solana',
   },
   {
-    name: 'Shiba Inu',
     symbol: 'SHIBUSDT',
+    name: 'Shiba Inu',
   },
 ]
 
 const CryptoList = ({ theme }: any) => {
-  const { isLoading, data } = useQuotes(
-    'http://localhost:8001/sse/cryptos',
-    cryptos.map(v => v.symbol)
-  )
+  const { isLoading, data } = useQuotes('/cryptos', cryptos, {
+    errorSnackbar: true,
+    errorMessage: 'An error occurred while requesting cryptocurrency prices.',
+  })
 
   return isLoading ? (
-    <SkeletonList length={data.length} />
+    <SkeletonList length={cryptos.length} />
   ) : (
     <List dense>
-      {mergeArrays(cryptos, data).map(symbolData => (
+      {data.map(symbolData => (
         <StyledListItem
-          key={symbolData.name}
+          key={symbolData.props.name}
           theme={theme}
-          label={symbolData.name}
+          label={symbolData.props.name}
           value={
             <>
-              {symbolData.quote.latestPrice}
+              {symbolData.data.latestPrice}
               <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
             </>
           }
-          timestamp={symbolData.quote.latestUpdate}
+          timestamp={symbolData.data.latestUpdate}
         />
       ))}
     </List>
@@ -214,7 +214,7 @@ const CryptoList = ({ theme }: any) => {
 const commodities = ['Oil', 'Natural Gas', 'Heating Oil', 'Diesel', 'Gas', 'Propane']
 
 const CommoditiesList = ({ theme }: any) => {
-  const responses = useQueries([
+  const queries = useQueries([
     {
       queryKey: '/commodities/oil',
     },
@@ -235,15 +235,26 @@ const CommoditiesList = ({ theme }: any) => {
     },
   ])
 
-  const isLoading = responses.some(response => !response.isSuccess)
+  const isSuccess = queries.every(query => query.isSuccess)
+  const isError = queries.every(query => query.isError)
 
-  return isLoading ? (
+  const { enqueueSnackbar } = useSnackbar()
+
+  React.useEffect(() => {
+    if (isError) {
+      enqueueSnackbar('An error occurred while requesting commodity prices.', {
+        variant: 'error',
+      })
+    }
+  }, [isError])
+
+  return !isSuccess ? (
     <SkeletonList length={6} />
   ) : (
     <List dense>
-      {responses
-        .map((response: any, index: number) => ({
-          ...response.data.data[0],
+      {queries
+        .map((query: UseQueryResult<any>, index) => ({
+          ...query.data[0],
           label: commodities[index],
         }))
         .map((commodity: any) => (
@@ -265,20 +276,28 @@ const CommoditiesList = ({ theme }: any) => {
 }
 
 const SectorList = ({ theme }: any) => {
-  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>('/sector-performance')
+  const { enqueueSnackbar } = useSnackbar()
+  const { isSuccess, data } = useQuery<any, Error>('/sector-performance', {
+    onError: err => {
+      enqueueSnackbar('An error occurred while requesting sector performance data.', {
+        variant: 'error',
+      })
+      console.log(err)
+    },
+  })
 
   return !isSuccess ? (
     <SkeletonList length={11} />
   ) : (
     <List dense>
-      {data!.data.map((sector: any) => (
+      {data.map((sector: any) => (
         <StyledListItem
           key={sector.name}
           theme={theme}
           label={sector.name}
           value={
             <>
-              <DirectionIcon value={sector.performance} />
+              <MarketDirectionIcon value={sector.performance} />
               {percent(sector.performance)}
             </>
           }
@@ -313,7 +332,12 @@ const menuOptions: MenuOption[] = [
   },
 ]
 
-const ListMenu = ({ selectedOption, setSelectedOption }: any) => {
+type ListMenuProps = {
+  selectedOption: MenuOption
+  setSelectedOption: React.Dispatch<React.SetStateAction<MenuOption>>
+}
+
+const ListMenu = ({ selectedOption, setSelectedOption }: ListMenuProps) => {
   const [open, setOpen] = React.useState(false)
   const anchorRef = React.useRef<HTMLButtonElement>(null)
 
@@ -352,7 +376,7 @@ const ListMenu = ({ selectedOption, setSelectedOption }: any) => {
         onClick={handleToggle}
         size='large'
       >
-        <Icon name='vertical-dots' height={30} width={30} />
+        <VeritcalDotsIcon height={30} width={30} />
       </IconButton>
       <Popper
         className={classes.Popper}
@@ -364,7 +388,12 @@ const ListMenu = ({ selectedOption, setSelectedOption }: any) => {
         disablePortal
       >
         <ClickAwayListener onClickAway={handleClose}>
-          <Container disableGutters component={Paper} elevation={5}>
+          <Container
+            disableGutters
+            component={Paper}
+            elevation={5}
+            style={{ backgroundImage: 'none' }}
+          >
             <MenuList
               id='menu-list-grow'
               aria-labelledby='top-movers-button'
@@ -374,6 +403,7 @@ const ListMenu = ({ selectedOption, setSelectedOption }: any) => {
               {menuOptions.map(option => (
                 <MenuItem
                   key={option.label}
+                  classes={{ selected: classes.selectedMenuItem }}
                   selected={option.label === selectedOption.label}
                   onClick={handleSelect(option)}
                 >
@@ -388,25 +418,21 @@ const ListMenu = ({ selectedOption, setSelectedOption }: any) => {
   )
 }
 
-export default ({ theme }: any) => {
+export default ({ theme }: { theme: Theme }) => {
   const [selectedOption, setSelectedOption] = React.useState<MenuOption>(menuOptions[0])
   const { Component } = selectedOption
 
   return (
-    <Root>
-      <div>
+    <Root py={2} mb={4}>
+      <Box px={3}>
         <Typography variant='h6' color='textPrimary'>
           {selectedOption.label}
         </Typography>
-        <ListMenu
-          classes={classes}
-          selectedOption={selectedOption}
-          setSelectedOption={setSelectedOption}
-        />
-      </div>
-      <div>
+        <ListMenu selectedOption={selectedOption} setSelectedOption={setSelectedOption} />
+      </Box>
+      <Box px={3}>
         <Component theme={theme} />
-      </div>
+      </Box>
     </Root>
   )
 }

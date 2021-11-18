@@ -2,18 +2,17 @@ import { ErrorRequestHandler } from 'express'
 
 import { CustomError } from '../errors'
 
-const errorHandler: ErrorRequestHandler = (error, _, res): void => {
-  const safeForClient = error instanceof CustomError
-  const clientError = (({ status, code, message, data }) => ({
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
+  const safeForClient = err instanceof CustomError
+  const clientError = (({ status, statusText, data }) => ({
     status,
-    code,
-    message,
+    statusText,
     data,
-  }))(safeForClient ? error : new CustomError())
+  }))(safeForClient ? err : new CustomError())
 
+  console.log(err)
   res.status(clientError.status).send(clientError)
-
-  console.log(error)
 }
 
 export default errorHandler

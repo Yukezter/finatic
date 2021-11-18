@@ -1,10 +1,9 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import Grid from '@mui/material/Grid'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import GitHubIcon from '@mui/icons-material/GitHub'
 
-import { Wrapper, Icon, Link } from '../Components'
+import { Wrapper, Link } from '../Components'
 
 export default () => {
   return (
@@ -33,11 +32,10 @@ export default () => {
             </Link>
           </Box>
           <Typography variant='caption' sx={{ color: theme => theme.palette.text.disabled }}>
-            Disclaimer: All data is delayed by 15 minutes or more depending on when the data
-            was cached, except cryptocurrency, forex, and realtime intraday chart prices. The
-            data is provided for informational purposes only and should not be used as the
-            basis for share trading, as unintended inaccuracies, errors, or misprints may
-            occur.
+            Disclaimer: All data is delayed by 15 minutes or more, except for cryptocurrency,
+            forex, and realtime intraday chart prices. The data is provided for informational
+            purposes only and should not be used as the basis for share trading, as unintended
+            inaccuracies, errors, or misprints may occur.
           </Typography>
         </Grid>
       </Grid>

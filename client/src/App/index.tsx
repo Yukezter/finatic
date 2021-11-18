@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react'
 import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz'
-import { AxiosResponse } from 'axios'
-import { useQuery } from 'react-query'
+import { useQueries } from 'react-query'
 import { ThemeProvider, StyledEngineProvider, CssBaseline } from '@mui/material'
+import { SnackbarProvider } from 'notistack'
 
+import { yyyymmdd } from '../Utils'
+import { defaultGlobalState, GlobalContext, GlobalState } from '../Context/Global'
 import { light, dark } from '../theme'
 import App from './App'
 
@@ -16,71 +18,109 @@ type MarketTimes = {
   close: number
 }
 
-// 09:30, 13:00, 16:00
-/* Event timestamps */
-// const getMarketTimes = (est: Date): MarketTimes => {
-//   const d = `${est.getFullYear()}-${est.getMonth() + 1}-${est.getDate()}`
-//   return {
-//     open: zonedTimeToUtc(`${d} 09:30:00`, timeZone).getTime(),
-//     earlyClose: zonedTimeToUtc(`${d} 13:00:00`, timeZone).getTime(),
-//     close: zonedTimeToUtc(`${d} 16:00:00`, timeZone).getTime(),
-//   }
-// }
-
-const getMarketTimes = (est: Date): MarketTimes => {
-  const d = `${est.getFullYear()}-${est.getMonth() + 1}-${est.getDate()}`
+/* Market event times (9:30AM, 1:00PM, 4:00PM EST) */
+const getMarketTimes = (date: Date): MarketTimes => {
+  const formatted = yyyymmdd(date, '-')
   return {
-    open: zonedTimeToUtc(`${d} 20:31`, timeZone).getTime(),
-    earlyClose: zonedTimeToUtc(`${d} 13:00`, timeZone).getTime(),
-    close: zonedTimeToUtc(`${d} 20:32`, timeZone).getTime(),
+    open: zonedTimeToUtc(`${formatted} 09:30:00`, timeZone).getTime(),
+    earlyClose: zonedTimeToUtc(`${formatted} 13:00:00`, timeZone).getTime(),
+    close: zonedTimeToUtc(`${formatted} 16:00:00`, timeZone).getTime(),
   }
 }
 
-type GlobalState = {
-  initialLoading: boolean
-  isMarketOpen?: boolean
-}
-
 export default () => {
-  const [{ initialLoading, isMarketOpen }, setGlobalState] = React.useState<GlobalState>({
-    initialLoading: true,
-  })
+  const [globalState, setGlobalState] = React.useState<GlobalState>(defaultGlobalState)
+
+  const queries = useQueries([
+    {
+      queryKey: '/next-holiday-date',
+      enabled: false,
+      select: (data: any) => data[0].date,
+    },
+    {
+      queryKey: '/ref-data/symbols',
+      refetchInterval: 10 * 60 * 1000,
+      refetchIntervalInBackground: true,
+      onSuccess: (data: any) => {
+        setGlobalState(prevState => ({
+          ...prevState,
+          refSymbolsMap: new Map(
+            (data as any[]).map(({ symbol, ...rest }) => {
+              return [symbol, rest]
+            })
+          ),
+        }))
+      },
+    },
+  ])
+
+  const allQueriesSuccessful = queries.every(query => query.isSuccess)
+  const { initialLoading, isMarketOpen } = globalState
 
   React.useEffect(() => {
-    if (isMarketOpen !== undefined) {
-      console.log('set timeout')
+    if (initialLoading && isMarketOpen !== undefined && allQueriesSuccessful) {
       setTimeout(() => {
         setGlobalState(prevState => ({
           ...prevState,
           initialLoading: false,
         }))
-      }, 5000)
+      }, 3000)
     }
-  }, [isMarketOpen])
+  }, [initialLoading, isMarketOpen, allQueriesSuccessful])
 
-  const { refetch } = useQuery('/market-status', {
-    enabled: false,
-    onSuccess: (response: AxiosResponse<{ isUSMarketOpen: boolean }>) => {
-      console.log('isUSMarketOpen', response.data.isUSMarketOpen)
-      setGlobalState(prevState => ({
-        ...prevState,
-        isMarketOpen: response.data.isUSMarketOpen,
-      }))
-    },
-  })
+  const theme = React.useMemo(() => {
+    if (initialLoading) {
+      return dark
+    }
+
+    return isMarketOpen ? light : dark
+  }, [initialLoading, isMarketOpen])
+
+  const {
+    isLoading: isLoadingNextHoliday,
+    data: nextHolidayDate,
+    refetch: fetchNextHolidayDate,
+  } = queries[0]
 
   React.useEffect(() => {
-    refetch()
+    const est = utcToZonedTime(new Date(), timeZone)
+    const midnightEst = zonedTimeToUtc(`${yyyymmdd(est, '-')} 00:00`, timeZone)
+
+    const msUntilMidnightEst = () => {
+      const now = new Date().getTime()
+      return midnightEst.setDate(midnightEst.getHours() + 24) - now
+    }
+
+    let timeoutID: any
+
+    /* Refetch next holiday date at midnight EST of every day */
+    const atMidnightEst = () => {
+      fetchNextHolidayDate()
+      timeoutID = setTimeout(atMidnightEst, msUntilMidnightEst())
+    }
+
+    timeoutID = setTimeout(atMidnightEst, msUntilMidnightEst())
+
+    /* Fetch next holiday date */
+    fetchNextHolidayDate()
+
+    return () => {
+      clearTimeout(timeoutID)
+    }
   }, [])
 
-  /* Recursively check if US stock market is open at:
-  9:30AM, 1:00PM (early close on holidays), and 4:00PM EST */
+  const marketStatusLoaded = React.useRef(false)
+
   React.useEffect(() => {
+    let timeoutID: any
+
     const est = utcToZonedTime(new Date(), timeZone)
     let marketTimes = getMarketTimes(est)
 
+    /* Get ms until next market event: open, early close, or regular close time */
     const msUntilNextEvent = (): number => {
       console.log('now', new Date())
+
       const now = new Date().getTime()
 
       if (now < marketTimes.open) {
@@ -95,42 +135,62 @@ export default () => {
         return marketTimes.close - now
       }
 
+      /* If all events have passed, move all market times a day forward */
       est.setHours(est.getHours() + 24)
       marketTimes = getMarketTimes(est)
+
       return marketTimes.open - now
     }
 
-    let timeoutID: any
+    const setMarketStatus = () => {
+      const { open, earlyClose, close } = marketTimes
 
-    const fetch = () => {
-      refetch()
-      const delay = msUntilNextEvent()
-      console.log(delay / 1000 / 60)
-      timeoutID = setTimeout(fetch, delay)
+      const now = new Date().getTime()
+      const isWeekday = est.getDate() !== 0 && est.getDate() !== 6
+      const isHoliday = yyyymmdd(est, '-') === nextHolidayDate
+      const isMarketHours = now >= open && now < (isHoliday ? earlyClose : close)
+
+      if (isWeekday && isMarketHours) {
+        setGlobalState(prevState => ({
+          ...prevState,
+          isMarketOpen: true,
+        }))
+      } else {
+        setGlobalState(prevState => ({
+          ...prevState,
+          isMarketOpen: false,
+        }))
+      }
     }
 
-    const delay = msUntilNextEvent()
-    console.log(delay / 1000 / 60)
-    timeoutID = setTimeout(fetch, delay)
+    /* Set market status at every event time */
+    const onMarketEvent = () => {
+      setMarketStatus()
+      timeoutID = setTimeout(onMarketEvent, msUntilNextEvent())
+    }
+
+    timeoutID = setTimeout(onMarketEvent, msUntilNextEvent())
+
+    /* Set market status */
+    if (!marketStatusLoaded.current && !isLoadingNextHoliday) {
+      marketStatusLoaded.current = true
+      setMarketStatus()
+    }
 
     return () => {
       clearTimeout(timeoutID)
     }
-  }, [])
-
-  const theme = React.useMemo(() => {
-    if (initialLoading) {
-      return dark
-    }
-
-    return isMarketOpen ? light : dark
-  }, [initialLoading, isMarketOpen])
+  }, [isLoadingNextHoliday, nextHolidayDate])
 
   return (
     <StyledEngineProvider injectFirst>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <App isLoading={initialLoading} />
+        <SnackbarProvider maxSnack={3} preventDuplicate>
+          <GlobalContext.Provider value={globalState}>
+            <App isLoading={initialLoading} />
+          </GlobalContext.Provider>
+        </SnackbarProvider>
       </ThemeProvider>
     </StyledEngineProvider>
   )

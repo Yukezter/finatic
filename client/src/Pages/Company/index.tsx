@@ -2,8 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable jsx-a11y/mouse-events-have-key-events */
 import React from 'react'
-import { AxiosResponse } from 'axios'
-import { useParams } from 'react-router-dom'
+import { useParams, Redirect } from 'react-router-dom'
 import { styled } from '@mui/material/styles'
 import { useQuery } from 'react-query'
 import { Theme } from '@mui/material'
@@ -18,6 +17,7 @@ import Skeleton from '@mui/material/Skeleton'
 import Divider from '@mui/material/Divider'
 
 import { group, abbreviate, percent } from '../../Utils/numberFormats'
+import { GlobalContext } from '../../Context/Global'
 import { Button, Link } from '../../Components'
 import PriceDisplayAndChart from './PriceDisplayAndChart'
 import EarningsChart from './EarningsChart'
@@ -52,70 +52,71 @@ const Stats = ({ symbol }: { symbol: string }) => {
   const { isSuccess, data } = useQuery<any, Error>({
     queryKey: `/stock/${symbol}/stats`,
     cacheTime: 1000 * 30,
-    select: res => [
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    select: data => [
       {
         name: 'Market cap',
-        value: abbreviate(res.data.marketcap),
+        value: abbreviate(data.marketcap, '-'),
       },
       {
         name: '52 Wk High',
-        value: group(res.data.week52high),
+        value: group(data.week52high, '-'),
       },
       {
         name: '52 Wk Low',
-        value: group(res.data.week52low),
+        value: group(data.week52low, '-'),
       },
       {
         name: '52 Wk Change',
-        value: group(res.data.week52change),
+        value: group(data.week52change, '-'),
       },
       {
         name: 'Shares',
-        value: abbreviate(res.data.sharesOutstanding),
+        value: abbreviate(data.sharesOutstanding, '-'),
       },
       {
         name: 'P/E Ratio',
-        value: group(res.data.peRatio),
+        value: group(data.peRatio, '-'),
       },
       {
         name: 'Div/Yield',
-        value: percent(res.data.dividendYield),
+        value: percent(data.dividendYield, '-'),
       },
       {
         name: 'Beta',
-        value: group(res.data.beta),
+        value: group(data.beta, '-'),
       },
       {
         name: 'Avg 10D Vol',
-        value: abbreviate(res.data.avg10Volume),
+        value: abbreviate(data.avg10Volume, '-'),
       },
       {
         name: 'Avg 30D Vol',
-        value: abbreviate(res.data.avg30Volume),
+        value: abbreviate(data.avg30Volume, '-'),
       },
       {
         name: 'TTM EPS',
-        value: group(res.data.ttmEPS),
+        value: group(data.ttmEPS, '-'),
       },
       {
         name: 'TTM Div Rate',
-        value: group(res.data.ttmDividendRate),
+        value: group(data.ttmDividendRate, '-'),
       },
       {
         name: '200 MDA',
-        value: group(res.data.day200MovingAvg),
+        value: group(data.day200MovingAvg, '-'),
       },
       {
         name: '50 MDA',
-        value: group(res.data.day50MovingAvg),
+        value: group(data.day50MovingAvg, '-'),
       },
       {
         name: '5Y Change',
-        value: percent(res.data.year5ChangePercent),
+        value: percent(data.year5ChangePercent, '-'),
       },
       {
         name: 'Max Change',
-        value: percent(res.data.maxChangePercent),
+        value: percent(data.maxChangePercent, '-'),
       },
     ],
   })
@@ -132,7 +133,7 @@ const Stats = ({ symbol }: { symbol: string }) => {
         rowSpacing={{ xs: 0.5, sm: 0 }}
         columnSpacing={{ xs: 4, sm: 2 }}
       >
-        {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any = {}, index: number) => (
+        {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any, index: number) => (
           // eslint-disable-next-line react/no-array-index-key
           <Grid key={index} component={ListItem} disableGutters item xs={6} sm={3}>
             <>
@@ -183,7 +184,7 @@ const displayHeadquarters = (
 const maxLength = 400
 
 const About = ({ symbol }: { symbol: string }) => {
-  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>({
+  const { isSuccess, data } = useQuery<any, Error>({
     queryKey: `/stock/${symbol}/company`,
     cacheTime: 1000 * 30,
   })
@@ -193,7 +194,7 @@ const About = ({ symbol }: { symbol: string }) => {
   return (
     <div>
       <Typography variant='h5' component='h4' paragraph>
-        {!isSuccess ? <Skeleton width='20%' /> : `About ${data!.data.companyName}`}
+        {!isSuccess ? <Skeleton width='20%' /> : `About ${data.companyName}`}
       </Typography>
       <Grid container rowSpacing={1} columnSpacing={4} marginBottom={2}>
         <Grid item xs={12} sm={6}>
@@ -203,7 +204,7 @@ const About = ({ symbol }: { symbol: string }) => {
             primaryTypographyProps={{
               color: 'textSecondary',
             }}
-            secondary={!isSuccess ? <Skeleton /> : data!.data.CEO || '-'}
+            secondary={!isSuccess ? <Skeleton width={30} /> : data.CEO || '-'}
             secondaryTypographyProps={{
               color: 'textPrimary',
             }}
@@ -217,7 +218,7 @@ const About = ({ symbol }: { symbol: string }) => {
             primaryTypographyProps={{
               color: 'textSecondary',
             }}
-            secondary={!isSuccess ? <Skeleton /> : group(data!.data.employees) || '-'}
+            secondary={!isSuccess ? <Skeleton width={30} /> : group(data.employees, '-')}
             secondaryTypographyProps={{
               color: 'textPrimary',
             }}
@@ -233,9 +234,9 @@ const About = ({ symbol }: { symbol: string }) => {
             }}
             secondary={
               !isSuccess ? (
-                <Skeleton />
+                <Skeleton width={60} />
               ) : (
-                displayHeadquarters(data!.data.city, data!.data.state, data!.data.country)
+                displayHeadquarters(data.city, data.state, data.country)
               )
             }
             secondaryTypographyProps={{
@@ -248,14 +249,18 @@ const About = ({ symbol }: { symbol: string }) => {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Typography variant='body1' component='p' paragraph>
           {!isSuccess ? (
-            <Skeleton />
-          ) : data!.data.description.length > maxLength && !readMore ? (
-            `${data!.data.description.slice(0, maxLength - 3)}...`
+            <>
+              <Skeleton width='100%' />
+              <Skeleton width='100%' />
+              <Skeleton width='80%' />
+            </>
+          ) : data.description.length > maxLength && !readMore ? (
+            `${data.description.slice(0, maxLength - 3)}...`
           ) : (
-            data!.data.description
+            data.description
           )}
         </Typography>
-        {isSuccess && data!.data.description.length > maxLength && (
+        {isSuccess && data.description.length > maxLength && (
           <Button variant='outlined' onClick={() => setReadMore(prev => !prev)}>
             Read More
           </Button>
@@ -266,7 +271,7 @@ const About = ({ symbol }: { symbol: string }) => {
 }
 
 const News = ({ symbol }: { symbol: string }) => {
-  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>(`/stock/${symbol}/news`)
+  const { isSuccess, data } = useQuery<any, Error>(`/stock/${symbol}/news`)
 
   return (
     <section>
@@ -292,7 +297,7 @@ const News = ({ symbol }: { symbol: string }) => {
                 />
               </ListItem>
             ))
-          : data!.data.map((article: any) => (
+          : data.map((article: any) => (
               <ListItem key={article.url} className={classes.article} disablePadding>
                 <ListItemText
                   disableTypography
@@ -331,7 +336,13 @@ const News = ({ symbol }: { symbol: string }) => {
 }
 
 export default ({ theme }: { theme: Theme }) => {
+  const globalState = React.useContext(GlobalContext)
+  const { refSymbolsMap } = globalState
   const { symbol }: { symbol: string } = useParams()
+
+  if (!refSymbolsMap.has(symbol)) {
+    return <Redirect to='/404' />
+  }
 
   return (
     <Root>
@@ -341,7 +352,7 @@ export default ({ theme }: { theme: Theme }) => {
             <Typography variant='h2' component='h1' style={{ lineHeight: 1 }}>
               {symbol}
             </Typography>
-            <PriceDisplayAndChart theme={theme} symbol={symbol} />
+            <PriceDisplayAndChart globalState={globalState} theme={theme} symbol={symbol} />
           </Grid>
           <Grid item xs={12}>
             <About symbol={symbol} />
@@ -353,7 +364,7 @@ export default ({ theme }: { theme: Theme }) => {
             <EarningsChart symbol={symbol} theme={theme} />
           </Grid>
           <Grid item xs={12}>
-            <Related symbol={symbol} />
+            <Related globalState={globalState} symbol={symbol} />
           </Grid>
         </Grid>
         <Grid item xs={12} lg={4}>

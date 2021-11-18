@@ -1,33 +1,17 @@
 import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import { QueryClient, QueryClientProvider, QueryFunction } from 'react-query'
 
 import App from './App'
 import reportWebVitals from './reportWebVitals'
 
-interface QueryPromise extends Promise<AxiosResponse> {
-  cancel?: () => void
-}
-
-const defaultQueryFn: QueryFunction<unknown, any> = ({
-  queryKey,
-}: {
-  queryKey: string[]
-}) => {
-  const { CancelToken } = axios
-  const source = CancelToken.source()
-
-  const promise: QueryPromise = axios.get(queryKey[0], {
-    cancelToken: source.token,
+const defaultQueryFn: QueryFunction<any> = async ({ queryKey, signal }) => {
+  const response = await axios.get(`/api${queryKey[0] as string}`, {
+    signal,
   })
 
-  promise.cancel = () => {
-    source.cancel(`Requst to: ${queryKey[0]} has been canceled.`)
-    console.log(`Requst to: ${queryKey[0]} has been canceled.`)
-  }
-
-  return promise
+  return response.data
 }
 
 const queryClient = new QueryClient({

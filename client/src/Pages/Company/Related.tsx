@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React from 'react'
 import { useHistory } from 'react-router-dom'
-import { AxiosResponse } from 'axios'
 import { useQuery } from 'react-query'
 import { styled } from '@mui/material'
 // import createStyles from '@mui/styles/createStyles'
@@ -18,6 +17,7 @@ import ChevronRight from '@mui/icons-material/ChevronRight'
 import { percent } from '../../Utils/numberFormats'
 import { useEventSource, useQuotes } from '../../Hooks'
 import { IconButton } from '../../Components'
+import { GlobalState } from '../../Context/Global'
 
 const PREFIX = 'Related'
 
@@ -66,10 +66,19 @@ const Root = styled('div')(({ theme }) => ({
   },
 }))
 
-const RelatedSymbolCard = ({ history, quote }: { history: any; quote: any }) => {
+const RelatedSymbolCard = ({
+  history,
+  quote = {},
+}: {
+  history: ReturnType<typeof useHistory>
+  quote: any
+}) => {
   return (
     <Card className={classes.card} variant='outlined'>
-      <CardActionArea onClick={() => history.push(`/company/${quote.symbol}`)}>
+      <CardActionArea
+        disabled={!quote.symbol}
+        onClick={() => history.push(`/company/${quote.symbol}`)}
+      >
         <CardContent className={`${classes.cardSize} ${classes.cardContent}`}>
           <Typography variant='body1' paragraph>
             {quote.companyName}
@@ -94,8 +103,8 @@ const RelatedSymbolCardContainer = ({
 }) => {
   const history = useHistory()
   const { isLoading, data } = useQuotes(
-    `/sse/stock/quote?symbols=${symbols.join(',')}`,
-    symbols
+    `/stock/quote`,
+    symbols.map(symbol => ({ symbol }))
   )
 
   React.useEffect(() => {
@@ -103,6 +112,16 @@ const RelatedSymbolCardContainer = ({
       setCardsLoading(false)
     }
   }, [isLoading])
+
+  // const messageEventCallback = React.useCallback((event: MessageEvent) => {
+  //   const { quote } = (JSON.parse(event.data) || [])[0] || {}
+
+  //   if (quote) {
+
+  //   }
+  // }, [])
+
+  // useEventSource(`/stock/quote?symbols=${symbols.join}`, messageEventCallback)
 
   return (
     <>
@@ -112,15 +131,18 @@ const RelatedSymbolCardContainer = ({
             <RelatedSymbolCard
               key={symbolData.symbol}
               history={history}
-              quote={symbolData.quote}
+              quote={symbolData.data}
             />
           ))}
     </>
   )
 }
 
-export default ({ symbol }: { symbol: string }) => {
-  const { isSuccess, data } = useQuery<AxiosResponse<any>, Error>(`/stock/${symbol}/peers`)
+const fallbackSymbols = ['AAPL', 'NVDA', 'F', 'CLNE', 'OCGN', 'SOFI']
+
+export default ({ globalState, symbol }: { globalState: GlobalState; symbol: string }) => {
+  const { refSymbolsMap } = globalState
+  const { isSuccess, data } = useQuery<any>(`/stock/${symbol}/peers`)
 
   const [cardsLoading, setCardsLoading] = React.useState(true)
 
@@ -150,25 +172,23 @@ export default ({ symbol }: { symbol: string }) => {
   const skeletonCards = React.useMemo(
     () => (
       <>
-        <Card className={classes.card} variant='outlined'>
-          <Skeleton className={classes.cardSize} variant='rectangular' />
-        </Card>
-        <Card className={classes.card} variant='outlined'>
-          <Skeleton className={classes.cardSize} variant='rectangular' />
-        </Card>
-        <Card className={classes.card} variant='outlined'>
-          <Skeleton className={classes.cardSize} variant='rectangular' />
-        </Card>
-        <Card className={classes.card} variant='outlined'>
-          <Skeleton className={classes.cardSize} variant='rectangular' />
-        </Card>
-        <Card className={classes.card} variant='outlined'>
-          <Skeleton className={classes.cardSize} variant='rectangular' />
-        </Card>
+        {Array.from(new Array(5)).map((_, index) => (
+          // eslint-disable-next-line react/no-array-index-key
+          <Card key={index} className={classes.card} variant='outlined'>
+            <Skeleton className={classes.cardSize} variant='rectangular' />
+          </Card>
+        ))}
       </>
     ),
     []
   )
+
+  const symbols = React.useMemo(() => {
+    if (!data) return []
+    // eslint-disable-next-line @typescript-eslint/no-shadow
+    const validated = data.filter((symbol: any) => refSymbolsMap.has(symbol))
+    return validated.length < 4 ? [...validated, ...fallbackSymbols] : data
+  }, [data, refSymbolsMap])
 
   return (
     <section>
@@ -199,8 +219,7 @@ export default ({ symbol }: { symbol: string }) => {
             <RelatedSymbolCardContainer
               skeletonCards={skeletonCards}
               setCardsLoading={setCardsLoading}
-              // symbols={data!.data}
-              symbols={['AAPL', 'NVDA', 'F', 'CLNE', 'OCGN', 'SOFI']}
+              symbols={symbols}
             />
           )}
         </div>

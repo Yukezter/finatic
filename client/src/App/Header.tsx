@@ -16,7 +16,8 @@ import useMediaQuery from '@mui/material/useMediaQuery'
 import { SearchState, SearchAction, SearchActionKind } from '../types'
 
 import { light } from '../theme'
-import { Wrapper, Icon, RouterLink, IconButton } from '../Components'
+import { LogoIcon, MenuIcon, MarketsIllustrationIcon, NewsIllustrationIcon } from '../Icons'
+import { Wrapper, RouterLink, IconButton } from '../Components'
 import Search from './Search'
 import FullScreenMenu from './FullScreenMenu'
 
@@ -113,8 +114,8 @@ const Root = styled('div')(({ theme }) => ({
   },
 
   [`& .${classes.illustration}`]: {
-    height: 150,
-    width: 150,
+    height: 180,
+    width: 180,
     marginLeft: '25%',
     [theme.breakpoints.up('sm')]: {
       height: 220,
@@ -222,7 +223,7 @@ export default () => {
   useQuery(`/search/${searchState.inputValue}`, {
     enabled: !!searchState.inputValue.length,
     notifyOnChangeProps: [],
-    onSuccess: ({ data }) => {
+    onSuccess: data => {
       dispatch({
         type: SearchActionKind.UPDATE_OPTIONS,
         payload: data,
@@ -246,7 +247,7 @@ export default () => {
       >
         <Toolbar className={classes.Toolbar} component='nav' variant='dense' disableGutters>
           <RouterLink className={classes.Logo} to='/'>
-            <Icon name='logo' title='Finatic' />
+            <LogoIcon title='Finatic' />
           </RouterLink>
           <Hidden smDown>
             <Search className={classes.Search} searchState={searchState} dispatch={dispatch} />
@@ -269,7 +270,7 @@ export default () => {
               },
             }}
           >
-            <Icon name='menu' title='Open Menu' height={30} />
+            <MenuIcon title='Open Menu' height={30} width={30} />
           </IconButton>
           <StyledEngineProvider injectFirst>
             <ThemeProvider theme={light}>
@@ -290,10 +291,11 @@ export default () => {
           maxWidth={false}
           disableGutters
         >
-          <Icon
-            name={location.pathname === '/news' ? 'news_illustration' : 'markets_illustration'}
-            className={classes.illustration}
-          />
+          {location.pathname === '/news' ? (
+            <NewsIllustrationIcon className={classes.illustration} />
+          ) : (
+            <MarketsIllustrationIcon className={classes.illustration} />
+          )}
         </Container>
       )}
     </Root>

@@ -3,12 +3,66 @@ import React from 'react'
 
 type Data = { [key: string]: string | number }
 
+type Order = 'asc' | 'desc'
+
 type CellRenderer =
   | string
   | JSX.Element
   | ((value: any | number, props?: any) => string | number | JSX.Element)
 
-type Order = 'asc' | 'desc'
+type SortTypes = 'alphanumeric' | 'datetime'
+
+type UserColumn = {
+  id: keyof Data
+  accessor?: (value: any) => any
+  Header: string | (() => string | number | JSX.Element)
+  Cell?: CellRenderer
+  width?: string | number
+  disableSort?: boolean
+  sortType?: SortTypes
+  filter?: (row: Row, value: any) => boolean
+}
+
+type DefaultColumn = {
+  id: keyof Data
+  Header: string | (() => string | number | JSX.Element)
+  Cell: CellRenderer
+  disableSort: boolean
+  sortType: SortTypes
+}
+
+interface Column extends DefaultColumn {
+  id: keyof Data
+  accessor: (value: any) => any
+  Header: string | (() => string | number | JSX.Element)
+  Cell: CellRenderer
+  isVisible?: boolean
+  isSorted?: boolean
+  isSortedDesc?: boolean
+  disableSort: boolean
+  sortType: SortTypes
+  filter: (row: Row, value: any) => boolean
+  getHeaderProps?: (props?: any) => any
+  render?: () => string | number | JSX.Element
+}
+
+type Row = {
+  id: number | string
+  original: any
+  index: number
+  allCells: Cell[]
+  cells: Cell[]
+  values: any
+  getRowProps: (props?: any) => any
+}
+
+type Cell = {
+  column: Column
+  row: Row
+  value: any
+  getCellProps: (props?: any) => any
+  render: () => string | number | JSX.Element
+}
 
 type State = {
   order: Order
@@ -37,57 +91,6 @@ type InitialState = {
   filters?: Array<{ id: keyof Data; value: any }>
   rowsPerPage?: number
   hiddenColumns?: string[]
-}
-
-type SortTypes = 'alphanumeric' | 'datetime'
-
-type UserColumn = {
-  id: keyof Data
-  accessor?: (value: any) => any
-  Header: string | (() => string | number | JSX.Element)
-  Cell?: CellRenderer
-  width?: string | number
-  sortType?: SortTypes
-  filter?: (row: Row, value: any) => boolean
-}
-
-type DefaultColumn = {
-  id: keyof Data
-  Header: string | (() => string | number | JSX.Element)
-  Cell: CellRenderer
-  sortType: SortTypes
-}
-
-interface Column extends DefaultColumn {
-  id: keyof Data
-  accessor: (value: any) => any
-  Header: string | (() => string | number | JSX.Element)
-  Cell: CellRenderer
-  isVisible?: boolean
-  isSorted?: boolean
-  isSortedDesc?: boolean
-  sortType: SortTypes
-  filter: (row: Row, value: any) => boolean
-  getHeaderProps?: (props?: any) => any
-  render?: () => string | number | JSX.Element
-}
-
-type Row = {
-  id: number | string
-  original: any
-  index: number
-  allCells: Cell[]
-  cells: Cell[]
-  values: any
-  getRowProps: (props?: any) => any
-}
-
-type Cell = {
-  column: Column
-  row: Row
-  value: any
-  getCellProps: (props?: any) => any
-  render: () => string | number | JSX.Element
 }
 
 type TableProps = {
@@ -165,7 +168,6 @@ const defaultGetHeaderGroupProps = (props: any) => ({
 
 const defaultGetHeaderProps = (props: any, column: DefaultColumn) => ({
   key: `header_${column.id}`,
-  // colSpan: column.totalVisibleHeaderCount,
   role: 'columnheader',
   ...props,
 })
@@ -223,8 +225,7 @@ export default (props: TableProps): Complete<InstanceProps> => {
           return {
             ...state,
             orderBy: action.payload,
-            order:
-              state.orderBy === action.payload && state.order === 'asc' ? 'desc' : 'asc',
+            order: state.orderBy === action.payload && state.order === 'asc' ? 'desc' : 'asc',
           }
         case ActionType.SET_PAGE:
           return {
@@ -271,6 +272,7 @@ export default (props: TableProps): Complete<InstanceProps> => {
         ({
           accessor = value => value,
           Cell = defaultRenderer,
+          disableSort = false,
           sortType = 'alphanumeric',
           filter = () => false,
           ...column
@@ -278,6 +280,7 @@ export default (props: TableProps): Complete<InstanceProps> => {
           return {
             accessor,
             Cell,
+            disableSort,
             sortType,
             filter,
             ...column,
@@ -335,9 +338,12 @@ export default (props: TableProps): Complete<InstanceProps> => {
   Object.assign(getInstance(), { visibleColumns, headers: visibleColumns })
 
   const createSetOrderBy = React.useCallback(
-    (id: keyof Data) => () => {
-      dispatch({ type: ActionType.SET_ORDER_BY, payload: id })
-    },
+    ({ id, disableSort }: Column) =>
+      () => {
+        if (!disableSort) {
+          dispatch({ type: ActionType.SET_ORDER_BY, payload: id })
+        }
+      },
     [dispatch, visibleColumns]
   )
 
@@ -348,12 +354,9 @@ export default (props: TableProps): Complete<InstanceProps> => {
     [dispatch]
   )
 
-  const setFilters = React.useCallback(
-    (filters: Array<{ id: keyof Data; value: any }>) => {
-      dispatch({ type: ActionType.SET_FILTERS, payload: filters })
-    },
-    []
-  )
+  const setFilters = React.useCallback((filters: Array<{ id: keyof Data; value: any }>) => {
+    dispatch({ type: ActionType.SET_FILTERS, payload: filters })
+  }, [])
 
   const setHiddenColumns = React.useCallback(
     hiddenColumns => {
@@ -393,7 +396,7 @@ export default (props: TableProps): Complete<InstanceProps> => {
 
   allColumns.forEach(column => {
     column.getHeaderProps = (p = {}) => ({
-      onClick: createSetOrderBy(column.id),
+      onClick: createSetOrderBy(column),
       ...defaultGetHeaderProps(p, column),
     })
 
@@ -416,7 +419,7 @@ export default (props: TableProps): Complete<InstanceProps> => {
 
         cell.render = () => {
           if (typeof column.Cell === 'function') {
-            return column.Cell(cell.value, { column })
+            return column.Cell(cell.value, { cell })
           }
 
           return column.Cell
