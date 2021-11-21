@@ -635,7 +635,7 @@ export const UpcomingEarningsTable = () => {
             case 'other':
               return 'During market'
             default:
-              return 'Before open'
+              return 'N/A'
           }
         },
       },

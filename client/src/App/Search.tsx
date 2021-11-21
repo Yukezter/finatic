@@ -2,8 +2,6 @@
 import classNames from 'classnames'
 import { styled } from '@mui/material/styles'
 import { useHistory } from 'react-router-dom'
-// import { alpha } from '@mui/material/styles'
-// import InputBase from '@mui/material/InputBase'
 import Typography from '@mui/material/Typography'
 import MenuList from '@mui/material/MenuList'
 import MenuItem from '@mui/material/MenuItem'
@@ -79,6 +77,17 @@ type Props = {
 
 const Search: React.FC<Props> = ({ searchState, dispatch, className }: Props) => {
   const history = useHistory()
+
+  // const refSymbolsArray = React.useMemo(() => {
+  //   if (refSymbolsMap) {
+  //     return Array.from(refSymbolsMap, ([symbol, data]) => ({
+  //       symbol,
+  //       ...data,
+  //     }))
+  //   }
+
+  //   return []
+  // }, [refSymbolsMap])
 
   const filterOptions = createFilterOptions({
     trim: true,

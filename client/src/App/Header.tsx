@@ -229,14 +229,6 @@ export default () => {
     }
   }, [illustrationContainerEl])
 
-  // const refCallback = React.useCallback(node => {
-  //   console.log('header ref', headerRef.current)
-  //   console.log('illustration container ref', headerRef.current)
-  //   if (node !== null) {
-  //     console.log('illustration container node', node)
-  //   }
-  // }, [])
-
   const [searchState, dispatch] = React.useReducer(searchReducer, initialState)
 
   useQuery(`/search/${searchState.inputValue}`, {

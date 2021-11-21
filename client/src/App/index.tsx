@@ -9,7 +9,7 @@ import { defaultGlobalState, GlobalContext, GlobalState } from '../Context/Globa
 import { light, dark } from '../theme'
 import App from './App'
 
-const timeZone = 'America/New_York'
+const tz = 'America/New_York'
 
 type MarketTimes = {
   open: number
@@ -21,9 +21,9 @@ type MarketTimes = {
 const getMarketTimes = (date: Date): MarketTimes => {
   const formatted = yyyymmdd(date, '-')
   return {
-    open: zonedTimeToUtc(`${formatted} 09:30:00`, timeZone).getTime(),
-    earlyClose: zonedTimeToUtc(`${formatted} 13:00:00`, timeZone).getTime(),
-    close: zonedTimeToUtc(`${formatted} 16:00:00`, timeZone).getTime(),
+    open: zonedTimeToUtc(`${formatted} 09:30:00`, tz).getTime(),
+    earlyClose: zonedTimeToUtc(`${formatted} 13:00:00`, tz).getTime(),
+    close: zonedTimeToUtc(`${formatted} 16:00:00`, tz).getTime(),
   }
 }
 
@@ -80,8 +80,8 @@ export default () => {
   } = queries[0]
 
   React.useEffect(() => {
-    const est = utcToZonedTime(new Date(), timeZone)
-    const midnightEst = zonedTimeToUtc(`${yyyymmdd(est, '-')} 00:00`, timeZone)
+    const est = utcToZonedTime(new Date(), tz)
+    const midnightEst = zonedTimeToUtc(`${yyyymmdd(est, '-')} 00:00`, tz)
 
     const msUntilMidnightEst = () => {
       const now = new Date().getTime()
@@ -111,7 +111,7 @@ export default () => {
   React.useEffect(() => {
     let timeoutID: any
 
-    const est = utcToZonedTime(new Date(), timeZone)
+    const est = utcToZonedTime(new Date(), tz)
     let marketTimes = getMarketTimes(est)
 
     /* Get ms until next market event: open, early close, or regular close time */
@@ -133,6 +133,7 @@ export default () => {
       }
 
       /* If all events have passed, move all market times a day forward */
+      console.log('testing!!!')
       est.setHours(est.getHours() + 24)
       marketTimes = getMarketTimes(est)
 
@@ -143,11 +144,11 @@ export default () => {
       const { open, earlyClose, close } = marketTimes
 
       const now = new Date().getTime()
-      const isWeekday = est.getDate() !== 0 && est.getDate() !== 6
+      const isWorkWeek = est.getDay() !== 0 && est.getDay() !== 6
       const isHoliday = yyyymmdd(est, '-') === nextHolidayDate
       const isMarketHours = now >= open && now < (isHoliday ? earlyClose : close)
 
-      if (isWeekday && isMarketHours) {
+      if (isWorkWeek && isMarketHours) {
         setGlobalState(prevState => ({
           ...prevState,
           isMarketOpen: true,
@@ -160,6 +161,12 @@ export default () => {
       }
     }
 
+    /* Set market status */
+    if (!marketStatusLoaded.current && !isLoadingNextHoliday) {
+      marketStatusLoaded.current = true
+      setMarketStatus()
+    }
+
     /* Set market status at every event time */
     const onMarketEvent = () => {
       setMarketStatus()
@@ -167,12 +174,6 @@ export default () => {
     }
 
     timeoutID = setTimeout(onMarketEvent, msUntilNextEvent())
-
-    /* Set market status */
-    if (!marketStatusLoaded.current && !isLoadingNextHoliday) {
-      marketStatusLoaded.current = true
-      setMarketStatus()
-    }
 
     return () => {
       clearTimeout(timeoutID)

@@ -298,8 +298,9 @@ const News = ({ symbol }: { symbol: string }) => {
 
 export default ({ theme }: { theme: Theme }) => {
   const globalState = React.useContext(GlobalContext)
-  const { refSymbolsMap } = globalState
   const { symbol }: { symbol: string } = useParams()
+
+  const { refSymbolsMap } = globalState
 
   if (!refSymbolsMap.has(symbol)) {
     console.log(symbol)
