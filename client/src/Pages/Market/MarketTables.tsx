@@ -22,18 +22,17 @@ import TableSortLabel from '@mui/material/TableSortLabel'
 import TablePagination from '@mui/material/TablePagination'
 import Popper from '@mui/material/Popper'
 import MenuList from '@mui/material/MenuList'
-import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
 import Paper from '@mui/material/Paper'
 import ChevronLeft from '@mui/icons-material/ChevronLeft'
 import ChevronRight from '@mui/icons-material/ChevronRight'
 
 import { yyyymmdd } from '../../Utils'
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { currency, percent } from '../../Utils/numberFormats'
+import { currency } from '../../Utils/numberFormats'
 import { useTable } from '../../Hooks'
+import { UserColumn } from '../../Hooks/useTable'
 import { CalendarIcon, VeritcalDotsIcon, MarketDirectionIcon } from '../../Icons'
-import { IconButton, RouterLink } from '../../Components'
+import { IconButton, RouterLink, MenuItem } from '../../Components'
 
 import 'react-calendar/dist/Calendar.css'
 
@@ -61,13 +60,6 @@ const Root = styled('div')(({ theme }) => ({
 
   [`& .${classes.Popper}`]: {
     zIndex: theme.zIndex.mobileStepper,
-  },
-
-  [`& .${classes.selectedMenuItem}`]: {
-    backgroundColor: theme.palette.action.selected,
-    '&:hover': {
-      backgroundColor: theme.palette.action.selected,
-    },
   },
 
   [`& .${classes.table}`]: {
@@ -104,6 +96,10 @@ const Root = styled('div')(({ theme }) => ({
     [`&.market-movers .${classes.th}:first-of-type`]: {
       width: '40%',
     },
+
+    // [`&.upcoming-earnings .${classes.th}:nth-of-type(3)`]: {
+    //   minWidth: 90,
+    // },
   },
 
   [`& .${classes.tr}`]: {
@@ -320,7 +316,6 @@ const MarketMoversMenu = ({ selectedOption, setSelectedOption }: any) => {
               {menuOptions.map(option => (
                 <MenuItem
                   key={option.value}
-                  classes={{ selected: classes.selectedMenuItem }}
                   selected={option.value === selectedOption.value}
                   onClick={handleSelect(option)}
                 >
@@ -356,7 +351,7 @@ export const MarketMoversTable = () => {
     }
   )
 
-  const columns = React.useMemo(
+  const columns: UserColumn[] = React.useMemo(
     () => [
       {
         id: 'companyName',
@@ -369,11 +364,13 @@ export const MarketMoversTable = () => {
       },
       {
         id: 'latestPrice',
+        sortType: 'number',
         Header: 'Price',
         Cell: (value: number) => currency(value, '-'),
       },
       {
         id: 'change',
+        sortType: 'number',
         Header: 'Today',
         Cell: (value: number) => (
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -434,7 +431,6 @@ export const MarketMoversTable = () => {
           {selectedOption.label}
         </Typography>
         <MarketMoversMenu
-          classes={classes}
           selectedOption={selectedOption}
           setSelectedOption={setSelectedOption}
         />
@@ -508,9 +504,7 @@ const CalendarMenu = React.memo(({ data, setFilters }: CalendarMenuProps) => {
 
     return [
       ...new Set<Date>(
-        (data as any[]).map((report: any) =>
-          utcToZonedTime(report.reportDate, 'America/New_York')
-        )
+        data.map((report: any) => utcToZonedTime(report.reportDate, 'America/New_York'))
       ),
     ]
   }, [data])
@@ -541,7 +535,7 @@ const CalendarMenu = React.memo(({ data, setFilters }: CalendarMenuProps) => {
     if (!selectedDate) {
       setFilters([])
     } else {
-      setFilters([{ id: 'reportDate', value: yyyymmdd(selectedDate, '-') }])
+      setFilters([{ id: 'reportDate', value: selectedDate }])
     }
   }, [selectedDate])
 
@@ -586,12 +580,8 @@ const CalendarMenu = React.memo(({ data, setFilters }: CalendarMenuProps) => {
                 nextLabel={<ChevronRight />}
                 prev2Label={null}
                 next2Label={null}
-                minDate={dates.find(
-                  date => date.getTime() === Math.min(...dates.map(d => d.getTime()))
-                )}
-                maxDate={dates.find(
-                  date => date.getTime() === Math.max(...dates.map(d => d.getTime()))
-                )}
+                minDate={new Date(Math.min(...dates.map(date => date.getTime())))}
+                maxDate={new Date(Math.max(...dates.map(date => date.getTime())))}
                 minDetail='month'
                 tileDisabled={({ date: tile }) => {
                   return !dates.find(date => yyyymmdd(date) === yyyymmdd(tile))
@@ -619,7 +609,7 @@ export const UpcomingEarningsTable = () => {
     },
   })
 
-  const columns = React.useMemo(
+  const columns: UserColumn[] = React.useMemo(
     () => [
       {
         id: 'symbol',
@@ -627,28 +617,38 @@ export const UpcomingEarningsTable = () => {
       },
       {
         id: 'reportDate',
-        accessor: (value: string) => {
-          console.log('valueeeee', value)
-          return !value ? new Date() : utcToZonedTime(value, 'America/New_York').getTime()
-        },
         Header: 'Report Date',
+        sortType: 'datetime',
+        accessor: (value: Date = new Date()) => utcToZonedTime(value, 'America/New_York'),
         Cell: (_: number, { cell }: any) => cell.row.original.reportDate,
-        filter: (row: any, value: number) => row.original.reportDate === value,
+        filter: (row: any, value: Date) => yyyymmdd(row.values.reportDate) === yyyymmdd(value),
       },
       {
         id: 'announceTime',
-        Header: 'Announce Time',
-        Cell: (value: string | null) => value || 'N/A',
+        Header: 'Report Time',
+        Cell: (value: string | null) => {
+          switch (value) {
+            case 'bto':
+              return 'Before open'
+            case 'amc':
+              return 'After close'
+            case 'other':
+              return 'During market'
+            default:
+              return 'Before open'
+          }
+        },
       },
       {
         id: 'consensusEPS',
         Header: 'Estimate EPS',
+        sortType: 'number',
       },
       {
         id: 'fiscalPeriod',
-        Header: 'Period',
-        Cell: (_: Date, { cell }: any) => cell.row.original.fiscalPeriod,
+        Header: 'Fiscal Period',
         disableSort: true,
+        Cell: (_: Date, { cell }: any) => cell.row.original.fiscalPeriod,
       },
     ],
     []
@@ -682,7 +682,7 @@ export const UpcomingEarningsTable = () => {
     initialState: {
       orderBy: 'reportDate',
       rowsPerPage: 5,
-      hiddenColumns: matches ? ['announceTime'] : [],
+      hiddenColumns: matches ? ['consensusEPS'] : [],
     },
   })
 
@@ -691,7 +691,7 @@ export const UpcomingEarningsTable = () => {
   React.useEffect(() => {
     if (isAfterFirstRender.current) {
       if (matches) {
-        setHiddenColumns(['announceTime'])
+        setHiddenColumns(['consensusEPS'])
       } else {
         setHiddenColumns([])
       }
@@ -767,7 +767,7 @@ export const UpcomingEarningsTable = () => {
                 )
               })}
             {emptyRows > 0 && (
-              <TableRow style={{ height: emptyRows * 56 }}>
+              <TableRow style={{ height: emptyRows * 57.25 }}>
                 <TableCell colSpan={headers.length} />
               </TableRow>
             )}

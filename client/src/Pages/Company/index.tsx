@@ -8,13 +8,14 @@ import { useQuery } from 'react-query'
 import { Theme } from '@mui/material'
 // import createStyles from '@mui/styles/createStyles';
 // import makeStyles from '@mui/styles/makeStyles';
+import Container from '@mui/material/Container'
+import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
 import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
-import Divider from '@mui/material/Divider'
 
 import { group, abbreviate, percent } from '../../Utils/numberFormats'
 import { GlobalContext } from '../../Context/Global'
@@ -31,20 +32,21 @@ const classes = {
   article: `${PREFIX}-article`,
 }
 
-// TODO jss-to-styled codemod: The Fragment root was replaced by div. Change the tag if needed.
 const Root = styled('div')(({ theme }) => ({
   width: '100%',
-  // paddingTop: theme.spacing(8),
 
   [`& .${classes.link}`]: {
     textDecoration: 'none',
   },
 
   [`& .${classes.statsListItemText}`]: {
-    [theme.breakpoints.down('sm')]: {
-      display: 'flex',
-      justifyContent: 'space-between',
-    },
+    marginTop: 0,
+    marginBottom: 0,
+    paddingTop: theme.spacing(1),
+    paddingBottom: theme.spacing(1),
+    display: 'flex',
+    justifyContent: 'space-between',
+    borderBottom: `1px solid ${theme.palette.divider}`,
   },
 }))
 
@@ -54,70 +56,22 @@ const Stats = ({ symbol }: { symbol: string }) => {
     cacheTime: 1000 * 30,
     // eslint-disable-next-line @typescript-eslint/no-shadow
     select: data => [
-      {
-        name: 'Market cap',
-        value: abbreviate(data.marketcap, '-'),
-      },
-      {
-        name: '52 Wk High',
-        value: group(data.week52high, '-'),
-      },
-      {
-        name: '52 Wk Low',
-        value: group(data.week52low, '-'),
-      },
-      {
-        name: '52 Wk Change',
-        value: group(data.week52change, '-'),
-      },
-      {
-        name: 'Shares',
-        value: abbreviate(data.sharesOutstanding, '-'),
-      },
-      {
-        name: 'P/E Ratio',
-        value: group(data.peRatio, '-'),
-      },
-      {
-        name: 'Div/Yield',
-        value: percent(data.dividendYield, '-'),
-      },
-      {
-        name: 'Beta',
-        value: group(data.beta, '-'),
-      },
-      {
-        name: 'Avg 10D Vol',
-        value: abbreviate(data.avg10Volume, '-'),
-      },
-      {
-        name: 'Avg 30D Vol',
-        value: abbreviate(data.avg30Volume, '-'),
-      },
-      {
-        name: 'TTM EPS',
-        value: group(data.ttmEPS, '-'),
-      },
-      {
-        name: 'TTM Div Rate',
-        value: group(data.ttmDividendRate, '-'),
-      },
-      {
-        name: '200 MDA',
-        value: group(data.day200MovingAvg, '-'),
-      },
-      {
-        name: '50 MDA',
-        value: group(data.day50MovingAvg, '-'),
-      },
-      {
-        name: '5Y Change',
-        value: percent(data.year5ChangePercent, '-'),
-      },
-      {
-        name: 'Max Change',
-        value: percent(data.maxChangePercent, '-'),
-      },
+      abbreviate(data.marketcap, '-'),
+      group(data.week52high, '-'),
+      group(data.week52low, '-'),
+      group(data.week52change, '-'),
+      abbreviate(data.sharesOutstanding, '-'),
+      group(data.peRatio, '-'),
+      percent(data.dividendYield, '-'),
+      group(data.beta, '-'),
+      abbreviate(data.avg10Volume, '-'),
+      abbreviate(data.avg30Volume, '-'),
+      group(data.ttmEPS, '-'),
+      group(data.ttmDividendRate, '-'),
+      group(data.day200MovingAvg, '-'),
+      group(data.day50MovingAvg, '-'),
+      percent(data.year5ChangePercent, '-'),
+      percent(data.maxChangePercent, '-'),
     ],
   })
 
@@ -128,35 +82,46 @@ const Stats = ({ symbol }: { symbol: string }) => {
       </Typography>
       <Grid
         component={List}
-        dense
+        // dense
         container
-        rowSpacing={{ xs: 0.5, sm: 0 }}
+        rowSpacing={0}
         columnSpacing={{ xs: 4, sm: 2 }}
       >
-        {(!isSuccess ? Array.from(Array(16)) : data).map((stat: any, index: number) => (
+        {[
+          'Market cap',
+          '52 Wk High',
+          '52 Wk Low',
+          '52 Wk Change',
+          'Shares',
+          'P/E Ratio',
+          'Div/Yield',
+          'Beta',
+          'Avg 10D Vol',
+          'Avg 30D Vol',
+          'TTM EPS',
+          'TTM Div Rate',
+          '200 MDA',
+          '50 MDA',
+          '5Y Change',
+          'Max Change',
+        ].map((name: any, index: number) => (
           // eslint-disable-next-line react/no-array-index-key
-          <Grid key={index} component={ListItem} disableGutters item xs={6} sm={3}>
-            <>
-              {!isSuccess ? (
-                <Skeleton width='100%' />
-              ) : (
-                <ListItemText
-                  className={classes.statsListItemText}
-                  primary={stat.name}
-                  primaryTypographyProps={{
-                    noWrap: true,
-                    color: 'textSecondary',
-                    style: {
-                      marginRight: 16,
-                    },
-                  }}
-                  secondary={stat.value}
-                  secondaryTypographyProps={{
-                    color: 'textPrimary',
-                  }}
-                />
-              )}
-            </>
+          <Grid key={index} component={ListItem} disablePadding item xs={6}>
+            <Container maxWidth={false} disableGutters>
+              <ListItemText
+                className={classes.statsListItemText}
+                primary={name}
+                primaryTypographyProps={{
+                  noWrap: true,
+                  color: 'textSecondary',
+                  style: { marginRight: 16 },
+                }}
+                secondary={!isSuccess ? <Skeleton width='100%' /> : data[index]}
+                secondaryTypographyProps={{
+                  color: 'textPrimary',
+                }}
+              />
+            </Container>
           </Grid>
         ))}
       </Grid>
@@ -181,7 +146,7 @@ const displayHeadquarters = (
   return address
 }
 
-const maxLength = 400
+const maxLength = 300
 
 const About = ({ symbol }: { symbol: string }) => {
   const { isSuccess, data } = useQuery<any, Error>({
@@ -189,7 +154,7 @@ const About = ({ symbol }: { symbol: string }) => {
     cacheTime: 1000 * 30,
   })
 
-  const [readMore, setReadMore] = React.useState(false)
+  const [showMore, setShowMore] = React.useState(false)
 
   return (
     <div>
@@ -204,12 +169,11 @@ const About = ({ symbol }: { symbol: string }) => {
             primaryTypographyProps={{
               color: 'textSecondary',
             }}
-            secondary={!isSuccess ? <Skeleton width={30} /> : data.CEO || '-'}
+            secondary={!isSuccess ? <Skeleton width={60} /> : data.CEO || '-'}
             secondaryTypographyProps={{
               color: 'textPrimary',
             }}
           />
-          {/* <Divider /> */}
         </Grid>
         <Grid item xs={12} sm={6}>
           <ListItemText
@@ -218,12 +182,11 @@ const About = ({ symbol }: { symbol: string }) => {
             primaryTypographyProps={{
               color: 'textSecondary',
             }}
-            secondary={!isSuccess ? <Skeleton width={30} /> : group(data.employees, '-')}
+            secondary={!isSuccess ? <Skeleton width={60} /> : group(data.employees, '-')}
             secondaryTypographyProps={{
               color: 'textPrimary',
             }}
           />
-          {/* <Divider /> */}
         </Grid>
         <Grid item xs={12}>
           <ListItemText
@@ -234,7 +197,7 @@ const About = ({ symbol }: { symbol: string }) => {
             }}
             secondary={
               !isSuccess ? (
-                <Skeleton width={60} />
+                <Skeleton width={100} />
               ) : (
                 displayHeadquarters(data.city, data.state, data.country)
               )
@@ -243,29 +206,35 @@ const About = ({ symbol }: { symbol: string }) => {
               color: 'textPrimary',
             }}
           />
-          {/* <Divider /> */}
+        </Grid>
+        <Grid item xs={12}>
+          <Typography variant='body1' component='p' paragraph>
+            {!isSuccess ? (
+              <>
+                <Skeleton width='100%' />
+                <Skeleton width='100%' />
+                <Skeleton width='80%' />
+              </>
+            ) : data.description.length > maxLength && !showMore ? (
+              `${data.description.slice(0, maxLength - 3)}...`
+            ) : (
+              data.description
+            )}
+          </Typography>
+          {isSuccess && data.description.length > maxLength && (
+            <Box width='100%' display='flex' justifyContent='center'>
+              <Button
+                size='small'
+                variant='text'
+                color='primary'
+                onClick={() => setShowMore(prev => !prev)}
+              >
+                Show {!showMore ? 'More' : 'Less'}
+              </Button>
+            </Box>
+          )}
         </Grid>
       </Grid>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <Typography variant='body1' component='p' paragraph>
-          {!isSuccess ? (
-            <>
-              <Skeleton width='100%' />
-              <Skeleton width='100%' />
-              <Skeleton width='80%' />
-            </>
-          ) : data.description.length > maxLength && !readMore ? (
-            `${data.description.slice(0, maxLength - 3)}...`
-          ) : (
-            data.description
-          )}
-        </Typography>
-        {isSuccess && data.description.length > maxLength && (
-          <Button variant='outlined' onClick={() => setReadMore(prev => !prev)}>
-            Read More
-          </Button>
-        )}
-      </div>
     </div>
   )
 }
@@ -275,12 +244,12 @@ const News = ({ symbol }: { symbol: string }) => {
 
   return (
     <section>
-      <Typography variant='h5' component='h4' gutterBottom>
+      {/* <Typography variant='h5' component='h4' gutterBottom>
         News
-      </Typography>
+      </Typography> */}
       <List dense>
         {!isSuccess
-          ? Array.from(Array(5)).map((_, index) => (
+          ? Array.from(Array(8)).map((_, index) => (
               // eslint-disable-next-line react/no-array-index-key
               <ListItem key={index} disablePadding>
                 <ListItemText
@@ -298,36 +267,28 @@ const News = ({ symbol }: { symbol: string }) => {
               </ListItem>
             ))
           : data.map((article: any) => (
-              <ListItem key={article.url} className={classes.article} disablePadding>
-                <ListItemText
-                  disableTypography
-                  primary={
-                    <Link
-                      variant='h6'
-                      href={article.url}
-                      sx={{
-                        mb: 1,
-                        ':hover': {
-                          textDecorationColor: theme => theme.palette.primary.main,
-                        },
-                      }}
-                    >
-                      {article.headline}
-                    </Link>
-                  }
-                  secondary={
-                    <Typography
-                      variant='body2'
-                      component='p'
-                      color='textSecondary'
-                      gutterBottom
-                    >
-                      {article.summary.length > 125
-                        ? `${article.summary.slice(0, 122)}...`
-                        : article.summary}
-                    </Typography>
-                  }
-                />
+              <ListItem
+                key={article.url}
+                disablePadding
+                style={{ flexDirection: 'column', alignItems: 'flex-start' }}
+              >
+                <Link
+                  variant='h6'
+                  href={article.url}
+                  sx={{
+                    mb: 1,
+                    ':hover': {
+                      textDecorationColor: theme => theme.palette.primary.main,
+                    },
+                  }}
+                >
+                  {article.headline}
+                </Link>
+                <Typography variant='body2' component='p' color='textSecondary' paragraph>
+                  {article.summary.length > 80
+                    ? `${article.summary.slice(0, 77)}...`
+                    : article.summary}
+                </Typography>
               </ListItem>
             ))}
       </List>
@@ -341,6 +302,7 @@ export default ({ theme }: { theme: Theme }) => {
   const { symbol }: { symbol: string } = useParams()
 
   if (!refSymbolsMap.has(symbol)) {
+    console.log(symbol)
     return <Redirect to='/404' />
   }
 

@@ -8,7 +8,7 @@ const StyledContainer = styled(Container)(({ theme }) =>
   createStyles({
     display: 'flex',
     [theme.breakpoints.up('sm')]: {
-      maxWidth: theme.breakpoints.values.sm + 80,
+      maxWidth: theme.breakpoints.values.sm,
     },
     [theme.breakpoints.up('lg')]: {
       maxWidth: theme.breakpoints.values.md,

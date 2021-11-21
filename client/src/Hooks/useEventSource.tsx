@@ -2,37 +2,48 @@ import React from 'react'
 import { useSnackbar } from 'notistack'
 
 type UseEventSourceOptions = {
+  enabled?: boolean
   errorSnackbar?: boolean
   errorMessage?: string
 }
 
 export default (
-  endpoint: string,
+  endpoint: string | undefined,
   messageEventCallback: (event: MessageEvent) => void,
   options: UseEventSourceOptions = {}
 ) => {
-  const { errorSnackbar = false, errorMessage = 'Oops, something went wrong!' } = options
+  const {
+    enabled = true,
+    errorSnackbar = false,
+    errorMessage = 'Oops, something went wrong!',
+  } = options
   const { enqueueSnackbar } = useSnackbar()
 
   const esRef = React.useRef<EventSource>()
 
   React.useEffect(() => {
-    const es = new EventSource(`/sse${endpoint}`)
-    esRef.current = es
+    let es: EventSource
 
-    es.onerror = () => {
-      es.close()
+    if (endpoint && enabled) {
+      es = new EventSource(`/sse${endpoint}`)
+      esRef.current = es
 
-      if (errorSnackbar) {
-        enqueueSnackbar(errorMessage, { variant: 'error' })
+      es.onerror = () => {
+        es.close()
+
+        if (errorSnackbar) {
+          enqueueSnackbar(errorMessage, { variant: 'error' })
+        }
       }
     }
 
     return () => {
-      es.close()
-      esRef.current = undefined
+      if (es) {
+        es.close()
+        esRef.current = undefined
+      }
     }
-  }, [])
+  }, [endpoint, enabled])
 
   React.useEffect(() => {
     const es = esRef.current

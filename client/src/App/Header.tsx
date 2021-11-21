@@ -51,6 +51,10 @@ const Root = styled('div')(({ theme }) => ({
     '&.active': {
       backgroundColor: theme.palette.secondary.main,
 
+      [`& .${classes.openMenuButton}`]: {
+        color: theme.palette.getContrastText(theme.palette.secondary.main),
+      },
+
       [`& .${classes.pages}`]: {
         color: theme.palette.getContrastText(theme.palette.secondary.main),
       },
@@ -61,7 +65,6 @@ const Root = styled('div')(({ theme }) => ({
     minHeight: 56,
     width: '100%',
     position: 'static',
-    // margin: '0 auto',
   },
 
   [`& .${classes.Container}`]: {
@@ -183,40 +186,56 @@ export default () => {
   }, [location.pathname])
 
   const headerRef = React.useRef<HTMLDivElement>(null)
-  const illustrationContainerRef = React.useRef<HTMLDivElement>(null)
+  const [illustrationContainerEl, setIllustrationContainer] = React.useState<HTMLDivElement>()
+  const illustrationContainerRefCallback: React.RefCallback<HTMLDivElement> =
+    React.useCallback(node => {
+      if (node) {
+        setIllustrationContainer(node)
+      }
+    }, [])
 
   React.useEffect(() => {
     const headerEl = headerRef.current
-    const illustrationContainerEl = illustrationContainerRef.current
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting) {
-          headerEl!.classList.add('active')
-        } else {
-          headerEl!.classList.remove('active')
+    let observer: IntersectionObserver
+
+    if (headerEl && illustrationContainerEl) {
+      observer = new IntersectionObserver(
+        entries => {
+          if (entries[0].isIntersecting) {
+            headerEl!.classList.add('active')
+          } else {
+            headerEl!.classList.remove('active')
+          }
+        },
+        {
+          root: null,
+          threshold: illustrationContainerEl
+            ? headerEl!.getBoundingClientRect().height /
+              illustrationContainerEl!.getBoundingClientRect().height
+            : 0,
         }
-      },
-      {
-        root: null,
-        threshold: illustrationContainerEl
-          ? headerEl!.getBoundingClientRect().height /
-            illustrationContainerEl!.getBoundingClientRect().height
-          : 0,
-      }
-    )
+      )
 
-    if (illustrationContainerEl) {
-      headerEl!.classList.add('transition')
-      observer.observe(illustrationContainerEl)
-    }
-
-    return () => {
       if (illustrationContainerEl) {
+        headerEl!.classList.add('transition')
+        observer.observe(illustrationContainerEl)
+      }
+    }
+    return () => {
+      if (observer && illustrationContainerEl) {
         observer.unobserve(illustrationContainerEl)
         headerEl!.classList.remove('transition')
       }
     }
-  }, [illustrationContainerRef.current])
+  }, [illustrationContainerEl])
+
+  // const refCallback = React.useCallback(node => {
+  //   console.log('header ref', headerRef.current)
+  //   console.log('illustration container ref', headerRef.current)
+  //   if (node !== null) {
+  //     console.log('illustration container node', node)
+  //   }
+  // }, [])
 
   const [searchState, dispatch] = React.useReducer(searchReducer, initialState)
 
@@ -286,7 +305,7 @@ export default () => {
       </AppBar>
       {['/news', '/market'].includes(location.pathname) && (
         <Container
-          ref={illustrationContainerRef}
+          ref={illustrationContainerRefCallback}
           className={classes.illustrationContainer}
           maxWidth={false}
           disableGutters

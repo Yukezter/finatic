@@ -109,6 +109,9 @@ const themeOptions: ThemeOptions = {
       lineHeight: 1.2,
       letterSpacing: 0,
     },
+    body2: {
+      lineHeight: 1.65,
+    },
   },
   components: {
     MuiCssBaseline: {

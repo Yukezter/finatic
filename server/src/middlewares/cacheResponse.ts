@@ -60,7 +60,9 @@ const patchResponse = (res: Response, next: NextFunction, key: string, ttl: numb
   res.writeHead = function writeHead(...args: any[]): Response<any> {
     res.setHeader(
       'Cache-Control',
-      shouldCacheResponse(res) ? `max-age=${ttl.toFixed(0)}` : 'no-cache, no-store, must revalidate'
+      shouldCacheResponse(res)
+        ? `max-age=${ttl.toFixed(0)}`
+        : 'no-cache, no-store, must revalidate'
     )
 
     return res.cache.writeHead.apply(this, args)
@@ -102,7 +104,8 @@ const sendCachedResponse = (res: Response, cached: Cached, ttl: number) => {
 
   let { data } = cached
   if (data && data.type === 'Buffer') {
-    data = typeof data.data === 'number' ? Buffer.alloc(data.data) : Buffer.from(data.data)
+    data =
+      typeof data.data === 'number' ? Buffer.alloc(data.data) : Buffer.from(data.data)
   }
 
   res.writeHead(200, headers)

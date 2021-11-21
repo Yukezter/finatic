@@ -26,7 +26,8 @@
         "prettier/prettier": [
             "error",
             {
-                "quoteProps": "consistent"
+                "quoteProps": "consistent",
+                "printWidth": 90
             }
         ],
         "import/extensions": "off",

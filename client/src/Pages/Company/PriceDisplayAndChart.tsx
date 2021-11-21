@@ -506,12 +506,12 @@ const PriceData = React.forwardRef<PriceChartType, PriceDataProps>((props, chart
     const chart = (chartRef as React.MutableRefObject<PriceChartType>).current
     if (chart && chartData && chartData.range === '1d') {
       const { quote } = realtime
-      console.log(chart, chartData, quote)
+      // console.log(chart, chartData, quote)
       if (quote) {
         const dataPoints = chart.data.datasets[0].data
         const latestDataPoint = getFirstDataPointInRange([...dataPoints].reverse())
 
-        console.log('latestDataPoint', latestDataPoint)
+        // console.log('latestDataPoint', latestDataPoint)
         if (latestDataPoint) {
           const { latestUpdate } = quote
           const fiveMinutes = 1000 * 60 * 60
@@ -524,12 +524,12 @@ const PriceData = React.forwardRef<PriceChartType, PriceDataProps>((props, chart
             chart.update()
           }
 
-          console.log(
-            'Latest update',
-            latestUpdate,
-            new Date(latestDataPoint.x),
-            new Date(latestUpdate)
-          )
+          // console.log(
+          //   'Latest update',
+          //   latestUpdate,
+          //   new Date(latestDataPoint.x),
+          //   new Date(latestUpdate)
+          // )
         }
       }
     }
@@ -702,20 +702,20 @@ export default ({ globalState, theme, symbol }: Props) => {
   const snackbarKey = React.useRef<SnackbarKey>()
   const [selectedRange, setSelectedRange] = React.useState(ranges[0])
 
-  const cacheAndRefetchInterval = React.useMemo(() => {
-    if (selectedRange === '1d' || selectedRange === '5d') {
-      return 1000 * 30
-    }
+  // const cacheAndRefetchInterval = React.useMemo(() => {
+  //   if (selectedRange === '1d' || selectedRange === '5d') {
+  //     return 1000 * 30
+  //   }
 
-    return 1000 * 60 * 60
-    // return 0
-  }, [selectedRange])
+  //   return 1000 * 60 * 60
+  //   // return 0
+  // }, [selectedRange])
 
   const { isSuccess, data, refetch } = useQuery<any, Error>({
     queryKey: `/stock/${symbol}/chart/${selectedRange}`,
-    cacheTime: cacheAndRefetchInterval,
-    refetchInterval: cacheAndRefetchInterval,
-    refetchIntervalInBackground: true,
+    // cacheTime: cacheAndRefetchInterval,
+    // refetchInterval: cacheAndRefetchInterval,
+    // refetchIntervalInBackground: true,
     notifyOnChangeProps: ['isSuccess', 'data'],
     onError: err => {
       enqueueSnackbar(`Unable to display ${selectedRange} chart.`, { variant: 'error' })
@@ -739,7 +739,7 @@ export default ({ globalState, theme, symbol }: Props) => {
       }
     },
     select: data => {
-      console.log('data!!!!!', data)
+      console.log('select')
       const dataPoints = buildDataPoints(selectedRange, data)
       const firstDataPoint = getFirstDataPointInRange(dataPoints)
       const firstPrice = firstDataPoint ? (firstDataPoint.y as number) : undefined

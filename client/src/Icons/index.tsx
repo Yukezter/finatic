@@ -5,10 +5,12 @@ import { ReactComponent as _Clock } from '../Assets/Svg/clock.svg'
 import { ReactComponent as _Close } from '../Assets/Svg/close.svg'
 import { ReactComponent as _Direction } from '../Assets/Svg/direction.svg'
 import { ReactComponent as _Economy } from '../Assets/Svg/economy.svg'
+import { ReactComponent as _FederalFunds } from '../Assets/Svg/federal-funds.svg'
 import { ReactComponent as _Home } from '../Assets/Svg/home.svg'
 import { ReactComponent as _Logo } from '../Assets/Svg/logo.svg'
 import { ReactComponent as _Menu } from '../Assets/Svg/menu.svg'
 import { ReactComponent as _Production } from '../Assets/Svg/production.svg'
+import { ReactComponent as _RecessionProbability } from '../Assets/Svg/recession-probability.svg'
 import { ReactComponent as _Search } from '../Assets/Svg/search.svg'
 import { ReactComponent as _Tag } from '../Assets/Svg/tag.svg'
 import { ReactComponent as _Triangle } from '../Assets/Svg/triangle.svg'
@@ -40,10 +42,12 @@ export const ClockIcon = makeIcon(_Clock)
 export const CloseIcon = makeIcon(_Close)
 export const DirectionIcon = makeIcon(_Direction)
 export const EconomyIcon = makeIcon(_Economy)
+export const FederalFundsIcon = makeIcon(_FederalFunds)
 export const HomeIcon = makeIcon(_Home)
 export const LogoIcon = makeIcon(_Logo)
 export const MenuIcon = makeIcon(_Menu)
 export const ProductionIcon = makeIcon(_Production)
+export const RecessionProbabilityIcon = makeIcon(_RecessionProbability)
 export const SearchIcon = makeIcon(_Search)
 export const TagIcon = makeIcon(_Tag)
 export const TriangleIcon = makeIcon(_Triangle)

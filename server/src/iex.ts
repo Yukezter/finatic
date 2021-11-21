@@ -18,9 +18,15 @@ const api = axios.create({
   responseType: 'stream',
 })
 
+// const sse = axios.create({
+//   baseURL: `https://${subdomain}-sse.iexapis.com/stable`,
+//   params: { token },
+//   responseType: 'stream',
+// })
+
 const sse = axios.create({
-  baseURL: `https://${subdomain}-sse.iexapis.com/stable`,
-  params: { token },
+  baseURL: `https://cloud-sse.iexapis.com/stable`,
+  params: { token: TOKEN },
   responseType: 'stream',
 })
 

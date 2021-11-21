@@ -64,13 +64,37 @@ proxySSE('/stock/quote', {
 // Crypto quotes
 proxySSE('/cryptos', {
   rewrite: '/cryptoQuotes',
-  params: { symbols: ['BTCUSD', 'ETHUSD', 'LTCUSD', 'ADAUSDT', 'SOLUSDT', 'SHIBUSDT'].join(',') },
+  params: {
+    symbols: [
+      'BTCUSD',
+      'ETHUSD',
+      'LTCUSD',
+      'ADAUSDT',
+      'SOLUSDT',
+      'SHIBUSDT',
+      'DOGEUSDT',
+      'ALGOUSDT',
+      'XLMUSDT',
+      'XRPUSDT',
+    ].join(','),
+  },
 })
 
 // Forex quotes
 proxySSE('/forex', {
   rewrite: '/forex1Minute',
-  params: { symbols: ['EURUSD', 'GBPUSD', 'USDJPY', 'AUDUSD', 'USDCAD', 'USDCHF'].join(',') },
+  params: {
+    symbols: [
+      'EURUSD',
+      'GBPUSD',
+      'USDJPY',
+      'AUDUSD',
+      'USDCAD',
+      'USDCHF',
+      'USDHKD',
+      'NZDUSD',
+    ].join(','),
+  },
 })
 
 export default router

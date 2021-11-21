@@ -39,7 +39,7 @@ const InitialLoadingScreen = ({ open }: { open: boolean }) => (
     }}
   >
     <Box display='flex' alignItems='center'>
-      <LogoIcon title='Finatic logo' height={40} width={40} style={{ marginRight: 8 }} />
+      <LogoIcon title='Finatic logo' height={48} width={48} style={{ marginRight: 8 }} />
       <Typography variant='h1'>Finatic</Typography>
     </Box>
   </Backdrop>
@@ -74,6 +74,9 @@ const App = styles(({ isLoading, classes }: any) => {
           }}
         >
           <Switch>
+            <Route path='/' exact>
+              <Redirect to='/market' />
+            </Route>
             <Route path='/news' exact>
               <News />
             </Route>

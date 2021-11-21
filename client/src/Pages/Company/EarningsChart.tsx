@@ -310,8 +310,6 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
 
   const isSuccess = queries.every(query => query.isSuccess)
 
-  console.log(queries)
-
   React.useEffect(() => {
     if (isSuccess) {
       const labels: string[] = []
@@ -342,12 +340,9 @@ export default ({ symbol, theme }: { symbol: string; theme: Theme }) => {
         plugins.htmlLegend.upcomingEarningsDate = format(new Date(reportDate), 'MMM, yy')
       }
 
-      // chartRef.current!.options.scales!.x!.labels = labels
       chartRef.current!.options.scales!.x!.ticks!.callback = (tick, index) => {
         return labels[index]
       }
-
-      console.log('first size', chartRef.current!.width)
 
       // chartRef.current!.options.onResize = (chart, size) => {
       //   console.log(chart.width)

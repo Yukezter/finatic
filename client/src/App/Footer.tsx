@@ -32,10 +32,7 @@ export default () => {
             </Link>
           </Box>
           <Typography variant='caption' sx={{ color: theme => theme.palette.text.disabled }}>
-            Disclaimer: All data is delayed by 15 minutes or more, except for cryptocurrency,
-            forex, and realtime intraday chart prices. The data is provided for informational
-            purposes only and should not be used as the basis for share trading, as unintended
-            inaccuracies, errors, or misprints may occur.
+            Disclaimer
           </Typography>
         </Grid>
       </Grid>

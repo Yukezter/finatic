@@ -58,12 +58,10 @@ export default () => {
 
   React.useEffect(() => {
     if (initialLoading && isMarketOpen !== undefined && allQueriesSuccessful) {
-      setTimeout(() => {
-        setGlobalState(prevState => ({
-          ...prevState,
-          initialLoading: false,
-        }))
-      }, 3000)
+      setGlobalState(prevState => ({
+        ...prevState,
+        initialLoading: false,
+      }))
     }
   }, [initialLoading, isMarketOpen, allQueriesSuccessful])
 

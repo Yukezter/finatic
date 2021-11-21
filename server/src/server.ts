@@ -7,16 +7,16 @@ import { routeNotFound, clientErrorHandler, errorHandler } from './middlewares'
 import apiRoutes from './routes/api'
 import sseRoutes from './routes/sse'
 
-const API_APP_PORT = 8000
-const apiApp = express()
+const APP_PORT = 8000
+const app = express()
 
-apiApp.set('trust proxy', true)
-apiApp.use(morgan('dev'))
-apiApp.use(helmet())
-apiApp.use('/api', apiRoutes)
-apiApp.use('/sse', sseRoutes)
-apiApp.use(routeNotFound)
-apiApp.use(clientErrorHandler)
-apiApp.use(errorHandler)
+app.set('trust proxy', true)
+app.use(morgan('dev'))
+app.use(helmet())
+app.use('/api', apiRoutes)
+app.use('/sse', sseRoutes)
+app.use(routeNotFound)
+app.use(clientErrorHandler)
+app.use(errorHandler)
 
-apiApp.listen(API_APP_PORT)
+app.listen(APP_PORT)

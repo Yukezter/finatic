@@ -9,7 +9,6 @@ import Box from '@mui/material/Box'
 import Container from '@mui/material/Container'
 import Paper from '@mui/material/Paper'
 import MenuList from '@mui/material/MenuList'
-import MenuItem from '@mui/material/MenuItem'
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import ListItemText from '@mui/material/ListItemText'
@@ -19,7 +18,7 @@ import Skeleton from '@mui/material/Skeleton'
 import { percent } from '../../Utils/numberFormats'
 import { useQuotes } from '../../Hooks'
 import { ClockIcon, VeritcalDotsIcon, MarketDirectionIcon } from '../../Icons'
-import { IconButton } from '../../Components'
+import { IconButton, MenuItem } from '../../Components'
 
 const PREFIX = 'Lists'
 
@@ -40,13 +39,6 @@ const Root = styled(Box)(({ theme }) => ({
   [theme.breakpoints.up('xs')]: {
     boxShadow: theme.shadows[5],
     borderRadius: theme.shape.borderRadius,
-  },
-
-  [`& .${classes.selectedMenuItem}`]: {
-    backgroundColor: theme.palette.action.selected,
-    '&:hover': {
-      backgroundColor: theme.palette.action.selected,
-    },
   },
 
   [`& .${classes.Popper}`]: {
@@ -76,6 +68,7 @@ const StyledListItem = ({ theme, label, value, timestamp }: any) => (
       secondary={
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <ClockIcon
+            width={14}
             height={14}
             style={{
               color: theme.palette.text.primary,
@@ -125,6 +118,12 @@ const fxPairs = [
   },
   {
     symbol: 'USDCHF',
+  },
+  {
+    symbol: 'USDHKD',
+  },
+  {
+    symbol: 'NZDUSD',
   },
 ]
 
@@ -180,6 +179,22 @@ const cryptos = [
   {
     symbol: 'SHIBUSDT',
     name: 'Shiba Inu',
+  },
+  {
+    symbol: 'DOGEUSDT',
+    name: 'Dogecoin',
+  },
+  {
+    symbol: 'ALGOUSDT',
+    name: 'Algorand',
+  },
+  {
+    symbol: 'XLMUSDT',
+    name: 'Stellar Lumens',
+  },
+  {
+    symbol: 'XRPUSDT',
+    name: 'Ripple',
   },
 ]
 
@@ -403,7 +418,6 @@ const ListMenu = ({ selectedOption, setSelectedOption }: ListMenuProps) => {
               {menuOptions.map(option => (
                 <MenuItem
                   key={option.label}
-                  classes={{ selected: classes.selectedMenuItem }}
                   selected={option.label === selectedOption.label}
                   onClick={handleSelect(option)}
                 >

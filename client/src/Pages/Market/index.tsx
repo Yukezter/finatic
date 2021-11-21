@@ -12,9 +12,16 @@ import Typography from '@mui/material/Typography'
 import Skeleton from '@mui/material/Skeleton'
 import Hidden from '@mui/material/Hidden'
 
-import { TagIcon, ProductionIcon, EconomyIcon, UnemploymentIcon } from '../../Icons'
-import ListMenu from './ListMenu'
-import { MarketMoversTable, UpcomingEarningsTable } from './Tables'
+import {
+  TagIcon,
+  ProductionIcon,
+  EconomyIcon,
+  UnemploymentIcon,
+  FederalFundsIcon,
+  RecessionProbabilityIcon,
+} from '../../Icons'
+import MarketLists from './MarketLists'
+import { MarketMoversTable, UpcomingEarningsTable } from './MarketTables'
 
 const PREFIX = 'Market'
 
@@ -25,6 +32,7 @@ const classes = {
 }
 
 const Root = styled('div')(({ theme }) => ({
+  width: '100%',
   [`& .${classes.economicDataIcon}`]: {
     width: 42,
     height: 42,
@@ -52,7 +60,7 @@ const economicData = [
   },
   {
     title: 'Federal Fund Rates',
-    Icon: UnemploymentIcon,
+    Icon: FederalFundsIcon,
     queryKey: '/economy/federal-funds',
   },
   {
@@ -62,7 +70,7 @@ const economicData = [
   },
   {
     title: 'Recession Probability',
-    Icon: UnemploymentIcon,
+    Icon: RecessionProbabilityIcon,
     queryKey: '/economy/recession-probability',
   },
 ]
@@ -84,8 +92,7 @@ const EconomicData = () => {
             </Hidden>
             <ListItemText
               sx={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between' }}
-              primary={isSuccess && title}
-              primaryTypographyProps={{ color: 'textSecondary' }}
+              primary={title}
               secondary={<>{!isSuccess ? <Skeleton width={60} /> : query.data}</>}
               secondaryTypographyProps={{ color: 'textPrimary' }}
             />
@@ -117,7 +124,7 @@ const Market = ({ theme }: { theme: Theme }) => {
           </Grid>
         </Grid>
         <Grid item xs={12} sm={6} lg={4}>
-          <ListMenu theme={theme} />
+          <MarketLists theme={theme} />
         </Grid>
       </Grid>
     </Root>

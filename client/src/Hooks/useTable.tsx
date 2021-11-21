@@ -10,9 +10,9 @@ type CellRenderer =
   | JSX.Element
   | ((value: any | number, props?: any) => string | number | JSX.Element)
 
-type SortTypes = 'alphanumeric' | 'datetime'
+type SortTypes = 'alphanumeric' | 'number' | 'datetime'
 
-type UserColumn = {
+export type UserColumn = {
   id: keyof Data
   accessor?: (value: any) => any
   Header: string | (() => string | number | JSX.Element)
@@ -122,19 +122,25 @@ type Complete<T> = {
   [P in keyof Required<T>]: T[P] extends Column[] ? Required<Column>[] : T[P]
 }
 
-const compare: <T extends unknown>(a: T, b: T) => 0 | 1 | -1 = (a, b) => {
-  // eslint-disable-next-line no-nested-ternary
-  return a === b ? 0 : a > b ? 1 : -1
-}
+// const compare: <T extends unknown>(a: T, b: T) => number = (a, b) => {
+//   // eslint-disable-next-line no-nested-ternary
+//   return a === b ? 0 : a > b ? 1 : -1
+// }
 
 type SortTypeComparators = {
-  [key in SortTypes]: (a: any, b: any) => 0 | 1 | -1
+  [key in SortTypes]: (a: any, b: any) => number
 }
 
 const sortTypeComparators: SortTypeComparators = {
-  alphanumeric: compare,
+  alphanumeric: (a: string, b: string) => {
+    // eslint-disable-next-line no-nested-ternary
+    return -(a === b ? 0 : a > b ? 1 : -1)
+  },
+  number: (a: number, b: number) => {
+    return a - b
+  },
   datetime: (a: Date, b: Date) => {
-    return compare(a.getTime(), b.getTime())
+    return a.getTime() - b.getTime()
   },
 }
 
@@ -145,8 +151,8 @@ const getComparator = <Key extends keyof Data>(
 ): ((a: Row, b: Row) => number) => {
   const comparator = sortTypeComparators[sortType]
   return order === 'desc'
-    ? (a, b) => comparator(a.values[orderBy], b.values[orderBy])
-    : (a, b) => -comparator(a.values[orderBy], b.values[orderBy])
+    ? (a, b) => -comparator(a.values[orderBy], b.values[orderBy])
+    : (a, b) => comparator(a.values[orderBy], b.values[orderBy])
 }
 
 const defaultRenderer: CellRenderer = (value = '') => value

@@ -234,7 +234,8 @@ proxy('/stock/:symbol/news', {
 // Stock quote
 proxy('/stock/:symbol/quote', {
   params: {
-    filter: 'latestPrice,change,changePercent,extendedChange,extendedChangePercent,isUSMarketOpen',
+    filter:
+      'latestPrice,change,changePercent,extendedChange,extendedChangePercent,isUSMarketOpen',
     displayPercent: true,
   },
   middleware: cache(10),
