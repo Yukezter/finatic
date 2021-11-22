@@ -1,0 +1,23 @@
+{
+  "name": "finatic",
+  "version": "1.0.0",
+  "description": "",
+  "main": "/server/build/server.js",
+  "scripts": {
+    "prebuild": "rm -rf server/build && rm -rf client/build",
+    "build": "npm run build-server && npm run build-client",
+    "build-server": "cd server && npm run build",
+    "build-client": "cd client && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yukezter/finatic.git"
+  },
+  "author": "Bryan Hinchliffe",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Yukezter/finatic/issues"
+  },
+  "homepage": "https://github.com/Yukezter/finatic#readme"
+}
