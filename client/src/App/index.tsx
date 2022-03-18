@@ -57,7 +57,12 @@ export default () => {
   const { initialLoading, isMarketOpen } = globalState
 
   React.useEffect(() => {
+    document.body.style.overflow = 'hidden'
+  }, [])
+
+  React.useEffect(() => {
     if (initialLoading && isMarketOpen !== undefined && allQueriesSuccessful) {
+      document.body.style.overflow = 'visible'
       setGlobalState(prevState => ({
         ...prevState,
         initialLoading: false,

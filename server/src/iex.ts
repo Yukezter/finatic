@@ -3,10 +3,10 @@ import axios from 'axios'
 
 dotenv.config()
 
-const { TOKEN, SANDBOX_TOKEN, SANDBOX_ENV } = process.env
+const { TOKEN, SANDBOX_TOKEN } = process.env
 
-const subdomain = SANDBOX_ENV ? 'sandbox' : 'cloud'
-const token = SANDBOX_ENV ? SANDBOX_TOKEN : TOKEN
+const subdomain = SANDBOX_TOKEN ? 'sandbox' : 'cloud'
+const token = SANDBOX_TOKEN || TOKEN
 
 if (!token) {
   throw new Error('Missing API token!')
@@ -18,15 +18,9 @@ const api = axios.create({
   responseType: 'stream',
 })
 
-// const sse = axios.create({
-//   baseURL: `https://${subdomain}-sse.iexapis.com/stable`,
-//   params: { token },
-//   responseType: 'stream',
-// })
-
 const sse = axios.create({
-  baseURL: `https://cloud-sse.iexapis.com/stable`,
-  params: { token: TOKEN },
+  baseURL: `https://${subdomain}-sse.iexapis.com/stable`,
+  params: { token },
   responseType: 'stream',
 })
 

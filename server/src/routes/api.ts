@@ -50,13 +50,19 @@ const proxy = (route: string, options: ProxyOptions = {}) => {
 proxy('/ref-data/symbols')
 
 // Next trade date
-proxy('/next-trade-date', { rewrite: '/ref-data/us/dates/trade/next' })
+proxy('/next-trade-date', {
+  rewrite: '/ref-data/us/dates/trade/next',
+})
 
 // Next holiday date
-proxy('/next-holiday-date', { rewrite: '/ref-data/us/dates/holiday/next' })
+proxy('/next-holiday-date', {
+  rewrite: '/ref-data/us/dates/holiday/next',
+})
 
 // Search
-proxy('/search/:fragment', { middleware: cache(30) })
+proxy('/search/:fragment', {
+  middleware: cache(30),
+})
 
 // Market status
 proxy('/market-status', {
@@ -176,22 +182,22 @@ proxy('/market/news', {
   middleware: cache(24 * 60 * 60),
 })
 
-const yyyymmdd = (date: Date): string => {
-  const yyyy = date.getFullYear()
-  let mm: number | string = date.getMonth() + 1
-  mm = (mm > 9 ? '' : '0') + mm
-  let dd: number | string = date.getDate()
-  dd = (dd > 9 ? '' : '0') + dd
-  return `${yyyy}${mm}${dd}`
-}
+// const yyyymmdd = (date: Date): string => {
+//   const yyyy = date.getFullYear()
+//   let mm: number | string = date.getMonth() + 1
+//   mm = (mm > 9 ? '' : '0') + mm
+//   let dd: number | string = date.getDate()
+//   dd = (dd > 9 ? '' : '0') + dd
+//   return `${yyyy}${mm}${dd}`
+// }
 
 // Market upcoming earnings
 proxy('/stock/market/upcoming-earnings', {
   params: () => {
     const date = new Date()
-    const from = yyyymmdd(date)
+    // const from = yyyymmdd(date)
     date.setMonth(date.getMonth() + 1)
-    const to = yyyymmdd(date)
+    // const to = yyyymmdd(date)
     return {
       includeToday: true,
       fullUpcomingEarnings: true,
@@ -204,13 +210,19 @@ proxy('/stock/market/upcoming-earnings', {
 })
 
 // Company info
-proxy('/stock/:symbol/company', { middleware: cache(60 * 60) })
+proxy('/stock/:symbol/company', {
+  middleware: cache(60 * 60),
+})
 
 // Company stats
-proxy('/stock/:symbol/stats', { middleware: cache(60 * 60) })
+proxy('/stock/:symbol/stats', {
+  middleware: cache(60 * 60),
+})
 
 // Company peers
-proxy('/stock/:symbol/peers', { middleware: cache(60 * 60) })
+proxy('/stock/:symbol/peers', {
+  middleware: cache(60 * 60),
+})
 
 // Company upcoming earnings
 proxy('/stock/:symbol/upcoming-earnings', {

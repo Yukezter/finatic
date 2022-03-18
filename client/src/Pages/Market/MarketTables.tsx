@@ -318,6 +318,7 @@ const MarketMoversMenu = ({ selectedOption, setSelectedOption }: any) => {
                   key={option.value}
                   selected={option.value === selectedOption.value}
                   onClick={handleSelect(option)}
+                  sx={{ px: 2, minWidth: 140 }}
                 >
                   {option.label}
                 </MenuItem>

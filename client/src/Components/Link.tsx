@@ -17,7 +17,7 @@ export default React.forwardRef(
       <Link
         ref={ref as React.Ref<HTMLAnchorElement>}
         color='inherit'
-        underline='hover'
+        // underline='hover'
         {...(targetBlank ? targetBlankProps : {})}
         {...props}
       >

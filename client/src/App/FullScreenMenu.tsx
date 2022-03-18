@@ -17,7 +17,7 @@ import Search from './Search'
 const PREFIX = 'FullScreenMenu'
 
 const classes = {
-  Paper: `${PREFIX}-Paper`,
+  root: `${PREFIX}-root`,
   AppBar: `${PREFIX}-AppBar`,
   Toolbar: `${PREFIX}-Toolbar`,
   Container: `${PREFIX}-Container`,
@@ -26,15 +26,19 @@ const classes = {
   closeMenuButton: `${PREFIX}-closeMenuButton`,
 }
 
-const StyledDialog = styled(Dialog)(({ theme: { palette, spacing } }) => ({
-  [`& .${classes.Paper}`]: {
-    background: palette.common.white,
-    color: palette.text.primary,
+const StyledDialog = styled(Dialog)(({ theme }) => ({
+  [`& .${classes.root}`]: {
+    background: theme.palette.common.white,
+    color: theme.palette.text.primary,
+    '& .active': {
+      color: theme.palette.primary.main,
+    },
   },
 
   [`& .${classes.AppBar}`]: {
     flexDirection: 'row',
     justifyContent: 'center',
+    marginBottom: theme.spacing(2),
   },
 
   [`& .${classes.Toolbar}`]: {
@@ -49,20 +53,20 @@ const StyledDialog = styled(Dialog)(({ theme: { palette, spacing } }) => ({
   },
 
   [`& .${classes.Logo}`]: {
-    marginRight: spacing(3),
-    color: palette.primary.main,
+    marginRight: theme.spacing(3),
+    color: theme.palette.primary.main,
     '&:hover': {
-      color: palette.primary.dark,
+      color: theme.palette.primary.dark,
     },
   },
 
   [`& .${classes.Search}`]: {
-    background: palette.common.white,
+    background: theme.palette.common.white,
   },
 
   [`& .${classes.closeMenuButton}`]: {
     marginLeft: 'auto',
-    color: palette.common.black,
+    color: theme.palette.common.black,
   },
 }))
 
@@ -88,7 +92,7 @@ const FullScreenMenu = ({ open, handleClose, searchState, dispatch }: DialogProp
       closeAfterTransition
       hideBackdrop
       PaperProps={{
-        className: classes.Paper,
+        className: classes.root,
       }}
     >
       <AppBar position='static' color='transparent' elevation={0} className={classes.AppBar}>
@@ -107,22 +111,23 @@ const FullScreenMenu = ({ open, handleClose, searchState, dispatch }: DialogProp
                 },
               }}
             >
-              <CloseIcon title='Close Menu' height={26} width={26} />
+              <CloseIcon title='Close Menu' height={25} width={25} />
             </IconButton>
           </Container>
         </Toolbar>
       </AppBar>
       <Container>
-        <Typography variant='h1' color='inherit' paragraph>
-          Search
-        </Typography>
         <Search className={classes.Search} searchState={searchState} dispatch={dispatch} />
-        <Box py={4}>
+        <Box py={3}>
           <Typography variant='h3' color='inherit' gutterBottom>
-            <RouterLink to='/news'>News</RouterLink>
+            <RouterLink activeClassName='active' to='/news'>
+              News
+            </RouterLink>
           </Typography>
           <Typography variant='h3' color='inherit' gutterBottom>
-            <RouterLink to='/market'>Market</RouterLink>
+            <RouterLink activeClassName='active' to='/market'>
+              Market
+            </RouterLink>
           </Typography>
         </Box>
       </Container>

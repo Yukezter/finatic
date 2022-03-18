@@ -27,7 +27,7 @@ export default <T extends { [key: string]: any }>(
 ) => {
   const [state, setState] = React.useState<UseQuotesState<T>>({
     isLoading: true,
-    data: [],
+    data: userSymbols.map(({ symbol, ...props }) => ({ symbol, props })),
   })
 
   const updateData = React.useCallback(
@@ -45,26 +45,11 @@ export default <T extends { [key: string]: any }>(
     []
   )
 
-  /* Initialize temp data */
-  let tempData = React.useMemo<SymbolData<T>[]>(() => {
-    return userSymbols.map(({ symbol, ...props }) => ({ symbol, props }))
-  }, [userSymbols])
-
   const messageEventCallback = React.useCallback(
     (messageEvent: MessageEvent) => {
       const quote = JSON.parse(messageEvent.data)[0]
 
-      if (quote && state.isLoading) {
-        /* Set temp data instead of state until all symbols have loaded their data */
-        tempData = updateData(tempData, quote)
-
-        if (!tempData.some(symbolData => symbolData.data === undefined)) {
-          setState({
-            isLoading: false,
-            data: tempData.map(symbolData => ({ ...symbolData })),
-          })
-        }
-      } else if (quote) {
+      if (quote) {
         setState(prevState => {
           return {
             ...prevState,

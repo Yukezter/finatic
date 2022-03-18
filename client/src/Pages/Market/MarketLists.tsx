@@ -46,16 +46,11 @@ const Root = styled(Box)(({ theme }) => ({
   },
 }))
 
-const SkeletonList = ({ length = 5 }: { length: number }) => (
-  <List dense>
-    {Array.from(Array(length)).map((_, index: number) => (
-      // eslint-disable-next-line react/no-array-index-key
-      <ListItem key={index} disableGutters>
-        <ListItemText primary={<Skeleton width={80} />} secondary={<Skeleton width={60} />} />
-        <ListItemText primary={<Skeleton />} />
-      </ListItem>
-    ))}
-  </List>
+const SkeletonListItem = () => (
+  <ListItem disableGutters>
+    <ListItemText primary={<Skeleton width={80} />} secondary={<Skeleton width={60} />} />
+    <ListItemText primary={<Skeleton />} />
+  </ListItem>
 )
 
 const StyledListItem = ({ theme, label, value, timestamp }: any) => (
@@ -86,7 +81,12 @@ const StyledListItem = ({ theme, label, value, timestamp }: any) => (
     />
     <ListItemText
       style={{ minWidth: 96 }}
-      primary={value}
+      primary={
+        <>
+          {value}
+          <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
+        </>
+      }
       primaryTypographyProps={{
         align: 'right',
         noWrap: true,
@@ -128,29 +128,26 @@ const fxPairs = [
 ]
 
 const FxRatesList = ({ theme }: any) => {
-  const { isLoading, data } = useQuotes('/forex', fxPairs, {
+  const quotes = useQuotes('/forex', fxPairs, {
     errorSnackbar: true,
     errorMessage: 'An error occurred while requesting forex rates.',
   })
 
-  return isLoading ? (
-    <SkeletonList length={fxPairs.length} />
-  ) : (
+  return (
     <List dense>
-      {data.map(symbolData => (
-        <StyledListItem
-          key={symbolData.symbol}
-          theme={theme}
-          label={symbolData.symbol}
-          value={
-            <>
-              {symbolData.data.rate}
-              <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
-            </>
-          }
-          timestamp={symbolData.data.timestamp}
-        />
-      ))}
+      {quotes.data.map(({ symbol, data }) =>
+        data === undefined ? (
+          <SkeletonListItem />
+        ) : (
+          <StyledListItem
+            key={symbol}
+            theme={theme}
+            label={symbol}
+            value={data.rate}
+            timestamp={data.timestamp}
+          />
+        )
+      )}
     </List>
   )
 }
@@ -169,59 +166,52 @@ const cryptos = [
     name: 'Litecoin',
   },
   {
-    symbol: 'ADAUSDT',
+    symbol: 'ADAUSD',
     name: 'Cardano',
   },
   {
-    symbol: 'SOLUSDT',
+    symbol: 'SOLUSD',
     name: 'Solana',
   },
   {
-    symbol: 'SHIBUSDT',
+    symbol: 'SHIBUSD',
     name: 'Shiba Inu',
   },
   {
-    symbol: 'DOGEUSDT',
+    symbol: 'DOGEUSD',
     name: 'Dogecoin',
   },
   {
-    symbol: 'ALGOUSDT',
+    symbol: 'ALGOUSD',
     name: 'Algorand',
   },
   {
-    symbol: 'XLMUSDT',
+    symbol: 'XLMUSD',
     name: 'Stellar Lumens',
-  },
-  {
-    symbol: 'XRPUSDT',
-    name: 'Ripple',
   },
 ]
 
 const CryptoList = ({ theme }: any) => {
-  const { isLoading, data } = useQuotes('/cryptos', cryptos, {
+  const quotes = useQuotes('/cryptos', cryptos, {
     errorSnackbar: true,
     errorMessage: 'An error occurred while requesting cryptocurrency prices.',
   })
 
-  return isLoading ? (
-    <SkeletonList length={cryptos.length} />
-  ) : (
+  return (
     <List dense>
-      {data.map(symbolData => (
-        <StyledListItem
-          key={symbolData.props.name}
-          theme={theme}
-          label={symbolData.props.name}
-          value={
-            <>
-              {symbolData.data.latestPrice}
-              <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
-            </>
-          }
-          timestamp={symbolData.data.latestUpdate}
-        />
-      ))}
+      {quotes.data.map(({ symbol, data }) =>
+        data === undefined ? (
+          <SkeletonListItem />
+        ) : (
+          <StyledListItem
+            key={symbol}
+            theme={theme}
+            label={symbol}
+            value={data.latestPrice}
+            timestamp={data.latestUpdate}
+          />
+        )
+      )}
     </List>
   )
 }
@@ -229,63 +219,54 @@ const CryptoList = ({ theme }: any) => {
 const commodities = ['Oil', 'Natural Gas', 'Heating Oil', 'Diesel', 'Gas', 'Propane']
 
 const CommoditiesList = ({ theme }: any) => {
-  const queries = useQueries([
-    {
-      queryKey: '/commodities/oil',
-    },
-    {
-      queryKey: '/commodities/natural-gas',
-    },
-    {
-      queryKey: '/commodities/heating-oil',
-    },
-    {
-      queryKey: '/commodities/diesel',
-    },
-    {
-      queryKey: '/commodities/gas',
-    },
-    {
-      queryKey: '/commodities/propane',
-    },
-  ])
-
-  const isSuccess = queries.every(query => query.isSuccess)
-  const isError = queries.every(query => query.isError)
-
   const { enqueueSnackbar } = useSnackbar()
+  const snackbarError = () => {
+    enqueueSnackbar('An error occurred while requesting commodity prices.', {
+      variant: 'error',
+    })
+  }
 
-  React.useEffect(() => {
-    if (isError) {
-      enqueueSnackbar('An error occurred while requesting commodity prices.', {
-        variant: 'error',
-      })
-    }
-  }, [isError])
+  const queries = useQueries(
+    [
+      {
+        queryKey: '/commodities/oil',
+      },
+      {
+        queryKey: '/commodities/natural-gas',
+      },
+      {
+        queryKey: '/commodities/heating-oil',
+      },
+      {
+        queryKey: '/commodities/diesel',
+      },
+      {
+        queryKey: '/commodities/gas',
+      },
+      {
+        queryKey: '/commodities/propane',
+      },
+    ].map(options => ({
+      ...options,
+      onError: () => snackbarError(),
+    }))
+  )
 
-  return !isSuccess ? (
-    <SkeletonList length={6} />
-  ) : (
+  return (
     <List dense>
-      {queries
-        .map((query: UseQueryResult<any>, index) => ({
-          ...query.data[0],
-          label: commodities[index],
-        }))
-        .map((commodity: any) => (
+      {(queries as UseQueryResult<any>[]).map(({ data, isSuccess }, index) =>
+        !isSuccess ? (
+          <SkeletonListItem />
+        ) : (
           <StyledListItem
-            key={commodity.label}
+            key={commodities[index]}
             theme={theme}
-            label={commodity.label}
-            value={
-              <>
-                {commodity.value}
-                <span style={{ color: theme.palette.primary.main }}>&nbsp;USD</span>
-              </>
-            }
-            timestamp={commodity.updated}
+            label={commodities[index]}
+            value={data[0].value}
+            timestamp={data[0].updated}
           />
-        ))}
+        )
+      )}
     </List>
   )
 }
@@ -293,32 +274,31 @@ const CommoditiesList = ({ theme }: any) => {
 const SectorList = ({ theme }: any) => {
   const { enqueueSnackbar } = useSnackbar()
   const { isSuccess, data } = useQuery<any, Error>('/sector-performance', {
-    onError: err => {
+    onError: () => {
       enqueueSnackbar('An error occurred while requesting sector performance data.', {
         variant: 'error',
       })
-      console.log(err)
     },
   })
 
-  return !isSuccess ? (
-    <SkeletonList length={11} />
-  ) : (
+  return (
     <List dense>
-      {data.map((sector: any) => (
-        <StyledListItem
-          key={sector.name}
-          theme={theme}
-          label={sector.name}
-          value={
-            <>
-              <MarketDirectionIcon value={sector.performance} />
-              {percent(sector.performance)}
-            </>
-          }
-          timestamp={sector.lastUpdated}
-        />
-      ))}
+      {!isSuccess
+        ? Array.from(new Array(11)).map(() => <SkeletonListItem />)
+        : data.map((sector: any) => (
+            <StyledListItem
+              key={sector.name}
+              theme={theme}
+              label={sector.name}
+              value={
+                <>
+                  <MarketDirectionIcon value={sector.performance} />
+                  {percent(sector.performance)}
+                </>
+              }
+              timestamp={sector.lastUpdated}
+            />
+          ))}
     </List>
   )
 }
@@ -420,6 +400,7 @@ const ListMenu = ({ selectedOption, setSelectedOption }: ListMenuProps) => {
                   key={option.label}
                   selected={option.label === selectedOption.label}
                   onClick={handleSelect(option)}
+                  sx={{ px: 2, minWidth: 140 }}
                 >
                   {option.label}
                 </MenuItem>

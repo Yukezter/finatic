@@ -97,6 +97,12 @@ const Root = styled('div')(({ theme }) => ({
     '& > *': {
       marginLeft: theme.spacing(1),
     },
+    '& .activeLink': {
+      color: theme.palette.primary.main,
+      '&:hover': {
+        textDecoration: 'none',
+      },
+    },
   },
 
   [`& .${classes.openMenuButton}`]: {
@@ -264,10 +270,14 @@ export default () => {
             <Search className={classes.Search} searchState={searchState} dispatch={dispatch} />
             <div className={classNames(classes.pages)}>
               <Typography variant='h6' color='inherit'>
-                <RouterLink to='/news'>News</RouterLink>
+                <RouterLink to='/news' activeClassName='activeLink'>
+                  News
+                </RouterLink>
               </Typography>
               <Typography variant='h6' color='inherit'>
-                <RouterLink to='/market'>Market</RouterLink>
+                <RouterLink to='/market' activeClassName='activeLink'>
+                  Market
+                </RouterLink>
               </Typography>
             </div>
           </Hidden>

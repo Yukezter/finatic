@@ -212,7 +212,7 @@ const News = () => {
                 onClick={handleLoadMore}
                 disabled={!isSuccess || count * loadMoreGroupSize >= (data as any[]).length}
               >
-                More Articles
+                Load More
               </Button>
             </div>
           </Container>
