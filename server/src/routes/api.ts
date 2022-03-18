@@ -16,8 +16,6 @@ export const getEndpoint = (req: Request, { rewrite }: ProxyOptions): string => 
     return rewrite(req)
   }
 
-  console.log('what the heck!!!', req.path)
-
   return rewrite || req.path
 }
 

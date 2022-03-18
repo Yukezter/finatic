@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "eslint src --ext .ts",
     "start:dev": "nodemon",
-    "build": "tsc"
+    "start:prod": "node ./build/src/server.js",
+    "build": "cp .env ./build/.env && tsc"
   },
   "author": "Bryan Hinchliffe",
   "license": "ISC",

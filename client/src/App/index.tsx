@@ -121,8 +121,6 @@ export default () => {
 
     /* Get ms until next market event: open, early close, or regular close time */
     const msUntilNextEvent = (): number => {
-      console.log('now', new Date())
-
       const now = new Date().getTime()
 
       if (now < marketTimes.open) {
@@ -138,7 +136,6 @@ export default () => {
       }
 
       /* If all events have passed, move all market times a day forward */
-      console.log('testing!!!')
       est.setHours(est.getHours() + 24)
       marketTimes = getMarketTimes(est)
 
